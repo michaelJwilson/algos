@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub mod binary_tree;
 pub mod dynamic_errs;
 pub mod transpose;
@@ -7,3 +9,4 @@ pub mod geometry;
 pub mod fib;
 pub mod collatz;
 pub mod bounded_channel;
+pub mod archer;

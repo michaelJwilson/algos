@@ -19,5 +19,5 @@ fn main() {
         thread::sleep(Duration::from_millis(5));
     }
 
-    let thread_id = handle.join().unwrap();
+    let _thread_id = handle.join().unwrap();
 }

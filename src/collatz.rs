@@ -16,7 +16,7 @@ fn collatz(n: u32) -> u32 {
 
 
 fn collatz_length(mut n: u32) -> u32 {
-    let MAX_LEN = 100;
+    let max_len = 100;
     let mut len = 1; 
 
     while n != 1 {
@@ -25,7 +25,7 @@ fn collatz_length(mut n: u32) -> u32 {
         n = collatz(n);
         len += 1;
         
-        if len > MAX_LEN {
+        if len > max_len {
             break;
         }
     }
