@@ -13,38 +13,30 @@ fn transpose(matrix: [[i32; 3]; 3]) -> [[i32; 3]; 3] {
     result
 }
 
-#[test]
-fn test_transpose() {
-    let matrix = [
-        [101, 102, 103], //
-        [201, 202, 203],
-        [301, 302, 303],
-    ];
-    let transposed = transpose(matrix);
-    
-    println!("matrix: {:#?}", matrix);
-    println!("transposed: {:#?}", transposed);
-    
-    assert_eq!(
-        transposed,
-        [
-            [101, 201, 301], //
-            [102, 202, 302],
-            [103, 203, 303],
-        ]
-    );
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-fn main() {
-    let matrix = [
-        [101, 102, 103], // <-- the comment makes rustfmt add a newline
-        [201, 202, 203],
-        [301, 302, 303],
-    ];
+    #[test]
+    fn test_transpose() {
+        let matrix = [
+    	    [101, 102, 103], //
+            [201, 202, 203],
+            [301, 302, 303],
+    	];
+
+	let transposed = transpose(matrix);
     
-    let transposed = transpose(matrix);
+        println!("matrix: {:#?}", matrix);
+	    println!("transposed: {:#?}", transposed);
     
-    println!("matrix: {:#?}", matrix);
-    println!("transposed: {:#?}", transposed);
-    
+        assert_eq!(
+    	    transposed,
+            [
+		[101, 201, 301], //
+            	[102, 202, 302],
+            	[103, 203, 303],
+            ]
+        );
+    }
 }
