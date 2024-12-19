@@ -14,7 +14,7 @@ fn create_lattice(size: usize, num_clones: i32) -> Array2<i32> {
    lattice
 }
 
-fn get_clone_sizes (lattice: Array2<i32>) -> HashMap<i32, usize> {
+fn get_clone_sizes (lattice: &Array2<i32>) -> HashMap<i32, usize> {
    let mut counts: HashMap<i32, usize> = HashMap::new();
 
    // Count the occurrences of each entry in the lattice
@@ -25,16 +25,55 @@ fn get_clone_sizes (lattice: Array2<i32>) -> HashMap<i32, usize> {
    counts
 }
 
+fn neighbor_defect(value: i32, neighbor: i32) -> i32{
+   if neighbor != value {
+      return 1;
+   }
+   
+   else{
+      return 0;
+   }
+}
+
+fn get_lattice_cost(lattice: &Array2<i32>) -> f64 {
+   let beta: f64 = 1.0;
+   let mut defects: i32 = 0;
+
+   for ((i, j), &value) in lattice.indexed_iter() {
+        if i - 1 < 0 {
+	   defects += neighbor_defect(value, lattice[(i - 1, j)]);
+	}
+
+        if i + 1 < lattice.nrows() {
+	   defects += neighbor_defect(value, lattice[(i + 1, j)]);
+        }
+
+	if j - 1 < 0 {   
+	   defects += neighbor_defect(value, lattice[(i + 1, j)]);
+	}
+
+        if j + 1 < lattice.ncols() {
+	   defects += neighbor_defect(value, lattice[(i, j + 1)]);
+        }
+    }
+
+   beta * (defects as f64)
+}
+
 pub fn test_potts() {
-   let size = 5_000;
-   let num_clones = 5;
+   let size = 3;
+   let num_clones = 2;
 
    let start = Instant::now();
 
    let lattice = create_lattice(size, num_clones);
-   let clone_sizes = get_clone_sizes(lattice);
+
+   println!("{:?}", lattice);
+
+   let clone_sizes = get_clone_sizes(&lattice);
+   let cost = get_lattice_cost(&lattice);
 
    let duration = start.elapsed();
 
-   println!("Found {clone_sizes:?} in {duration:?}.")
+   println!("Found {clone_sizes:?} with cost {cost:?} in {duration:?}.")
 }
