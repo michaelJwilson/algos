@@ -4,7 +4,10 @@ use std::sync::{Arc, Mutex};
 pub fn archer() {
     let v = Arc::new(Mutex::new(vec![10, 20, 30]));
     let v2 = Arc::clone(&v);
-    
+
+    println!("v: {v:?}");
+
+    //  NB spawned thread pushes to v;
     let handle = thread::spawn(move || {
         let mut v2 = v2.lock().unwrap();	
         v2.push(10);
