@@ -5,3 +5,4 @@ pub mod tests;
 pub mod hash_map;
 pub mod geometry;
 pub mod fib;
+pub mod collatz;
