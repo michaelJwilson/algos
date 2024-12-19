@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 use std::sync::Arc;
 use std::thread;
 use rayon::prelude::*;
+use std::time::Instant;
 
 /// A node in the binary tree; accepts a generic type T as value
 /// providing it has the Ordinal comparison trait defined.
@@ -86,25 +87,39 @@ impl<T: Ord> BinaryTree<T> {
 }
 
 pub fn query_binary_tree() {
+   let start = Instant::now();
+
    let mut tree = BinaryTree::new();
 
-   for i in 0..100 {
+   let step: i32 = 5;
+   let num_element: i32 = 1_000;
+
+   for i in (0..num_element).step_by(step as usize) {
        tree.insert(i);
    }
 
+   let duration = start.elapsed();
+
+   println!("Tree construction complete in {duration:?}.");
+
+   let num_queries: i32 = 1_000_000;
+   let queries: Vec<i32> = (0..num_queries).map(|xx| xx % num_element).collect();
    let tree = Arc::new(tree);
 
-   let queries: Vec<i32> = (0..10).map(|i| i * 10 + 21).collect();
-   let results: Vec<bool> = queries.par_iter()
+   let start = Instant::now();
+  
+   let results: Vec<i32> = queries.par_iter()
         .map(|&value| {
-            let tree_clone = Arc::clone(&tree);
-            tree_clone.has(&value)
+            Arc::clone(&tree).has(&value) as i32
         })
         .collect();
 
-    for (query, result) in queries.iter().zip(results.iter()) {
-        println!("Query {} = {}", query, result);
-    }
+   let total_queries_found: i32 = results.iter().sum();
+
+   let duration = start.elapsed();
+   let expected = (num_element / step) * (num_queries / num_element);
+
+   println!("Found {total_queries_found} of {num_queries:?} queries to be present in {duration:?}.  Expected {expected}.");
 }
 
 #[cfg(test)]
