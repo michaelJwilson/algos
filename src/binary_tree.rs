@@ -58,7 +58,7 @@ impl<T: Ord> Subtree<T> {
 	    Some(n) => match value.cmp(&n.value) {
 	        Ordering::Less => n.left.insert(value),
 		Ordering::Equal => {},
-		Ordering::Greater => n.right.insert(vallue),
+		Ordering::Greater => n.right.insert(value),
 	    }
 	}
     }
