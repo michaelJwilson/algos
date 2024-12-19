@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::sync::Arc;
-use std::thread;
 use rayon::prelude::*;
 use std::time::Instant;
 

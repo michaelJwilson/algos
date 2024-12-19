@@ -10,3 +10,4 @@ pub mod fib;
 pub mod collatz;
 pub mod bounded_channel;
 pub mod archer;
+pub mod potts;
