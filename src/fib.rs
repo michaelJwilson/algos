@@ -6,7 +6,14 @@ fn fib(n: u32) -> u32 {
     }
 }
 
-fn main() {
-    let n = 20;
-    println!("fib({n}) = {}", fib(n));
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fib() {
+       let n = 20;
+       
+       println!("fib({n}) = {}", fib(n));
+    }
 }
