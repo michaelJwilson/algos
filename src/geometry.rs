@@ -17,7 +17,7 @@ fn normalize(vector: &mut [f64; 3]) {
    let mag = magnitude(vector);
    
    for vv in vector {
-      *item /= mag;
+      *vv /= mag;
    }
 }
 

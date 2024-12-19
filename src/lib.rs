@@ -6,3 +6,4 @@ pub mod hash_map;
 pub mod geometry;
 pub mod fib;
 pub mod collatz;
+pub mod bounded_channel;
