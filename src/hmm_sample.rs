@@ -1,5 +1,5 @@
-use algos::weighted_choice::WeightedChoice
-use rand::{Rng, SeedableRng, rngs::StdRng};
+use rand::{Rng, SeedableRng, rngs::StdRng, distributions::Distribution};
+use crate::weighted_choice::WeightedChoice;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct HMMSample {
@@ -47,16 +47,20 @@ mod tests {
     #[test]
     fn test_hmm_sample_iter() {
         let a_weights = vec![
-            WeightedChoiceFloat::new(vec![0.1, 0.9]),
-            WeightedChoiceFloat::new(vec![0.8, 0.2]),
+            WeightedChoice::from_pmf(&vec![0.1, 0.9]),
+            WeightedChoice::from_pmf(&vec![0.8, 0.2]),
         ];
+	
         let b_weights = vec![
-            WeightedChoiceFloat::new(vec![0.3, 0.7]),
-            WeightedChoiceFloat::new(vec![0.6, 0.4]),
+            WeightedChoice::from_pmf(&vec![0.3, 0.7]),
+            WeightedChoice::from_pmf(&vec![0.6, 0.4]),
         ];
-        let c_weights = WeightedChoiceFloat::new(vec![0.5, 0.5]);
+	
+        let c_weights = WeightedChoice::from_pmf(&vec![0.5, 0.5]);
 
-        let mut rng = StepRng::new(0, 1); // Mock RNG for deterministic results
+	// Mock RNG for deterministic results
+        let mut rng = StepRng::new(0, 1);
+	
         let mut iter = HMMSampleIter {
             a_weighted_choices: a_weights,
             b_weighted_choices: b_weights,

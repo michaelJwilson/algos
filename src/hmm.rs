@@ -2,7 +2,7 @@ use rand::Rng;
 use ndarray::prelude::*;
 use spectral::numeric::{FloatAssertions, OrderedAssertions};
 use spectral::{assert_that, asserting};
-use algos::weighted_choice::WeightedChoice;
+use crate::weighted_choice::WeightedChoice;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde-1", derive(Serialize, Deserialize))]
