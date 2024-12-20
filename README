@@ -1,4 +1,7 @@
+
+Tests:
+    cargo test test_transfer_hop_sample -- --nocapture
+
 See:
-    https://github.com/paulkernfeld/hmmm/blob/master/Cargo.toml
-    
+    https://github.com/paulkernfeld/hmmm/blob/master/Cargo.toml    
     https://nnethercote.github.io/perf-book/build-configuration.html

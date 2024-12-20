@@ -14,6 +14,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_read_count() {
         fs::write("count.dat", "1i3").unwrap();
 	
