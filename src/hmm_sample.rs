@@ -1,5 +1,5 @@
 use rand::{Rng, SeedableRng, rngs::StdRng, distributions::Distribution};
-use crate::weighted_choice::WeightedChoice;
+use crate::categorical::Categorical;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct HMMSample {
@@ -9,9 +9,9 @@ pub struct HMMSample {
 
 /// An iterator that returns random samples from an HMM
 pub struct HMMSampleIter<'a, R: Rng + ?Sized + 'a> {
-    a_weighted_choices: Vec<WeightedChoice>,
-    b_weighted_choices: Vec<WeightedChoice>,
-    c_weighted_choice: WeightedChoice,
+    a_categoricals: Vec<Categorical>,
+    b_categoricals: Vec<Categorical>,
+    c_categorical: Categorical,
     rng: &'a mut R,
     current_state: Option<usize>,
 }
@@ -21,14 +21,16 @@ impl<'a, R: Rng + ?Sized> Iterator for HMMSampleIter<'a, R> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let state = if let Some(current_state) = self.current_state {
-            self.a_weighted_choices[current_state].sample(self.rng)
+            self.a_categoricals[current_state].sample(self.rng)
         } else {
-            self.c_weighted_choice.sample(self.rng)
+            self.c_categorical.sample(self.rng)
         };
+	
         self.current_state = Some(state);
+	
         Some(HMMSample {
             x: state,
-            y: self.b_weighted_choices[state].sample(self.rng),
+            y: self.b_categoricals[state].sample(self.rng),
         })
     }
 }
@@ -46,25 +48,25 @@ mod tests {
 
     #[test]
     fn test_hmm_sample_iter() {
+        // Mock RNG for deterministic results
+    	let mut rng = StepRng::new(0, 1);
+
         let a_weights = vec![
-            WeightedChoice::from_pmf(&vec![0.1, 0.9]),
-            WeightedChoice::from_pmf(&vec![0.8, 0.2]),
+            Categorical::from_pmf(&vec![0.1, 0.9]),
+            Categorical::from_pmf(&vec![0.8, 0.2]),
         ];
 	
         let b_weights = vec![
-            WeightedChoice::from_pmf(&vec![0.3, 0.7]),
-            WeightedChoice::from_pmf(&vec![0.6, 0.4]),
+            Categorical::from_pmf(&vec![0.3, 0.7]),
+            Categorical::from_pmf(&vec![0.6, 0.4]),
         ];
 	
-        let c_weights = WeightedChoice::from_pmf(&vec![0.5, 0.5]);
-
-	// Mock RNG for deterministic results
-        let mut rng = StepRng::new(0, 1);
+        let c_weights = Categorical::from_pmf(&vec![0.5, 0.5]);
 	
         let mut iter = HMMSampleIter {
-            a_weighted_choices: a_weights,
-            b_weighted_choices: b_weights,
-            c_weighted_choice: c_weights,
+            a_categoricals: a_weights,
+            b_categoricals: b_weights,
+            c_categorical: c_weights,
             rng: &mut rng,
             current_state: None,
         };

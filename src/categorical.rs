@@ -1,10 +1,10 @@
 use rand::{Rng, distributions::Distribution};
 
-pub struct WeightedChoice {
+pub struct Categorical {
     cmf: Vec<f64>,
 }
 
-impl WeightedChoice {
+impl Categorical {
     pub fn from_pmf(pmf: &[f64]) -> Self {
         let cmf = pmf
             .iter()
@@ -17,15 +17,14 @@ impl WeightedChoice {
     }
 }
 
-impl Distribution<usize> for WeightedChoice {
+impl Distribution<usize> for Categorical {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> usize {
-        let sampled_uniform = rng.gen::<f64>();
-	
+        let uniform_sample = rng.gen::<f64>();
         let (i, _x) = self
             .cmf
             .iter()
             .enumerate()
-            .find(|(_i, &x)| sampled_uniform < x)
+            .find(|(_i, &x)| uniform_sample < x)
             .unwrap();
         i
     }
@@ -40,9 +39,9 @@ mod tests {
     const TOLERANCE: f64 = 1e-6;
 
     #[test]
-    fn test_weighted_choice_from_pmf() {
+    fn test_categorical_from_pmf() {
         let pmf = vec![0.1, 0.2, 0.3, 0.4];
-        let wc = WeightedChoice::from_pmf(&pmf);
+        let wc = Categorical::from_pmf(&pmf);
         let expected_cmf = vec![0.1, 0.3, 0.6, 1.0];
 
 	for (r, e) in wc.cmf.iter().zip(expected_cmf.iter()) {
@@ -51,9 +50,9 @@ mod tests {
     }
 
     #[test]
-    fn test_weighted_choice_sample() {
+    fn test_categorical_sample() {
         let pmf = vec![0.1, 0.2, 0.3, 0.4];
-        let wc = WeightedChoice::from_pmf(&pmf);
+        let wc = Categorical::from_pmf(&pmf);
         let mut rng = thread_rng();
 
         for _ in 0..100 {
