@@ -21,6 +21,7 @@ serde = { version = "1.0.116", optional = false }
 
 [dev-dependencies]
 rand = "0.8"
+approx = "0.4"
 
 [profile.dev]
 opt-level = 3  # Otherwise the tests run too slow

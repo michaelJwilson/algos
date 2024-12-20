@@ -10,7 +10,7 @@ pub struct HMM {
     pub PI: Array1<f64>,
 }
 
-const TOLERANCE: f64 = 1e-5;
+const TOLERANCE: f64 = 1e-6;
 
 impl HMM {
     pub fn new(A: Array2<f64>, B: Array2<f64>, PI: Array1<f64>) -> Self {

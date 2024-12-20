@@ -13,3 +13,4 @@ pub mod bounded_channel;
 pub mod archer;
 pub mod potts;
 pub mod hmm;
+pub mod weighted_choice;
