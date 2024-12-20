@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_transfer_hop() {
-       let PI = DMatrix::from_element(5, 1, 1.);
+       let PI: DMatrix<f64> = DMatrix::from_element(5, 1, 0.2);
        let T = get_transfer_matrix(5);
 
        let exp = DMatrix::from_element(5, 1, 1.);
@@ -49,7 +49,7 @@ mod tests {
     fn test_transfer_hop_sample() {
        let mut rng = thread_rng();
 
-       let PI = DMatrix::from_element(5, 1, 1.);
+       let PI: DMatrix<f64> = DMatrix::from_element(5, 1, 0.2);
        let T = get_transfer_matrix(5);
 
        let state_prob = (T * PI);
@@ -57,13 +57,14 @@ mod tests {
        let cat = Categorical::from_pmf(state_prob.as_slice());
        let mut counts: HashMap<usize, usize> = HashMap::new();
 
-
-       for _ in (0..1_000) {
+       for _ in (0..10_000) {
            let sample = cat.sample(&mut rng);
 	   *counts.entry(sample).or_insert(0) += 1;
        }
-
-       println!("{counts:#?}");
+       
+       for (&key, &count) in &counts {
+       	   assert_abs_diff_eq!(count as f64, 2000., epsilon = 100.);
+       }
     }
 
     #[test]

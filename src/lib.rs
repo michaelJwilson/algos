@@ -1,5 +1,6 @@
 // NB module level configuration.
 #![allow(dead_code)]
+#![allow(non_snake_case)]
 
 pub mod binary_tree;
 pub mod dynamic_errs;
