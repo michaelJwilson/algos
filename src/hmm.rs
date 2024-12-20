@@ -73,4 +73,14 @@ impl HMM {
 
         Self { A, B, PI }
     }
+
+    /// $N$, the number of states in this HMM
+    pub fn n_latent_states(&self) -> usize {
+        self.B.nrows()
+    }
+
+    /// $K$, the number of possible observations that this model can emit
+    pub fn n_obs_states(&self) -> usize {
+        self.B.ncols()
+    }
 }

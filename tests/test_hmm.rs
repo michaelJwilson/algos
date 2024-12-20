@@ -31,4 +31,10 @@ mod tests {
 
         assert_eq!(hmm.PI, array![0.6, 0.4]);
     }
+
+    #[test]
+    pub fn test_latent_states() {
+    
+
+    }
 }
