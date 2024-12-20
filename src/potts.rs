@@ -40,19 +40,19 @@ fn get_lattice_cost(lattice: &Array2<i32>) -> f64 {
    let mut defects: i32 = 0;
 
    for ((i, j), &value) in lattice.indexed_iter() {
-        if i - 1 < 0 {
+        if i as i32 - 1 < 0 {
 	   defects += neighbor_defect(value, lattice[(i - 1, j)]);
 	}
 
-        if i + 1 < lattice.nrows() {
+        if i as i32 + 1 < lattice.nrows() as i32 {
 	   defects += neighbor_defect(value, lattice[(i + 1, j)]);
         }
 
-	if j - 1 < 0 {   
+	if j as i32 - 1 < 0 {   
 	   defects += neighbor_defect(value, lattice[(i + 1, j)]);
 	}
 
-        if j + 1 < lattice.ncols() {
+        if j as i32 + 1 < lattice.ncols() as i32 {
 	   defects += neighbor_defect(value, lattice[(i, j + 1)]);
         }
     }

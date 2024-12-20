@@ -33,5 +33,5 @@ approx = "0.4"
 [profile.dev]
 opt-level = 3  # Otherwise the tests run too slow
 
-[build]
-rustflags = ["-C", "target-cpu=native"]
+# [build]
+# rustflags = ["-C", "target-cpu=native"]

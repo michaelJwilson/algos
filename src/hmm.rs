@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use rand::Rng;
 use ndarray::prelude::*;
 use spectral::numeric::{FloatAssertions, OrderedAssertions};
