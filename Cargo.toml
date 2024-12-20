@@ -18,6 +18,13 @@ rand = "0.8"
 rand_chacha = "0.3"
 spectral = "0.6.0"
 serde = { version = "1.0.116", optional = false }
+nalgebra = "0.29"
+nalgebra-lapack = "0.14"
+
+argmin = "0.10.0"
+argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }
+argmin_testfunctions = "0.2.0"
+argmin-observer-slog = "0.1.0"
 
 [dev-dependencies]
 rand = "0.8"

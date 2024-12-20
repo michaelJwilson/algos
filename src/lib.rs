@@ -13,5 +13,6 @@ pub mod bounded_channel;
 pub mod archer;
 pub mod potts;
 pub mod hmm;
-pub mod hmm_sample;
-pub mod weighted_choice;
+// pub mod hmm_sample;
+pub mod categorical;
+pub mod rosenbrock;
