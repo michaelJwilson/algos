@@ -1,6 +1,6 @@
 use nalgebra::{DMatrix};
 use rand::{Rng, distributions::Distribution, thread_rng};
-use crate::categorical::Categorical;
+use statrs::distribution::Categorical;
 
 fn get_transfer_matrix(K: i32) -> DMatrix<f64> {
    let t = 1.0e-5;

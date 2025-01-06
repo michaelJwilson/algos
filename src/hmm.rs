@@ -4,7 +4,7 @@ use rand::Rng;
 use ndarray::prelude::*;
 use spectral::numeric::{FloatAssertions, OrderedAssertions};
 use spectral::{assert_that, asserting};
-use crate::categorical::Categorical;
+use statrs::distribution::Categorical;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde-1", derive(Serialize, Deserialize))]

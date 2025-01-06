@@ -14,7 +14,7 @@ pub mod bounded_channel;
 pub mod archer;
 pub mod potts;
 pub mod hmm;
-pub mod matrix;
+// pub mod matrix;
 pub mod categorical;
 pub mod rosenbrock;
 // pub mod bfgs;
