@@ -1,28 +1,21 @@
-fn get_longest_prefix(input_str: &str) -> usize {
-   let mut seen = String::new();
-   let mut result = 0;
-
-   for char in input_str.chars() {
-       if !seen.contains(char) {
-           seen.push(char);
-	   result += 1;
-       }
-       else {
-           return result;
-       }
-   }
-
-   result
-}
+use std::collections::HashSet;
 
 fn get_longest_substring(input_str: &str) -> usize {
-   let mut result = vec![0; input_str.len()];
+    let mut chars = input_str.chars();
+    let mut seen = HashSet::new();
+    let mut max_len = 0;
+    let mut start = 0;
 
-   for ii in 0..result.len() {
-       result[ii] = get_longest_prefix(&input_str[ii..])
-   }
+    for (end, char) in input_str.chars().enumerate() {
+        while seen.contains(&char) {
+            seen.remove(&input_str[start..].chars().next().unwrap());
+            start += 1;
+        }
+        seen.insert(char);
+        max_len = max_len.max(end - start + 1);
+    }
 
-   *result.iter().max().unwrap()
+    max_len
 }
 
 struct Solution;
@@ -36,7 +29,12 @@ impl Solution {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
+    #[test]
+    fn test_empty() {
+        assert_eq!(get_longest_substring(""), 0);
+    }
+
     #[test]
     fn test_abcabcbb() {
        assert_eq!(get_longest_substring("abcabcbb"), 3);
@@ -55,5 +53,5 @@ mod tests {
     #[test]
     fn test_Solution() {
        assert_eq!(Solution::length_of_longest_substring("abcabcbb".to_string()), 3);
-    }   
+    }
 }
