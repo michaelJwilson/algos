@@ -1,7 +1,8 @@
-use std::error::Error;
 use std::fs;
 use std::io::Read;
+use std::error::Error;
 
+// NB 
 fn read_count(path: &str) -> Result<i32, Box<dyn Error>> {
     let mut count_str = String::new();
     fs::File::open(path)?.read_to_string(&mut count_str)?;

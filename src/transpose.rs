@@ -1,9 +1,9 @@
-// TODO: remove this when you're done with your implementation.
-// #![allow(unused_variables, dead_code)]
-
+// NB a 3x3 matrix  == 3 rows of 3-element (i32) vectors.
 fn transpose(matrix: [[i32; 3]; 3]) -> [[i32; 3]; 3] {
+    // NB Initialize with zeros.
     let mut result: [[i32; 3]; 3] = [[0; 3]; 3];
 
+    // NB Inclusive, i in {0, 1, 2}.
     for i in 0..=2{
         for j in 0..=2{
             result[i][j] = matrix[j][i];
