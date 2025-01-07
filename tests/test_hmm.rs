@@ -3,6 +3,7 @@ mod tests {
     use algos::hmm::HMM;
     use ndarray::array;
 
+    // NB array! is a macro.
     fn setup_new_hmm() -> HMM {
         let A = array![
             [0.7, 0.3],
