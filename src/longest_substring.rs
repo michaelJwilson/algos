@@ -25,6 +25,14 @@ fn get_longest_substring(input_str: &str) -> usize {
    *result.iter().max().unwrap()
 }
 
+struct Solution;
+
+impl Solution {
+    pub fn length_of_longest_substring(s: String) -> i32 {
+        get_longest_substring(&s) as i32
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -43,4 +51,9 @@ mod tests {
     fn test_pwwkew() {
        assert_eq!(get_longest_substring("pwwkew"), 3);
     }
+
+    #[test]
+    fn test_Solution() {
+       assert_eq!(Solution::length_of_longest_substring("abcabcbb".to_string()), 3);
+    }   
 }
