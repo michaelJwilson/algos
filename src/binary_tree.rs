@@ -3,8 +3,8 @@ use std::sync::Arc;
 use rayon::prelude::*;
 use std::time::Instant;
 
-/// A node in the binary tree; accepts a generic type T as value
-/// providing it has the Ordinal comparison trait defined.
+/// NB a node in the binary tree; accepts a generic type T as value
+/// providing it has the partial order / Ordinal comparison trait defined.
 #[derive(Debug)]
 struct Node<T: Ord> {
     value: T,
@@ -12,14 +12,19 @@ struct Node<T: Ord> {
     right: Subtree<T>,
 }
 
+// NB accepts a generic type T for which the Ordinal comparison trait is
+//    defined.
 impl<T: Ord> Node <T> {
     fn new(value: T) -> Self {
         Self {value, left: Subtree::new(), right: Subtree::new() }
     }
 }
 
-/// A possibly-empty (None) subtree; Box achieves a pointer definition to
-/// the heap that circumvents the need to know tree size a priori.
+// NB Box achieves a pointer definition to memory on the heap that
+//    circumvents the need to know tree size a priori, as required
+//    by a stack allocation.
+//
+//    Subtree initialized with a node or None.  Assumes binary tree.
 #[derive(Debug)]
 struct Subtree<T: Ord>(Option<Box<Node<T>>>);
 
@@ -28,9 +33,10 @@ impl<T: Ord> Subtree<T> {
         Self(None)
     }
 
+    // NB only saves unique values to the tree.
     fn insert(&mut self, value: T) {
         match &mut self.0 {
-	    //  Some is the non-None instance to Option.
+	    //  NB some is the non-None option for Option.
 	    None => self.0 = Some(Box::new(Node::new(value))),
 	    Some(n) => match value.cmp(&n.value) {
 	        Ordering::Less => n.left.insert(value),
@@ -41,6 +47,7 @@ impl<T: Ord> Subtree<T> {
     }
 
     fn has(&self, value: &T) -> bool {
+        // NB read-only reference.
         match &self.0 {
 	    None => false,
 	    Some(n) => match value.cmp(&n.value) {
@@ -51,6 +58,7 @@ impl<T: Ord> Subtree<T> {
         }
     }
 
+    // NB returns number of nodes in the tree
     fn len(&self) -> usize {
        match &self.0 {
            None => 0,
@@ -59,14 +67,14 @@ impl<T: Ord> Subtree<T> {
     }
 }
 
-/// A container storing a set of values, using a binary tree.
-///
-/// If the same value is added multiple times, it is only stored once.
+// NB A container storing a set of values, using a binary tree.
+//    If the same value is added multiple times, it is only stored once.
 #[derive(Debug)]
 pub struct BinaryTree<T: Ord> {
     root: Subtree<T>,
 }
 
+// TODO all methods delegate to the equivalent in Subtree?  deprecate.
 impl<T: Ord> BinaryTree<T> {
     fn new() -> Self {
         Self { root: Subtree::new() }
@@ -81,11 +89,12 @@ impl<T: Ord> BinaryTree<T> {
     }
 
     fn len(&self) -> usize {
-        self.root.len()
+         self.root.len()
     }
 }
 
 pub fn query_binary_tree() {
+   // NB initialize walltime timer. 
    let start = Instant::now();
 
    let mut tree = BinaryTree::new();
@@ -93,6 +102,8 @@ pub fn query_binary_tree() {
    let step: i32 = 5;
    let num_element: i32 = 1_000;
 
+   // NB 200 elements with 0, 5, ..., etc. as unsigned ints
+   //    with memory determined by 32/64 bit.
    for i in (0..num_element).step_by(step as usize) {
        tree.insert(i);
    }
@@ -101,6 +112,7 @@ pub fn query_binary_tree() {
 
    println!("Tree construction complete in {duration:?}.");
 
+   // NB query the tree num_queries times with multiple threads.
    let num_queries: i32 = 1_000_000;
    let queries: Vec<i32> = (0..num_queries).map(|xx| xx % num_element).collect();
    let tree = Arc::new(tree);
@@ -113,6 +125,7 @@ pub fn query_binary_tree() {
         })
         .collect();
 
+   // NB sum of binary "has" result is number of queries present.
    let total_queries_found: i32 = results.iter().sum();
 
    let duration = start.elapsed();

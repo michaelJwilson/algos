@@ -23,6 +23,7 @@ impl CostFunction for Rosenbrock {
     }
 }
 
+// NB BFGS approximates Hessian by accumulating gradient calls.
 impl Gradient for Rosenbrock {
     type Param = Array1<f64>;
     type Gradient = Array1<f64>;
