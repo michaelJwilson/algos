@@ -1,9 +1,10 @@
-/// Determine the length of the collatz sequence beginning at `n`.
+/// NB  Determine the length of the collatz sequence beginning at `n`.
+///     See: https://en.wikipedia.org/wiki/Collatz_conjecture
 fn collatz(n: u32) -> u32 {
   if n == 0 {
       return 0;
   }
-  if n == 1 {
+  else if n == 1 {
       return 1;
   }
   else if n % 2 == 0 {
@@ -21,7 +22,8 @@ fn collatz_length(mut n: u32) -> u32 {
 
     while n != 1 {
         println!("{n}");
-    
+
+	// NB a Collatz "step".
         n = collatz(n);
         len += 1;
         
@@ -29,7 +31,8 @@ fn collatz_length(mut n: u32) -> u32 {
             break;
         }
     }
-    
+
+    // NB returns sequence length for a given n.
     len
 }
 

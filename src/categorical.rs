@@ -3,6 +3,7 @@ use statrs::distribution::{Categorical, Discrete};
 
 #[cfg(test)]
 mod tests {
+    // NB place all "parent" definitions in test scope. 
     use super::*;
     use rand::thread_rng;
     use approx::assert_abs_diff_eq;
@@ -11,8 +12,10 @@ mod tests {
 
     #[test]
     fn test_categorical_new() {
+        // NB four categories with given probabilities.
         let pmf: Vec<f64> = vec![0.1, 0.2, 0.3, 0.4];
 	let mut cat = Categorical::new(&pmf);
+	
 	assert!(cat.is_ok());
     }
 
@@ -30,6 +33,7 @@ mod tests {
 
     #[test]
     fn test_categorical_sample() {
+        // NB tests sampling from given categorical.
         let mut rng = thread_rng();
 	let pmf: Vec<f64> = vec![0.1, 0.2, 0.3, 0.4];
         let cat = Categorical::new(&pmf).unwrap();
