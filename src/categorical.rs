@@ -27,7 +27,7 @@ mod tests {
 	for ii in (0..pmf.len()) {
 	    let result = cat.pmf(ii.try_into().unwrap());
 
-	    asserteq!(result, pmf[ii]);
+	    assert_eq!(result, pmf[ii]);
 	}
     }
 

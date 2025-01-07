@@ -16,8 +16,8 @@ pub mod archer;
 pub mod potts;
 pub mod hmm;
 pub mod categorical;
-pub mod rosenbrock;
-
+pub mod nelder_mead;
+pub mod longest_substring;
 
 // NB list of deprecated modules.
 // pub mod matrix;
