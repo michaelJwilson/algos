@@ -2,6 +2,7 @@ use nalgebra::{DMatrix};
 use rand::{Rng, distributions::Distribution, thread_rng};
 use statrs::distribution::Categorical;
 
+// NB a CalicoST-like transfer matrix of size K x K.
 fn get_transfer_matrix(K: i32) -> DMatrix<f64> {
    let t = 1.0e-5;
    let K = K.clone() as usize;
@@ -21,6 +22,7 @@ mod tests {
 
     const TOLERANCE: f64 = 1e-6;
 
+    // NB matrices equal to a given tolerance epsilon; read-only referenes.
     fn assert_matrices_close(matrix1: &DMatrix<f64>, matrix2: &DMatrix<f64>, epsilon: f64) {
        assert_eq!(matrix1.shape(), matrix2.shape(), "Matrices must have the same shape");
 
@@ -36,6 +38,7 @@ mod tests {
 
     #[test]
     fn test_transfer_hop() {
+       // NB The starting probabilities PI, for latent space of 5 states.
        let PI: DMatrix<f64> = DMatrix::from_element(5, 1, 0.2);
        let T = get_transfer_matrix(5);
 
@@ -52,8 +55,11 @@ mod tests {
        let PI: DMatrix<f64> = DMatrix::from_element(5, 1, 0.2);
        let T = get_transfer_matrix(5);
 
+       // NB the per-state probabilities after one T hop from PI.
        let state_prob = (T * PI);
-
+       
+       // NB count occurences of 10_000 samples from the per-state
+       //    probabilities.
        let cat = Categorical::from_pmf(state_prob.as_slice());
        let mut counts: HashMap<usize, usize> = HashMap::new();
 

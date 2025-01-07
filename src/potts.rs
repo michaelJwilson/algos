@@ -28,13 +28,7 @@ fn get_clone_sizes (lattice: &Array2<i32>) -> HashMap<i32, usize> {
 }
 
 fn is_defect(value: i32, neighbor: i32) -> i32{
-   if neighbor != value {
-      return 1;
-   }
-   
-   else{
-      return 0;
-   }
+   (neighbor != value) as i32
 }
 
 fn get_lattice_cost(lattice: &Array2<i32>) -> f64 {
