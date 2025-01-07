@@ -2,6 +2,7 @@
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 
+// NB declare the public modules.
 pub mod binary_tree;
 pub mod dynamic_errs;
 pub mod transpose;
@@ -14,8 +15,11 @@ pub mod bounded_channel;
 pub mod archer;
 pub mod potts;
 pub mod hmm;
-// pub mod matrix;
 pub mod categorical;
 pub mod rosenbrock;
+
+
+// NB list of deprecated modules.
+// pub mod matrix;
 // pub mod bfgs;
 // pub mod hmm_sample;
