@@ -7,7 +7,7 @@ pub struct HMMSample {
     pub y: usize,
 }
 
-/// An iterator that returns random samples from an HMM
+// NB An iterator that returns random samples from an HMM
 pub struct HMMSampleIter<'a, R: Rng + ?Sized + 'a> {
     a_categoricals: Vec<Categorical>,
     b_categoricals: Vec<Categorical>,
@@ -16,6 +16,7 @@ pub struct HMMSampleIter<'a, R: Rng + ?Sized + 'a> {
     current_state: Option<usize>,
 }
 
+// NB define a lifetime a'
 impl<'a, R: Rng + ?Sized> Iterator for HMMSampleIter<'a, R> {
     type Item = HMMSample;
 

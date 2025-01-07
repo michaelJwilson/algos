@@ -1,11 +1,16 @@
 #![allow(non_snake_case)]
-
 use rand::Rng;
 use ndarray::prelude::*;
-use spectral::numeric::{FloatAssertions, OrderedAssertions};
-use spectral::{assert_that, asserting};
 use statrs::distribution::Categorical;
 
+// NB fluent test assertions crate,
+//    see https://crates.io/crates/spectral
+use spectral::numeric::{FloatAssertions, OrderedAssertions};
+use spectral::{assert_that, asserting};
+
+const TOLERANCE: f64 = 1e-6;
+
+// NB Dataclass-like definition for HMM.
 #[derive(Debug)]
 #[cfg_attr(feature = "serde-1", derive(Serialize, Deserialize))]
 pub struct HMM {
@@ -13,8 +18,6 @@ pub struct HMM {
     pub B: Array2<f64>,
     pub PI: Array1<f64>,
 }
-
-const TOLERANCE: f64 = 1e-6;
 
 impl HMM {
     pub fn new(A: Array2<f64>, B: Array2<f64>, PI: Array1<f64>) -> Self {
