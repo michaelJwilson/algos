@@ -18,6 +18,7 @@ pub mod hmm;
 pub mod categorical;
 pub mod nelder_mead;
 pub mod longest_substring;
+pub mod merge_sorted;
 
 // NB list of deprecated modules.
 // pub mod matrix;
