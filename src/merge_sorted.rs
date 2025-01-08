@@ -1,4 +1,4 @@
-fn merge_sorted(m: i32, nums1: &mut Vec<i32>, n: i32, nums2: &mut Vec<i32>) {
+fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<i32>) {
   assert!(nums1.len() as i32 == (m + n));
   assert!(nums2.len() as i32 == n);
 
@@ -18,6 +18,15 @@ fn merge_sorted(m: i32, nums1: &mut Vec<i32>, n: i32, nums2: &mut Vec<i32>) {
 
           nums1[ii] = nums2[jj];
 	  nums2[jj] = to_swap;
+
+	  for kk in 0..nums2.len() - 1 {
+	      if nums2[kk + 1] < nums2[kk] {
+	          let to_swap = nums2[kk];
+
+		  nums2[kk] = nums2[kk + 1];
+		  nums2[kk + 1] = to_swap;
+	      }
+	  }
       }
 
       if ii as i32 >= m {
@@ -40,11 +49,11 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings" cargo test test_merge_sorted_solution -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_merge_sorted_two -- --nocapture
     use super::*;
 
     #[test]
-    fn test_merge_sorted() {
+    fn test_merge_sorted_one() {
         let m: i32 = 3;
 	let n: i32 = 3;
 
@@ -59,7 +68,24 @@ mod tests {
 	    assert!(nums1[ii] == exp[ii]);
 	}
     }
-    
+
+    #[test]
+    fn test_merge_sorted_two() {
+       let m: i32 = 3;
+       let n: i32 = 3;
+
+       let mut nums1 = vec![4,5,6,0,0,0];
+       let mut nums2 = vec![1,2,3];
+
+       let exp = vec![1, 2, 3, 4, 5, 6];
+
+       merge_sorted(m, &mut nums1, n, &mut nums2);
+
+       for ii in 0..nums1.len() {
+           assert!(nums1[ii] == exp[ii]);
+       }
+    }
+
     #[test]
     fn test_empty_second_merge() {
        let m: i32 = 1;
@@ -93,7 +119,7 @@ mod tests {
        for ii in 0..n as usize {
            assert!(nums1[ii] == exp[ii]);
        }
-    }
+    }  
 
     #[test]
     fn test_merge_sorted_solution() {
