@@ -1,5 +1,7 @@
 struct Solution;
 
+// NB enforces borrowing rules at runtime, not compile time.
+//    i.e. one mutable ref., or many immutable.
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -47,6 +49,49 @@ impl Solution {
 mod tests {
     // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_binary_tree_max_depth -- --nocapture
     use super::*;
+
+    #[test]
+    fn test_ref_cell() {
+       let cell = RefCell::new(5);
+
+       // NB immutable borrow
+       {
+           let value = cell.borrow();
+  	   println!("Value: {}", value);
+       }
+
+       // NB mutable borrow
+       {
+           let mut value = cell.borrow_mut();
+           *value += 1;
+       }
+
+       // NB immutable borrow
+       {
+           let value = cell.borrow();
+           println!("Updated Value: {}", value);
+       }
+    }
+
+    #[test]
+    fn test_rc() {
+       // NB Rc (Reference Counted) is a type that provides shared ownership of a value.
+       //    Multiple Rc instances can point to the same value, and the value is only
+       //    dropped when the last Rc instance pointing to it is dropped.
+       //
+       //    Allows multiple owners of the same value. Each Rc instance keeps a reference count,
+       //    which is incremented when a new Rc is cloned and decremented when an Rc is dropped.
+       let rc1 = Rc::new(5);
+       
+       println!("Reference count: {}", Rc::strong_count(&rc1));
+
+       {
+	   let rc2 = Rc::clone(&rc1);
+           println!("Reference count after clone: {}", Rc::strong_count(&rc1));
+       }
+
+       println!("Reference count after rc2 goes out of scope: {}", Rc::strong_count(&rc1));
+    }
 
     #[test]
     fn test_binary_tree_max_depth() {
