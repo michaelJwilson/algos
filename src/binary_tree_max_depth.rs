@@ -1,11 +1,11 @@
 struct Solution;
 
-// NB enforces borrowing rules at runtime, not compile time.
-//    i.e. one mutable ref., or many immutable.
+//  NB enforces borrowing rules at runtime, not compile time.
+//     i.e. one mutable ref., or many immutable.
 use std::cell::RefCell;
 use std::rc::Rc;
 
-// NB Data-class like, i.e. memory allocation.
+//  NB Data-class like, i.e. memory allocation.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {
     pub val: i32,
@@ -13,12 +13,12 @@ pub struct TreeNode {
     pub right: Option<Rc<RefCell<TreeNode>>>,
 }
 
-// NB consider inlining the annotated function. Inlining is
-// an optimization technique where the compiler replaces a
-// function call with the actual body of the function. This
-// can potentially reduce the overhead of the function call
-// and improve performance, especially for small, frequently
-// called functions.
+//  NB consider inlining the annotated function. Inlining is
+//     an optimization technique where the compiler replaces a
+//     function call with the actual body of the function. This
+//     can potentially reduce the overhead of the function call
+//     and improve performance, especially for small, frequently
+//     called functions.
 impl TreeNode {
     #[inline]
     pub fn new(val: i32) -> Self {
@@ -40,6 +40,7 @@ impl Solution {
 		
                 1 + left_depth.max(right_depth)
             }
+	    
             None => 0,
         }
     }
