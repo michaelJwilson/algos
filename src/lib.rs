@@ -20,6 +20,7 @@ pub mod nelder_mead;
 pub mod longest_substring;
 pub mod merge_sorted;
 pub mod remove_sorted_duplicates;
+pub mod majority_element;
 
 // NB list of deprecated modules.
 // pub mod matrix;
