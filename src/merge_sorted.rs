@@ -49,9 +49,38 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<
   println!("{:?}, {:?}, {:?} \t {:?}", nums1.len(), jj, nums1, nums2);
 }
 
+fn merge_sorted_optimal(m: i32, nums1: &mut Vec<i32>, n: i32, nums2: &Vec<i32>) {
+    ///  Use a two-pointer approach to merge the two sorted arrays in-place.
+    ///  The idea is to start from the end of both arrays and place the largest
+    ///  elements at the end of nums1. This way, you avoid overwriting elements
+    ///  in nums1 that have not been processed yet.
+
+    // NB last index in nums1 that's not zero padded;
+    let mut i = m as isize - 1;
+
+    // NB last index in num2;
+    let mut j = n as isize - 1;
+
+    // NB last index in	nums1;
+    let mut k = (m + n) as isize - 1;
+
+    // NB working back through the solution array, a given element either came from
+    //    the last decrement to nums1 or nums2.  Update accordingly. 
+    while j >= 0 {
+        if i >= 0 && nums1[i as usize] > nums2[j as usize] {
+            nums1[k as usize] = nums1[i as usize];
+            i -= 1;
+        } else {
+            nums1[k as usize] = nums2[j as usize];
+            j -= 1;
+        }
+        k -= 1;
+    }
+}
+
 impl Solution {
     pub fn merge(nums1: &mut Vec<i32>, m: i32, nums2: &mut Vec<i32>, n: i32) {
-        merge_sorted(m, nums1, n, nums2);       
+        merge_sorted_optimal(m, nums1, n, nums2);       
     }
 }
 
