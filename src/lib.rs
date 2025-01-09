@@ -24,6 +24,7 @@ pub mod majority_element;
 pub mod binary_tree_max_depth;
 pub mod binary_tree_same;
 pub mod binary_tree_path_sum;
+pub mod game_of_life;
 
 // NB list of deprecated modules.
 // pub mod matrix;
