@@ -23,7 +23,7 @@ impl TreeNode {
 }
 
 impl Solution {
-    pub fn same_tree(root: Option<Rc<RefCell<TreeNode>>>, other: Option<Rc<RefCell<TreeNode>>>) -> bool {
+    pub fn is_same_tree(root: Option<Rc<RefCell<TreeNode>>>, other: Option<Rc<RefCell<TreeNode>>>) -> bool {
         match (root, other) {
             (Some(node), Some(other_node)) => {
 	        let left = node.borrow().left.clone();
@@ -33,8 +33,8 @@ impl Solution {
 		let other_right = other_node.borrow().right.clone();
 
 		((node.borrow().val == other_node.borrow().val)
-		    && (Solution::same_tree(left, other_left))
-		    && (Solution::same_tree(right, other_right)))
+		    && (Solution::is_same_tree(left, other_left))
+		    && (Solution::is_same_tree(right, other_right)))
             }
 
 	    (None, None) => true,
@@ -66,7 +66,7 @@ mod tests {
 	other.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(2))));
 	other.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(3))));
     	
-    	let result = Solution::same_tree(Some(root), Some(other));
+    	let result = Solution::is_same_tree(Some(root), Some(other));
         let exp = true;
 	
         assert!(result == exp);
@@ -84,9 +84,9 @@ mod tests {
 	other.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(2))));
         other.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(4))));
 
-	let result = Solution::same_tree(Some(root), Some(other));
+	let result = Solution::is_same_tree(Some(root), Some(other));
         let exp = false;
 
-	assert!(result != exp);
+	assert!(result == exp);
     }
 }
