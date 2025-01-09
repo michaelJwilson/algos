@@ -22,6 +22,7 @@ pub mod merge_sorted;
 pub mod remove_sorted_duplicates;
 pub mod majority_element;
 pub mod binary_tree_max_depth;
+pub mod binary_tree_same;
 
 // NB list of deprecated modules.
 // pub mod matrix;
