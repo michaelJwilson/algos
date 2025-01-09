@@ -1,5 +1,7 @@
-use::std::rc:Rc;
-use::std:refcell::RefCell;
+use::std::rc::Rc;
+use::std::cell::RefCell;
+
+struct Solution;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {
@@ -20,53 +22,81 @@ impl TreeNode {
 }
 
 impl Solution {
-     pub fn has_path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> bool {
-     
+    pub fn has_path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> bool {
+        Self::dfs(&root, target_sum)
+    }
 
-     }
+    // NB node arg. accepted by reference.
+    pub fn dfs(node: &Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> bool {
+        if let Some(node) = node {
+            let node = node.borrow();
+            let val = node.val;
+	    
+            if node.left.is_none() && node.right.is_none() {
+                return val == target_sum;
+            }
+
+            // NB recursively check the left and right subtrees
+            Self::dfs(&node.left, target_sum - val) || Self::dfs(&node.right, target_sum - val)
+        } else {
+	    false
+	}
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_binary_tree_same -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_binary_tree_path_sum_large -- --nocapture
     //
     // See:
-    //     https://leetcode.com/problems/same-tree/description/?envType=study-plan-v2&envId=top-interview-150
+    //     https://leetcode.com/problems/path-sum/description/?envType=study-plan-v2&envId=top-interview-150
     //
     use super::*;
 
     #[test]
-    fn test_binary_tree_same() {
+    fn test_binary_tree_path_sum_small() {
         let root = Rc::new(RefCell::new(TreeNode::new(1)));
 
-	root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(2))));
+        root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(2))));
         root.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(3))));
 
-	let other = Rc::new(RefCell::new(TreeNode::new(1)));
+        let target_sum = 5;
 
-	other.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(2))));
-	other.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(3))));
-    	
-    	let result = Solution::is_same_tree(Some(root), Some(other));
-        let exp = true;
+        let exp = false;
+        let result = Solution::has_path_sum(Some(root), target_sum);
+
+        assert!(result == exp);
+    }
+
+
+    #[test]
+    fn test_binary_tree_path_sum_large() {
+        let root = Rc::new(RefCell::new(TreeNode::new(5)));
+	
+    	root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(4))));
+    	root.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(8))));
+    	root.borrow_mut().left.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(11))));
+    	root.borrow_mut().left.as_ref().unwrap().borrow_mut().left.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(7))));
+    	root.borrow_mut().left.as_ref().unwrap().borrow_mut().left.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(2))));
+    	root.borrow_mut().right.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(13))));
+    	root.borrow_mut().right.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(4))));
+    	root.borrow_mut().right.as_ref().unwrap().borrow_mut().right.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(1))));
+
+    	let target_sum = 22;
+
+	let exp = true;
+    	let result = Solution::has_path_sum(Some(root), target_sum);
 	
         assert!(result == exp);
     }
 
     #[test]
-    fn test_binary_tree_not_same() {
-        let root = Rc::new(RefCell::new(TreeNode::new(1)));
+    fn test_binary_tree_path_sum_empty() {
+        let root = None;
+	let target_sum = 0;
 
-	root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(2))));
-        root.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(3))));
-
-	let other = Rc::new(RefCell::new(TreeNode::new(1)));
-
-	other.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(2))));
-        other.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(4))));
-
-	let result = Solution::is_same_tree(Some(root), Some(other));
-        let exp = false;
+	let exp = false;
+	let result = Solution::has_path_sum(root, target_sum);
 
 	assert!(result == exp);
     }
