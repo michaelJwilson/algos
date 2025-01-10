@@ -28,6 +28,7 @@ pub mod game_of_life;
 pub mod binary_tree_level_average;
 pub mod binary_search_tree_min_abs_diff;
 pub mod min_mutations;
+pub mod remove_element;
 
 // NB list of deprecated modules.
 // pub mod matrix;
