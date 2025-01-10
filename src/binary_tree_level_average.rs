@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::collections::VecDeque;
 
 struct Solution;
 
@@ -21,35 +22,59 @@ impl TreeNode {
     }
 }
 
+///
+preamble 
+    Use a queue for breadth-first search: Instead of using recursion, we can use an
+    iterative approach with a queue to perform breadth-first search. This avoids the
+    overhead of recursive function calls and stack usage.
+
+see std::collections::VecDeque,
+    https://doc.rust-lang.org/std/collections/struct.VecDeque.html
+
+    A double-ended queue implemented with a growable ring buffer.
+    The “default” usage of this type as a queue is to use push_back to add to the queue,
+    and pop_front to remove from the queue. extend and append push onto the back in this
+    manner, and iterating over VecDeque goes front to back.
+///
 impl Solution {
-    pub fn breadth_first_search_accumulate(node_option: Option<Rc<RefCell<TreeNode>>>, result: &mut Vec<f64>, num_nodes: &mut Vec<i32>, level: usize) {
-        match node_option {
-	    Some(node) => {
-	    	let node = node.borrow();    
-
-		if level >= result.len() {
-                   result.push(0.0);
-                   num_nodes.push(0);
-            	}
-
-	        result[level] += node.val as f64;
-		num_nodes[level] += 1;
-
-		Self::breadth_first_search_accumulate(node.left.clone(), result, num_nodes, level + 1);
-		Self::breadth_first_search_accumulate(node.right.clone(), result, num_nodes, level + 1);
-	    }
-
-	    None => (),
-	}
-    }
-
     pub fn average_of_levels(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<f64> {
-	let mut num_nodes: Vec<i32> = Vec::new();
-	let mut result: Vec<f64> = Vec::new();
+    	// NB if passed an empty tree, do nothing.
+        if root.is_none() {
+            return vec![];
+        }
 
-	Self::breadth_first_search_accumulate(root, &mut result, &mut num_nodes, 0);
+        let mut result: Vec<f64> = Vec::new();
+        let mut num_nodes: Vec<i32> = Vec::new();
 
-	result.iter().zip(num_nodes.iter()).map(|(&sum, &count)| sum / count as f64).collect()
+	// NB queue of (node, level) pairs.
+        let mut queue: VecDeque<(Rc<RefCell<TreeNode>>, usize)> = VecDeque::new();
+
+	// NB put root onto the queue.
+        queue.push_back((root.unwrap(), 0));
+
+	// NB process the node.
+        while let Some((node, level)) = queue.pop_front() {
+            let node = node.borrow();
+
+            if level >= result.len() {
+                result.push(0.0);
+                num_nodes.push(0);
+            }
+
+            result[level] += node.val as f64;
+            num_nodes[level] += 1;
+
+	    // NB place the (up to two) child nodes into the queue.
+            if let Some(left) = node.left.clone() {
+                queue.push_back((left, level + 1));
+            }
+
+            if let Some(right) = node.right.clone() {
+                queue.push_back((right, level + 1));
+            }
+        }
+
+        result.iter().zip(num_nodes.iter()).map(|(&sum, &count)| sum / count as f64).collect()
     }
 }
 
