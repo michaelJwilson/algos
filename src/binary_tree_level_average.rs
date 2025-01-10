@@ -22,20 +22,19 @@ impl TreeNode {
     }
 }
 
+/// Preamble:
+///     Use a queue for breadth-first search: Instead of using recursion, we can use an
+///     iterative approach with a queue to perform breadth-first search. This avoids the
+///     overhead of recursive function calls and stack usage.
 ///
-preamble 
-    Use a queue for breadth-first search: Instead of using recursion, we can use an
-    iterative approach with a queue to perform breadth-first search. This avoids the
-    overhead of recursive function calls and stack usage.
-
-see std::collections::VecDeque,
-    https://doc.rust-lang.org/std/collections/struct.VecDeque.html
-
-    A double-ended queue implemented with a growable ring buffer.
-    The “default” usage of this type as a queue is to use push_back to add to the queue,
-    and pop_front to remove from the queue. extend and append push onto the back in this
-    manner, and iterating over VecDeque goes front to back.
+///     A double-ended queue implemented with a growable ring buffer.
+///     The "default" usage of this type as a queue is to use `push_back` to add to the queue,
+///     and `pop_front` to remove from the queue. `extend` and `append` push onto the back in this
+///     manner, and iterating over `VecDeque` goes front to back.
 ///
+/// See `std::collections::VecDeque`:
+///     <https://doc.rust-lang.org/std/collections/struct.VecDeque.html>
+
 impl Solution {
     pub fn average_of_levels(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<f64> {
     	// NB if passed an empty tree, do nothing.
