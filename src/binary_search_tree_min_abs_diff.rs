@@ -25,6 +25,8 @@ impl BinarySearchTree {
     }
 
     // NB insertions into a binary search tree satisfy left/right cuts for all levels from root.
+    //    i.e. as for a random-forest classifier, a series of less than/greater than questions is
+    //         asked with one question per level starting at the root.
     fn insert(&mut self, val: i32) {
         let new_node = Box::new(TreeNode::new(val));
 	
@@ -37,6 +39,7 @@ impl BinarySearchTree {
 
     fn insert_node(node: &mut Box<TreeNode>, new_node: Box<TreeNode>) {
         if new_node.val < node.val {
+	    // NB left must potentially be mutable. 
             if let Some(left) = node.left.as_mut() {
                 Self::insert_node(left, new_node);
             } else {
