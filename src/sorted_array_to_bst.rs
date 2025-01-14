@@ -1,3 +1,10 @@
+//
+//  Sorted array to *height-balanced* binary search tree.
+//
+//  NB  height-balanced implies same number of elements left/right
+//      for each parent.
+//
+
 // NB Data-class like.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {
