@@ -17,8 +17,7 @@ pub fn naive_max_profit(prices: &Vec<i32>) -> i32 {
     max_profit
 }
 
-// NB naive pairwise test;  works for relatively small price list.
-pub fn max_profit(prices: &Vec<i32>) -> i32 {
+pub fn backward_max_profit(prices: &Vec<i32>) -> i32 {
     if prices.len() < 2 {
         return 0;
     }
@@ -44,10 +43,31 @@ pub fn max_profit(prices: &Vec<i32>) -> i32 {
     max_profit
 }
 
+fn max_profit(prices: Vec<i32>) -> i32 {
+    if prices.is_empty() {
+        return 0;
+    }
+
+    let mut min_price = prices[0];
+    let mut max_profit = 0;
+
+    for &price in &prices[1..] {
+        if price < min_price {
+            min_price = price;
+        } else {
+            let profit = price - min_price;
+            if profit > max_profit {
+                max_profit = profit;
+            }
+        }
+    }
+
+    max_profit
+}
 
 impl Solution {
     pub fn max_profit(prices: Vec<i32>) -> i32 {
-        max_profit(&prices)
+        max_profit(prices)
     }
 }
 
@@ -63,7 +83,7 @@ mod tests {
 
 	println!("{:?}", prices);
 
-	let max_profit = max_profit(&prices);
+	let max_profit = max_profit(prices);
 
         assert_eq!(max_profit, 5);
     }
@@ -74,7 +94,7 @@ mod tests {
 
 	println!("{:?}", prices);
 
-	let max_profit = max_profit(&prices);
+	let max_profit = max_profit(prices);
 
         assert_eq!(max_profit, 0);
     }
@@ -85,7 +105,7 @@ mod tests {
 
 	println!("{:?}", prices);
 
-	let max_profit = max_profit(&prices);
+	let max_profit = max_profit(prices);
 
 	assert_eq!(max_profit, 3);
     }
@@ -96,7 +116,8 @@ mod tests {
 
 	println!("{:?}", prices);
 
-	let max_profit = max_profit(&prices);
+	let max_profit = max_profit(prices);
+	
 	assert_eq!(max_profit, 4);
     }
 
@@ -106,7 +127,7 @@ mod tests {
 
 	println!("{:?}", prices);
 
-	let max_profit = max_profit(&prices);
+	let max_profit = max_profit(prices);
 
 	assert_eq!(max_profit, 0);
     }

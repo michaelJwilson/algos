@@ -30,6 +30,8 @@ pub mod binary_search_tree_min_abs_diff;
 pub mod min_mutations;
 pub mod remove_element;
 pub mod best_time_buy_stock;
+pub mod longest_common_prefix;
+
 
 // NB list of deprecated modules.
 // pub mod matrix;
