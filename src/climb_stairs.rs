@@ -34,6 +34,7 @@ pub fn climb_stairs(num_stairs: usize, num_states: &mut Vec<usize>) -> usize {
 
 impl Solution {
     pub fn climb_stairs(n: i32) -> i32 {
+    	// NB derived from i32 to usize conversion.
 	if n < 0 {
 	   return 0;
 	}
@@ -57,8 +58,6 @@ mod tests {
 	let result = climb_stairs(num_stairs, &mut num_states);
 	let exp = 3;
 
-	println!("{:?}\t{:?}", result, exp);
-
-	// assert_eq!(result, exp);
+	assert_eq!(result, exp);
     }
 }
