@@ -32,6 +32,7 @@ pub mod remove_element;
 pub mod best_time_buy_stock;
 pub mod longest_common_prefix;
 pub mod sorted_array_to_bst;
+pub mod climb_stairs;
 
 
 // NB list of deprecated modules.
