@@ -35,6 +35,7 @@ pub mod sorted_array_to_bst;
 pub mod climb_stairs;
 pub mod roman_to_integer;
 pub mod last_word_length;
+pub mod needle_haystack;
 
 // NB list of deprecated modules.
 // pub mod matrix;
