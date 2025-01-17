@@ -33,7 +33,7 @@ pub mod best_time_buy_stock;
 pub mod longest_common_prefix;
 pub mod sorted_array_to_bst;
 pub mod climb_stairs;
-
+pub mod roman_to_integer;
 
 // NB list of deprecated modules.
 // pub mod matrix;
