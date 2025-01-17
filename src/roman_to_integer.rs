@@ -62,7 +62,7 @@ fn process_roman_to_int_pair(ros_stone: &HashMap<&'static str, i32>, input_roman
     }
 }
 
-pub fn roman_to_int(ros_stone: &HashMap<&'static str, i32>, input_roman: String, result: &mut i32) {
+pub fn roman_to_int_naive(ros_stone: &HashMap<&'static str, i32>, input_roman: String, result: &mut i32) {
     let mut input_roman_vec: Vec<char> = input_roman.chars().collect();
 
     while !input_roman_vec.is_empty() {
@@ -70,14 +70,48 @@ pub fn roman_to_int(ros_stone: &HashMap<&'static str, i32>, input_roman: String,
     }
 }
 
+fn roman_to_int(s: &str) -> i32 {
+    let mut roman_map = HashMap::new();
+    
+    roman_map.insert('I', 1);
+    roman_map.insert('V', 5);
+    roman_map.insert('X', 10);
+    roman_map.insert('L', 50);
+    roman_map.insert('C', 100);
+    roman_map.insert('D', 500);
+    roman_map.insert('M', 1000);
+
+    let mut result = 0;
+    let mut prev_value = 0;
+
+    for c in s.chars().rev() {
+    	// NB unwrap_or is useful.
+        let value = *roman_map.get(&c).unwrap_or(&0);
+	
+        if value < prev_value {
+            result -= value;
+        } else {
+            result += value;
+        }
+	
+        prev_value = value;
+    }
+
+    result
+}
+
 impl Solution {
-    pub fn roman_to_int(s: String) -> i32 {
+    pub fn roman_to_int_naive(s: String) -> i32 {
     	let ros_stone = get_rosetta_hashmap();
     	let mut result: i32 = 0;
 
-        roman_to_int(&ros_stone, s, &mut result);
+        roman_to_int_naive(&ros_stone, s, &mut result);
 
 	result
+    }
+
+    pub fn roman_to_int(s: String) -> i32 {
+        roman_to_int(&s)
     }
 }
 
@@ -92,25 +126,19 @@ mod tests {
 
     #[test]
     pub fn test_roman_to_integer_iii() {
-        let test_string = "III".to_string();
-	let result = Solution::roman_to_int(test_string);
-
+	let result = Solution::roman_to_int(String::from("III"));
 	assert_eq!(result, 3);
     }
 
     #[test]
     pub fn test_roman_to_integer_lviii() {
-        let test_string = "LVIII".to_string();
-        let result = Solution::roman_to_int(test_string);
-
+        let result = Solution::roman_to_int(String::from("LVIII"));
         assert_eq!(result, 58);
     }
 
     #[test]
     pub	fn test_roman_to_integer_mcmxciv() {
-      	let test_string = "MCMXCIV".to_string();
-	let result = Solution::roman_to_int(test_string);
-
+	let result = Solution::roman_to_int(String::from("MCMXCIV"));
         assert_eq!(result, 1994);
     }
 }
