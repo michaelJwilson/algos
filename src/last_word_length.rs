@@ -16,6 +16,12 @@ pub fn last_word_length(sentence: &str) -> i32 {
     result
 }
 
+impl Solution {
+    pub fn length_of_last_word(s: String) -> i32 {
+        last_word_length(&s) 	   
+    }
+}
+
 #[cfg(test)]
 mod tests {
     // RUSTFLAGS="-Awarnings" cargo test test_last_word_length -- --nocapture
@@ -43,5 +49,11 @@ mod tests {
     pub fn test_last_word_length_luffy() {
         let result = last_word_length("luffy is still joyboy");
     	assert_eq!(result, 6);
+    }
+
+    #[test]
+    pub fn test_last_word_length_solution() {
+    	let result = Solution::length_of_last_word("luffy is still joyboy".to_string());
+	assert_eq!(result, 6);
     }
 }
