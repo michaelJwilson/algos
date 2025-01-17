@@ -19,7 +19,7 @@ fn get_rosetta_hashmap() -> HashMap<&'static str, i32> {
    ros_stone.insert("XL", 40);
    ros_stone.insert("XC", 90);
    ros_stone.insert("CD", 400);
-   ros_stone.insert("C<", 900);
+   ros_stone.insert("CM", 900);
 
    ros_stone
 }
@@ -51,14 +51,13 @@ fn process_roman_to_int_pair(ros_stone: &HashMap<&'static str, i32>, input_roman
     	    match ros_stone.get(format!("{}{}", first, second).as_str()) {
             	Some(value) => {
                     *result += value;
+		    input_roman_vec[2..].to_vec()
                 } 
                 None => {
 	            *result += roman_to_int_lookup(ros_stone, &first);
-                    *result += roman_to_int_lookup(ros_stone, &second);
+		    input_roman_vec[1..].to_vec()
                 }
             }
-
-    	    input_roman_vec[2..].to_vec()
         }
     }
 }
@@ -85,6 +84,10 @@ impl Solution {
 #[cfg(test)]
 mod tests {
     // RUSTFLAGS=-Awarnings cargo test test_roman_to_integer -- --nocapture
+    //
+    // see:
+    //     https://leetcode.com/problems/roman-to-integer/?envType=study-plan-v2&envId=top-interview-150
+    //
     use super::*;
 
     #[test]
