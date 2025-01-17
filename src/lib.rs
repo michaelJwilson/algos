@@ -36,6 +36,7 @@ pub mod climb_stairs;
 pub mod roman_to_integer;
 pub mod last_word_length;
 pub mod needle_haystack;
+pub mod valid_palindrome;
 
 // NB list of deprecated modules.
 // pub mod matrix;
