@@ -10,12 +10,12 @@ pub fn get_plus_one(input: Vec<i32>, idx: usize) -> Vec<i32>{
         result[idx] = 0;
 
 	if idx == 0 {
-	  let mut interim = vec![1];
-	  interim.extend(result);
+	    let mut interim = vec![1];
+	    interim.extend(result);
 
-	  return interim
+	    return interim
 	} else { 
-	  return get_plus_one(result, idx - 1);
+	    return get_plus_one(result, idx - 1);
 	}
     }
 }
