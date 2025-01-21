@@ -1,5 +1,6 @@
 struct Solution;
 
+// NB max implies most positive, sub-array implies continuous.
 impl Solution {
     pub fn max_sub_array(nums: Vec<i32>) -> i32 {
         if nums.is_empty() {
