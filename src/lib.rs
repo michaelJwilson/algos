@@ -40,6 +40,7 @@ pub mod valid_palindrome;
 pub mod plus_one;
 pub mod sqrt;
 pub mod kadane_maxsubarray;
+pub mod minka;
 
 // NB list of deprecated modules.
 // pub mod matrix;
