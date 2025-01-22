@@ -1,5 +1,6 @@
 use statrs::function::gamma::digamma;
 use std::f64::consts::PI;
+use rgsl::psi::trigamma::psi_1;
 
 const ATOL: f64 = 1.0e-12;
 const EGAMMA: f64 = 0.577215664901532860606512090082402431;
@@ -13,9 +14,8 @@ pub fn initial_inverse_digamma(y: f64) -> f64 {
     }
 }
 
-
-// TODO available in rust gsl?  https://docs.rs/GSL/latest/rgsl/
 pub fn trigamma(x: f64) -> f64 {
+    /*
     let mut nn: f64 = 0.0;
     let mut result: f64 = 0.0;
     let mut increment: f64 = f64::MAX;
@@ -28,6 +28,9 @@ pub fn trigamma(x: f64) -> f64 {
     }
 
     result
+    */
+
+    psi_1(x)
 }
 
 
@@ -52,19 +55,20 @@ mod tests {
     // RUSTFLAGS="-Awarnings" cargo test test_minka -- --nocapture
     use super::*;
 
+    // TODO achieve higher precision.
+    const TEST_TOL: f64 = 1.0e-14;
+
     #[test]
     pub fn test_minka_digamma() {	
-	assert!((digamma(1.) + EGAMMA).abs() < 1.0e-6);
+	assert!((digamma(1.) + EGAMMA).abs() < TEST_TOL);
     }
 
     #[test]
     pub fn test_minka_trigamma() {
         let result = trigamma(3.);
-	let exp = PI * PI / 6. - 5./4.;
+	let exp: f64 = PI * PI / 6. - 5./4.;
 
-	// println!("{:?}  {:?}  {:?}", result, exp, (result - exp).abs());
-
-	assert!((result - exp).abs() < 1.0e-6);
+	assert!((result - exp).abs() < TEST_TOL);
     }
 
     #[test]
@@ -73,7 +77,7 @@ mod tests {
         let exps: Vec<f64> = xs.iter().map(|xx| digamma(inverse_digamma(*xx))).collect();
 
 	for ii in 0..xs.len() {
-	    assert!((xs[ii] - exps[ii]).abs() < 1.0e-12);
+	    assert!((xs[ii] - exps[ii]).abs() < TEST_TOL);
 	}
     }
 }
