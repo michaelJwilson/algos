@@ -2,7 +2,7 @@ use statrs::function::gamma::digamma;
 use std::f64::consts::PI;
 use rgsl::psi::trigamma::psi_1;
 
-const ATOL: f64 = 1.0e-12;
+const ATOL: f64 = 1.0e-14;
 const EGAMMA: f64 = 0.577215664901532860606512090082402431;
 
 pub fn initial_inverse_digamma(y: f64) -> f64 {
