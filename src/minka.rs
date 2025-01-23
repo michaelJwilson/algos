@@ -1,4 +1,4 @@
-use statrs::function::gamma::digamma;
+use statrs::function::gamma::{gamma, digamma};
 use std::f64::consts::PI;
 use rgsl::psi::trigamma::psi_1;
 use rand::prelude::*;
@@ -35,20 +35,83 @@ pub fn inverse_digamma(y: f64) -> f64 {
     x
 }   
 
-pub fn sample_beta_binomial(alpha: f64, beta: f64, num_trials: u64) -> Vec<u64>{
+pub fn sample_beta_binomial(alpha: f64, beta: f64, num_trials: u64, num_samples: u64) -> Vec<Vec<u64>> {
     let beta = Beta::new(alpha, beta).unwrap();
     let mut result = Vec::new();
 
-    for ii in 0..num_trials {
-        let pp = beta.sample(&mut rand::thread_rng());
+    for ss in 0..num_samples {
+    	let mut interim = Vec::new();
 
-	let bin = Binomial::new(1, pp).unwrap();
-	let sample = bin.sample(&mut rand::thread_rng());
+	for ii in 0..num_trials {
+            let pp = beta.sample(&mut rand::thread_rng());
+	    let bin = Binomial::new(1, pp).unwrap();
+
+	    let sample = bin.sample(&mut rand::thread_rng());
 	
-    	result.push(sample);
+	    interim.push(sample);
+	}
+
+	result.push(interim);
     }
     
     result
+}
+
+pub fn likelihood_beta_binomial(training_data: Vec<Vec<u64>>, alphas: Vec<f64>) -> f64 {
+    let mut result: f64 = 1.0;
+    let sum_alphas: f64 = alphas.iter().sum();
+
+    for ii in 0..training_data.len() {
+    	let num_obs = training_data[ii].len();	
+	let mut interim = gamma(sum_alphas) / gamma(num_obs as f64 + sum_alphas);
+
+	for jj in 0..alphas.len() {
+	    let num_in_class: f64 = training_data[ii].iter().filter(|&&xx| xx == jj as u64).count() as f64;
+
+	    interim *= gamma(num_in_class + alphas[jj]);
+	    interim /= gamma(alphas[jj]);
+	}
+
+	result *= interim;
+    }
+
+    result
+}
+
+pub fn polya_damped_counts(class_counts: Vec<f64>, alphas: &Vec<f64>) -> Vec<f64> {
+    let mut result: Vec<f64> = Vec::new();
+
+    for ii in 0..class_counts.len() {
+    	let interim = digamma(class_counts[ii] + alphas[ii]) - digamma(alphas[ii]);
+
+	result.push(alphas[ii] * interim);
+    }
+
+    result
+}
+
+pub fn max_likelihood_polya_mean(training_data: Vec<Vec<u64>>, alphas: Vec<f64>) -> Vec<f64> {
+    // NB max. likelihood estimate of polya mean @ fixed precision;  eqn. (118) of Minka (2000).
+    let mut total_damped_counts: Vec<f64> = vec![0.; alphas.len()];
+
+    for ii in 0..training_data.len() {
+    	let mut sample_class_counts: Vec<f64> = Vec::new();
+    
+    	for jj in 0..alphas.len() {
+	    let num_in_class: f64 = training_data[ii].iter().filter(|&&xx| xx == jj as u64).count() as f64;
+	    sample_class_counts.push(num_in_class);
+	}
+	
+    	let sample_damped_counts = polya_damped_counts(sample_class_counts, &alphas);
+
+	for (total, damped) in total_damped_counts.iter_mut().zip(sample_damped_counts.iter()) {
+            *total += damped;
+        }
+    }
+
+    let norm: f64 = total_damped_counts.iter().sum();
+
+    total_damped_counts.iter().map(|&count| count / norm).collect()
 }
 
 
@@ -90,7 +153,7 @@ mod tests {
 	let alpha: f64 = 20.;
 	let beta: f64 = 65.;
 	
-    	let result = sample_beta_binomial(alpha, beta, num_trials);
+    	let result = sample_beta_binomial(alpha, beta, num_trials, 1)[0].clone();
 
 	let num_heads: u64 = result.clone().into_iter().sum();
 	let num_tails: u64 = num_trials - num_heads;
@@ -98,7 +161,45 @@ mod tests {
 	let exp_prob: f64 = alpha / (alpha + beta);
 	let obs_prob: f64 = num_heads as f64 / num_trials as f64;
 
+	//  TODO precision?
 	assert!((obs_prob - exp_prob).abs() < 1.0e-3);
+    }
+
+    #[test]
+    pub fn test_likelihood_beta_binomial() {
+    	let mut training_data = Vec::new();	
+	training_data.push(vec![0, 0, 0, 0, 0, 1, 1, 1, 1, 1]);
+
+	let alphas = vec![0.5, 0.5];
+	let result = likelihood_beta_binomial(training_data, alphas);
+
+	println!("{:?}", result);
+    }
+
+    #[test]
+    pub fn test_polya_damping() {
+        let class_counts: Vec<f64> = vec![1., 4., 7., 10.];
+	let alphas: Vec<f64> = vec![0.1, 1., 3., 10.];
+
+	// NB sanity checked against Fig. 1 of Minka (2000).
+	let exp: Vec<f64> = vec![0.9999, 2.0833, 3.9869, 7.1877];
+	let result = polya_damped_counts(class_counts, &alphas);
+    }
+
+    #[test]
+    pub fn test_max_likelihood_polya_mean() {
+    	let mut training_data = Vec::new();
+	training_data.push(vec![0, 0, 0, 0, 0, 1, 1, 1, 1, 1]);
+
+	let alphas = vec![0.05, 0.95];
+
+	// NB if alphas = vec![100., 100.], we get equivalence to ML
+	//    multinomial with exp = vec![0.5, 0.5];
+
+	let result = max_likelihood_polya_mean(training_data, alphas);
+
+	// TODO assert for large alpha.
+	println!("{:?}", result);
     }
 }
 
