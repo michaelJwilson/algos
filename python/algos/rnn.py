@@ -109,12 +109,17 @@ class GaussianEmbedding(nn.Module):
         #    a view of original memory; -1 signifies no change;
         x_expanded = x.expand(-1, -1, self.num_states)
 
+        # print(x_expanded.shape)
+        
         # NB log of normalization constant
         norm = 0.5 * torch.log(2 * torch.pi * variances_expanded)
 
+        # print(norm.shape)
+        
         # NB compute negative log-probabilities for each state and each value in the sequence
-        neg_log_probs = norm + ((x_expanded - means_expanded) ** 2) / variances_expanded
-
+        neg_log_probs = ((x_expanded - means_expanded) ** 2) # / variances_expanded
+        # neg_log_probs += norm
+        
         # print(neg_log_probs.shape)
 
         return neg_log_probs  # Shape: (batch_size, sequence_length, num_states)
@@ -172,7 +177,7 @@ class RNN(nn.Module):
         # TODO too slow!
         for t in range(seq_len):
             # NB expand single token to a length 1 sequence.
-            input_t = x[:, t, :].view(-1, 1, -1)
+            input_t = x[:, t, :].unsqueeze(1)
             input_t = self.layers[0].forward(input_t)
             """
             for l, rnn_unit in enumerate(self.layers[1:]):
