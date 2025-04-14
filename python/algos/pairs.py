@@ -30,7 +30,7 @@ class Solution:
 
             if num in buff:
                 buff.remove(num)
-                
+
         return buff
 
     def singleNumber(self, nums: List[int]) -> int:
@@ -48,10 +48,10 @@ class Solution:
             print(f"Filtered buffer to {buff}")
 
             time.sleep(2)
-            
+
             if len(buff) == 0:
                 continue
-                        
+
             if len(buff) == 1:
                 # NB found the answer.
                 return buff[0]
@@ -65,7 +65,8 @@ class Solution:
 
                 print(f"Shortening buffer to size {buffer_size} ")
             """
-            
+
+
 if __name__ == "__main__":
     nums = [
         -967,
