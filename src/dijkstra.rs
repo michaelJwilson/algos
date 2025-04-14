@@ -18,13 +18,13 @@ use petgraph::data::FromElements;
 #[derive(Debug)]
 struct Edge {
     // NB each edge instance is defined only for a given source node.
-    to: usize,
-    weight: usize,
+    to: u32,
+    weight: u32,
 }
 
 #[derive(Debug)]
 struct AdjacencyList {
-    edges: HashMap<usize, Vec<Edge>>,
+    edges: HashMap<u32, Vec<Edge>>,
 }
 
 impl AdjacencyList {
@@ -34,8 +34,21 @@ impl AdjacencyList {
         }
     }
 
-    fn add_edge(&mut self, from: usize, to: usize, weight: usize) {
+    fn add_edge(&mut self, from: u32, to: u32, weight: u32) {
        self.edges.entry(from).or_default().push(Edge { to: to, weight: weight });
+    }
+
+    fn get_edges(&self) -> Vec<(u32, u32, u32)> {
+        let mut result = Vec::new();
+
+        for (&from, neighbors) in &self.edges {
+            for edge in neighbors {
+                // NB no weights.
+                result.push((from as u32, edge.to as u32, edge.weight as u32));
+            }
+	    }
+
+        result
     }
 
     fn get_endpoints(&self) -> Vec<(u32, u32)> {
@@ -56,8 +69,8 @@ impl AdjacencyList {
 //    (from source) known that has not been processed, as a min-heap.
 #[derive(Debug, Eq, PartialEq)]
 struct State {
-    cost: usize,
-    position: usize,
+    cost: u32,
+    position: u32,
 }
 
 // NB Rust's BinaryHeap is a max-heap by default, meaning it will prioritize elements
@@ -76,11 +89,11 @@ impl PartialOrd for State {
     }
 }
 
-fn dijkstra(adjs: AdjacencyList, start: usize, goal: usize) -> Option<usize> {
+fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     //  NB maintain current known distance between all encountered node pairs;
-    //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&usize::MAX), achieves
-    //     initial distances of INF for assumed usize type.
-    let mut dist: HashMap<usize, usize> = HashMap::new();
+    //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&u32::MAX), achieves
+    //     initial distances of INF for assumed u32 type.
+    let mut dist: HashMap<u32, u32> = HashMap::new();
 
     //  NB maintain a priority queue (pop returns the min. distance node in queue) as a BinaryHeap.
     let mut heap = BinaryHeap::new();
@@ -97,7 +110,7 @@ fn dijkstra(adjs: AdjacencyList, start: usize, goal: usize) -> Option<usize> {
         }
 
         // NB node on the queue has an outdated distance;
-        if cost > *dist.get(&position).unwrap_or(&usize::MAX) {
+        if cost > *dist.get(&position).unwrap_or(&u32::MAX) {
             continue;
         }
 
@@ -110,7 +123,7 @@ fn dijkstra(adjs: AdjacencyList, start: usize, goal: usize) -> Option<usize> {
                 };
 
                 // NB here, unwrap_or achieves the new node distance initialized as MAX uint on system.
-                if next.cost < *dist.get(&next.position).unwrap_or(&usize::MAX) {
+                if next.cost < *dist.get(&next.position).unwrap_or(&u32::MAX) {
                     dist.insert(next.position, next.cost);
 
                     // NB place neighbors on the queue (i.e. frontier); next may have a shorter distance
@@ -140,14 +153,12 @@ fn get_adjacencies_fixture() -> AdjacencyList {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_petgraph_dijkstra -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test dijkstra -- --nocapture
     use super::*;
 
     #[test]
     fn test_adjacencies_fixture() {
         let adjs = get_adjacencies_fixture();
-
-        println!("Adjacencies: {:?}", adjs);
     }
 
     #[test]
@@ -167,21 +178,36 @@ mod tests {
     fn test_petgraph_dijkstra() {
        // NB see:
        //    https://docs.rs/petgraph/latest/petgraph/#example
+       let start = 0;
+       let goal = 3;
 
        let adjs = get_adjacencies_fixture();
-       let edges = adjs.get_endpoints();
+       let edges = adjs.get_edges();
 
-       // println!("Edges: {:?}", edges);
-
-       // NB <usize, ()> specify the type of the node and edge weights.
-       let graph = UnGraph::<usize, ()>::from_edges(&edges);
+       // NB <u32, ()> specify the type of the node and edge weights.
+       let graph = UnGraph::<u32, (u32)>::from_edges(&edges);
 
        // NB find the shortest path from `0` to `3` using `1` as the cost for every edge.
-       let node_map = petgraph_dijkstra(&graph, 0.into(), Some(3.into()), |_| 1);
+       let node_map = petgraph_dijkstra(&graph, start.into(), Some(goal.into()), |edge| *edge.weight());
+       /*
+       for (node, cost) in &node_map {
+           println!("Node: {}, Cost: {}", node.index(), cost);
+       }
+       */
+       let mut exp = 0;
 
        // NB assumes unit weight on edges.
-       let exp = 2i32;
-       let result = node_map.get(&NodeIndex::new(3)).unwrap();
+       match dijkstra(adjs, start, goal) {
+            Some(cost) => {
+                println!("Shortest path cost from {} to {} is {}", start, goal, cost);
+
+                exp = cost;
+            },
+            None => println!("No path found from {} to {}", start, goal),
+        };
+
+       // NB attempt to cast usize to u32 and unwrap the option.
+       let result = node_map.get(&NodeIndex::new(goal.try_into().unwrap())).unwrap();
 
        assert_eq!(&exp, result);
     }
