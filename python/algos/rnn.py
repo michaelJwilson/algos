@@ -244,9 +244,9 @@ if __name__ == "__main__":
     )
 
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    dataloader = iter(dataloader)
 
-    observations, states = next(dataloader)
+    dataloader_iter = iter(dataloader)
+    observations, states = next(dataloader_iter)
 
     # NB [batch_size, seq_length, single feature].
     assert observations.shape == torch.Size([batch_size, sequence_length, 1])
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1.0e-2)
+    optimizer = optim.Adam(model.parameters(), lr=1.0e-3)
 
     num_epochs = 50
     
@@ -303,6 +303,4 @@ if __name__ == "__main__":
             params = model.parameters()
 
             for name, param in model.named_parameters():
-                logger.info(f"Name: {name}")
-                logger.info(f"Value: {param.data}")  # Access the parameter values
-                print()
+                logger.info(f"Name: {name}, Value: {param.data}")
