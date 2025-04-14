@@ -38,13 +38,13 @@ impl AdjacencyList {
        self.edges.entry(from).or_default().push(Edge { to: to, weight: weight });
     }
 
-    fn get_endpoints(&self) -> Vec<(usize, usize)> {
+    fn get_endpoints(&self) -> Vec<(u32, u32)> {
         let mut endpoints_list = Vec::new();
         
         for (&from, neighbors) in &self.edges {
             for edge in neighbors {
                 // NB no weights.
-                endpoints_list.push((from, edge.to));
+                endpoints_list.push((from as u32, edge.to as u32));
             }
         }
         
@@ -76,7 +76,7 @@ impl PartialOrd for State {
     }
 }
 
-fn dijkstra(edges: AdjacencyList, start: usize, goal: usize) -> Option<usize> {
+fn dijkstra(adjs: AdjacencyList, start: usize, goal: usize) -> Option<usize> {
     //  NB maintain current known distance between all encountered node pairs;
     //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&usize::MAX), achieves
     //     initial distances of INF for assumed usize type.
@@ -102,7 +102,7 @@ fn dijkstra(edges: AdjacencyList, start: usize, goal: usize) -> Option<usize> {
         }
 
         // NB explore neighbors, initially of root.
-        if let Some(neighbors) = edges.get(&position) {
+        if let Some(neighbors) = adjs.edges.get(&position) {
             for edge in neighbors {
                 let next = State {
                     cost: cost + edge.weight,
@@ -140,7 +140,7 @@ fn get_adjacencies_fixture() -> AdjacencyList {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_adjacencies_fixture -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_petgraph_dijkstra -- --nocapture
     use super::*;
 
     #[test]
@@ -157,7 +157,7 @@ mod tests {
 
         let adjs = get_adjacencies_fixture();
 
-        match dijkstra(&adjs, start, goal) {
+        match dijkstra(adjs, start, goal) {
             Some(cost) => println!("Shortest path cost from {} to {} is {}", start, goal, cost),
             None => println!("No path found from {} to {}", start, goal),
         }
@@ -165,11 +165,20 @@ mod tests {
 
     #[test]
     fn test_petgraph_dijkstra() {
+       // NB see:
+       //    https://docs.rs/petgraph/latest/petgraph/#example
+
        let adjs = get_adjacencies_fixture();
        let edges = adjs.get_endpoints();
 
        println!("Edges: {:?}", edges);
 
-       //  let graph = UnGraph::<usize, ()>::from_edges(adjs);
+       // NB <usize, ()> specify the type of the node and edge weights.
+       // let graph = UnGraph::<usize, ()>::from_edges(&edges);
+
+       // NB find the shortest path from `1` to `4` using `1` as the cost for every edge.
+       let node_map = dijkstra(&g, 0.into(), Some(3.into()), |_| 1);
+       
+       assert_eq!(&1i32, node_map.get(&NodeIndex::new(4)).unwrap());
     }
-}
+} 
