@@ -100,7 +100,7 @@ class GaussianEmbedding(nn.Module):
         self.means = nn.Parameter(self.means)
 
         self.log_vars = torch.zeros(num_states, device=device)
-        self.log_vars = nn.Parameter(self.log_vars)
+        self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
 
     def forward(self, x):
         """
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     # NB defines true parameters.
     trans = np.array([[0.7, 0.3], [0.4, 0.6]])
 
-    means = [0.0, 5.0]
+    means = [5., 10.0]
     stds = [1.0, 1.0]
 
     model = RNN(num_states, 1)
@@ -254,13 +254,13 @@ if __name__ == "__main__":
     embedding = GaussianEmbedding(num_states).forward(observations)
     assert embedding.shape == torch.Size([batch_size, sequence_length, num_states])
 
-    print(torch.exp(-embedding[0,:,:]))
+    emission = torch.exp(-embedding[0,:,:])
     
-    # estimate = model.forward(observations)
-
+    estimate = model.forward(observations)
+    
     # NB [batch_size, seq_length, -lnP for _ in num_states].
-    # assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
-    """
+    assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
+
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
@@ -306,4 +306,3 @@ if __name__ == "__main__":
                 logger.info(f"Name: {name}")
                 logger.info(f"Value: {param.data}")  # Access the parameter values
                 print()
-    """
