@@ -15,11 +15,13 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-if torch.backends.mps.is_available():
-    device = torch.device("mps")  # Use MPS (GPU)
-else:
-    device = torch.device("cpu")  # Fallback to CPU
+def get_device():
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")  # Use MPS (GPU)                                                                                                                                                                                                                       
+    else:
+        device = torch.device("cpu")  # Fallback to CPU
 
+    return device
 
 def set_seed(seed):
     random.seed(seed)  # Python random module
@@ -32,6 +34,7 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True  # Ensure deterministic behavior
     torch.backends.cudnn.benchmark = False  # Disable auto-tuning for reproducibility
 
+device = get_device()
 
 class HMMDataset(Dataset):
     def __init__(self, num_sequences, sequence_length, trans, means, stds):
@@ -95,8 +98,7 @@ class GaussianEmbedding(nn.Module):
 
         # NB Trainable parameters: mean and log(variance) for each state
         # self.means = torch.randn(num_states, device=device)
-        self.means = torch.tensor([0.1, 0.6], device=device)
-        
+        self.means = torch.tensor([5., 10.], device=device)
         self.means = nn.Parameter(self.means)
 
         self.log_vars = torch.zeros(num_states, device=device)
@@ -146,16 +148,15 @@ class RNNUnit(nn.Module):
         # NB equivalent to a transfer matrix.
         # self.Uh = nn.Parameter(torch.randn(emb_dim, emb_dim))
         self.Uh = torch.zeros(emb_dim, emb_dim, device=device)
-        
+
         # NB novel: equivalent to a linear 'distortion' of the
         #    state probs. under the assumed emission model.
         # self.Wh = nn.Parameter(torch.randn(emb_dim, emb_dim))
         self.Wh = torch.eye(emb_dim, device=device)
 
+        # NB normalization 
         # NB relatively novel: would equate to the norm of log probs.
         # self.b = nn.Parameter(torch.zeros(emb_dim))
-
-        # NB normalization
 
         # NB activations
         # self.phi = torch.tanh # tanh == RELU bounded (-1, 1).
@@ -187,6 +188,8 @@ class RNN(nn.Module):
             + [RNNUnit(emb_dim) for _ in range(num_rnn_layers)]
         )
 
+        self.to(device)
+
     def forward(self, x):
         batch_size, seq_len, num_features = x.shape
 
@@ -206,13 +209,13 @@ class RNN(nn.Module):
 
             # NB Gaussian emission embedding.
             input_t = self.layers[0].forward(input_t).squeeze(1)
-
+            """
             for l, rnn_unit in enumerate(self.layers[1:]):
                 h_new = rnn_unit(input_t, h_prev[l])
                 h_prev[l] = h_new
 
                 input_t = h_new
-
+            """
             outputs.append(input_t)
 
         return torch.stack(outputs, dim=1)
@@ -225,15 +228,16 @@ if __name__ == "__main__":
     num_sequences = 100
     sequence_length = 500
     batch_size = 32
+    num_layers = 1
+    learning_rate = 1.0
 
     # NB defines true parameters.
     trans = np.array([[0.7, 0.3], [0.4, 0.6]])
 
-    means = [5., 10.0]
+    means = [5.0, 10.0]
     stds = [1.0, 1.0]
 
-    model = RNN(num_states, 1)
-    model.to(device)
+    model = RNN(num_states, num_layers)
 
     dataset = HMMDataset(
         num_sequences=num_sequences,
@@ -254,8 +258,7 @@ if __name__ == "__main__":
     embedding = GaussianEmbedding(num_states).forward(observations)
     assert embedding.shape == torch.Size([batch_size, sequence_length, num_states])
 
-    emission = torch.exp(-embedding[0,:,:])
-    
+    emission = torch.exp(-embedding[0, :, :])
     estimate = model.forward(observations)
     
     # NB [batch_size, seq_length, -lnP for _ in num_states].
@@ -264,7 +267,7 @@ if __name__ == "__main__":
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1.0e-3)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     num_epochs = 50
     
