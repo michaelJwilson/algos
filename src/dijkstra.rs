@@ -1,6 +1,10 @@
 use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
 
+use petgraph::graph::{NodeIndex, UnGraph};
+use petgraph::algo::dijkstra as petgraph_dijkstra;
+use petgraph::data::FromElements;
+
 /*
 ----  TODO  ----
 - Dijkstra's algorithm for shortest distance path of a node pair, s = u -> v.
@@ -16,6 +20,36 @@ struct Edge {
     // NB each edge instance is defined only for a given source node.
     to: usize,
     weight: usize,
+}
+
+#[derive(Debug)]
+struct AdjacencyList {
+    edges: HashMap<usize, Vec<Edge>>,
+}
+
+impl AdjacencyList {
+    fn new() -> Self {
+        Self {
+            edges: HashMap::new(),
+        }
+    }
+
+    fn add_edge(&mut self, from: usize, to: usize, weight: usize) {
+       self.edges.entry(from).or_default().push(Edge { to: to, weight: weight });
+    }
+
+    fn get_endpoints(&self) -> Vec<(usize, usize)> {
+        let mut endpoints_list = Vec::new();
+        
+        for (&from, neighbors) in &self.edges {
+            for edge in neighbors {
+                // NB no weights.
+                endpoints_list.push((from, edge.to));
+            }
+        }
+        
+        endpoints_list
+    }
 }
 
 // NB define a state for the priority queue, which will return the min. distance node
@@ -42,7 +76,7 @@ impl PartialOrd for State {
     }
 }
 
-fn dijkstra(edges: &HashMap<usize, Vec<Edge>>, start: usize, goal: usize) -> Option<usize> {
+fn dijkstra(edges: AdjacencyList, start: usize, goal: usize) -> Option<usize> {
     //  NB maintain current known distance between all encountered node pairs;
     //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&usize::MAX), achieves
     //     initial distances of INF for assumed usize type.
@@ -91,28 +125,29 @@ fn dijkstra(edges: &HashMap<usize, Vec<Edge>>, start: usize, goal: usize) -> Opt
     None
 }
 
-fn get_graph_fixture() -> HashMap<usize, Vec<Edge>> {
+fn get_adjacencies_fixture() -> AdjacencyList {
     // NB adjaceny list representation, with a list of edges for each node.
-    let mut edges: HashMap<usize, Vec<Edge>> = HashMap::new();
+    let mut adjs = AdjacencyList::new();
 
-    // NB or_default presumably initializes the Vec first time a node is indexed.
-    edges.entry(0).or_default().push(Edge { to: 1, weight: 4 }); // 0 -> 1
-    edges.entry(0).or_default().push(Edge { to: 2, weight: 1 }); // 0 -> 2
-    edges.entry(2).or_default().push(Edge { to: 1, weight: 2 }); // 1 -> 2
-    edges.entry(1).or_default().push(Edge { to: 3, weight: 1 }); // ...
-    edges.entry(2).or_default().push(Edge { to: 3, weight: 5 });
+    adjs.add_edge(0, 1, 4);
+    adjs.add_edge(0, 2, 1);
+    adjs.add_edge(2, 1, 2);
+    adjs.add_edge(1, 3, 1);
+    adjs.add_edge(2, 3, 5);
 
-    edges
+    adjs
 }
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_dijkstra -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_adjacencies_fixture -- --nocapture
     use super::*;
 
     #[test]
-    fn test_graph_fixture() {
-        let edges = get_graph_fixture(); 
+    fn test_adjacencies_fixture() {
+        let adjs = get_adjacencies_fixture();
+
+        println!("Adjacencies: {:?}", adjs);
     }
 
     #[test]
@@ -120,11 +155,21 @@ mod tests {
         let start = 0;
         let goal = 3;
 
-        let edges = get_graph_fixture();
+        let adjs = get_adjacencies_fixture();
 
-        match dijkstra(&edges, start, goal) {
+        match dijkstra(&adjs, start, goal) {
             Some(cost) => println!("Shortest path cost from {} to {} is {}", start, goal, cost),
             None => println!("No path found from {} to {}", start, goal),
         }
+    }
+
+    #[test]
+    fn test_petgraph_dijkstra() {
+       let adjs = get_adjacencies_fixture();
+       let edges = adjs.get_endpoints();
+
+       println!("Edges: {:?}", edges);
+
+       //  let graph = UnGraph::<usize, ()>::from_edges(adjs);
     }
 }
