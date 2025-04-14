@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 if torch.backends.mps.is_available():
@@ -71,6 +72,56 @@ class HMMDataset(Dataset):
         return observations, states
 
 
+class GaussianEmbedding(nn.Module):
+    def __init__(self, num_states):
+        """
+        Args:
+            num_states (int): Number of Gaussian-distributed states.
+        """
+        super(GaussianEmbedding, self).__init__()
+
+        self.num_states = num_states
+
+        # Trainable parameters: mean and log(variance) for each state
+        self.means = nn.Parameter(torch.randn(num_states))  # Initialize means randomly
+        self.log_vars = nn.Parameter(
+            torch.zeros(num_states)
+        )  # Initialize log-variances to 0 (variance = 1)
+
+    def forward(self, x):
+        """
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, sequence_length), representing the sequence of features.
+
+        Returns:
+            torch.Tensor: Negative log-probabilities for each state and each value in the sequence,
+                          shape (batch_size, sequence_length, num_states).
+        """
+        # Ensure x has the correct shape (batch_size, sequence_length)
+        batch_size, sequence_length = x.shape
+
+        # Expand x to match the number of states: (batch_size, sequence_length, num_states)
+        x_expanded = x.unsqueeze(-1).expand(-1, -1, self.num_states)
+
+        # Compute variance from log-variance
+        variances = torch.exp(self.log_vars)  # Shape: (num_states,)
+
+        # Expand means and variances to match the sequence: (1, 1, num_states)
+        means_expanded = self.means.view(1, 1, -1)
+        variances_expanded = variances.view(1, 1, -1)
+
+        # Compute negative log-probabilities for each state and each value in the sequence
+        neg_log_probs = 0.5 * (
+            torch.log(
+                2 * torch.pi * variances_expanded
+            )  # Log of normalization constant
+            + ((x_expanded - means_expanded) ** 2)
+            / variances_expanded  # Squared Mahalanobis distance
+        )
+
+        return neg_log_probs  # Shape: (batch_size, sequence_length, num_states)
+
+
 class RNNUnit(nn.Module):
     # NNB emb_dim is == num_states in a HMM; where the values == -ln probs.
     def __init__(self, emb_dim):
@@ -99,10 +150,15 @@ class RNN(nn.Module):
         self.emb_dim = emb_dim
 
         # NB RNN patches outliers by emitting a corrected state_emission per layer.
-        self.num_layers = num_layers
-        self.rnn_units = nn.ModuleList([RNNUnit(emb_dim) for _ in range(num_layers)])
+        self.num_layers = 1 + num_layers
+        self.rnn_units = nn.ModuleList(
+            [GaussianEmbedding(emb_dim)] + [RNNUnit(emb_dim) for _ in range(num_layers)]
+        )
 
     def forward(self, x):
+        # NB Gaussian embedding of emission values, []
+        x = self.rnn_units[0]
+
         # NB standard
         batch_size, seq_len, emb_dim = x.shape
 
@@ -155,7 +211,7 @@ if __name__ == "__main__":
 
     # NB [batch_size, seq_length, single feature/emission].
     assert observations.shape == torch.Size([32, 50, 1])
-    
+
     # estimate = model.forward(observations)
 
     """
