@@ -62,11 +62,12 @@ class HMMDataset(Dataset):
 
         states = torch.tensor(states, dtype=torch.long, device=device)
 
-        # NB add "feature dimension"
+        # NB add a single "feature dimension"
         observations = torch.tensor(
             observations, dtype=torch.float, device=device
         ).unsqueeze(-1)
 
+        # NB when called as a batch, will have shape [batch_size, seq_length, 1].
         return observations, states
 
 
@@ -149,11 +150,14 @@ if __name__ == "__main__":
 
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
     dataloader = iter(dataloader)
-    
+
     observations, states = next(dataloader)
+
+    # NB [batch_size, seq_length, single feature/emission].
+    assert observations.shape == torch.Size([32, 50, 1])
     
-    estimate = model.forward(observations)
-    
+    # estimate = model.forward(observations)
+
     """
     for batch_idx, (observations, states) in enumerate(dataloader):
         print(f"Batch {batch_idx + 1}")
