@@ -62,8 +62,6 @@ class HMMDataset(Dataset):
             )
 
         states = torch.tensor(states, dtype=torch.long, device=device)
-
-        # NB add a single "feature dimension"
         observations = torch.tensor(
             observations, dtype=torch.float, device=device
         ).unsqueeze(-1)
@@ -83,9 +81,11 @@ class GaussianEmbedding(nn.Module):
         self.num_states = num_states
 
         # Trainable parameters: mean and log(variance) for each state
-        self.means = nn.Parameter(torch.randn(num_states))  # Initialize means randomly
+        self.means = nn.Parameter(
+            torch.randn(num_states, device=device)
+        )  # Initialize means randomly
         self.log_vars = nn.Parameter(
-            torch.zeros(num_states)
+            torch.zeros(num_states, device=device)
         )  # Initialize log-variances to 0 (variance = 1)
 
     def forward(self, x):
@@ -97,27 +97,25 @@ class GaussianEmbedding(nn.Module):
             torch.Tensor: Negative log-probabilities for each state and each value in the sequence,
                           shape (batch_size, sequence_length, num_states).
         """
-        # Ensure x has the correct shape (batch_size, sequence_length)
-        batch_size, sequence_length = x.shape
+        batch_size, sequence_length, _ = x.shape
 
-        # Expand x to match the number of states: (batch_size, sequence_length, num_states)
-        x_expanded = x.unsqueeze(-1).expand(-1, -1, self.num_states)
-
-        # Compute variance from log-variance
         variances = torch.exp(self.log_vars)  # Shape: (num_states,)
 
-        # Expand means and variances to match the sequence: (1, 1, num_states)
+        # NB expand means and variances to match the sequence: (1, 1, num_states); i.e. batch_size and sequence of 1.
         means_expanded = self.means.view(1, 1, -1)
         variances_expanded = variances.view(1, 1, -1)
 
-        # Compute negative log-probabilities for each state and each value in the sequence
-        neg_log_probs = 0.5 * (
-            torch.log(
-                2 * torch.pi * variances_expanded
-            )  # Log of normalization constant
-            + ((x_expanded - means_expanded) ** 2)
-            / variances_expanded  # Squared Mahalanobis distance
-        )
+        # NB expand x to match the number of states: (batch_size, sequence_length, num_states)
+        #    a view of original memory; -1 signifies no change;
+        x_expanded = x.expand(-1, -1, self.num_states)
+
+        # NB log of normalization constant
+        norm = 0.5 * torch.log(2 * torch.pi * variances_expanded)
+
+        # NB compute negative log-probabilities for each state and each value in the sequence
+        neg_log_probs = norm + ((x_expanded - means_expanded) ** 2) / variances_expanded
+
+        # print(neg_log_probs.shape)
 
         return neg_log_probs  # Shape: (batch_size, sequence_length, num_states)
 
@@ -126,6 +124,7 @@ class RNNUnit(nn.Module):
     """
     See: https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
     """
+
     # NNB emb_dim is == num_states in a HMM; where the values == -ln probs.
     def __init__(self, emb_dim):
         super(RNNUnit, self).__init__()
@@ -146,28 +145,25 @@ class RNNUnit(nn.Module):
 
 
 class RNN(nn.Module):
-    def __init__(self, emb_dim, num_layers):
+    def __init__(self, emb_dim, num_rnn_layers):
         super(RNN, self).__init__()
 
         # NB assumed number of states
         self.emb_dim = emb_dim
 
         # NB RNN patches outliers by emitting a corrected state_emission per layer.
-        self.num_layers = 1 + num_layers
-        self.rnn_units = nn.ModuleList(
-            [GaussianEmbedding(emb_dim)] + [RNNUnit(emb_dim) for _ in range(num_layers)]
+        self.num_layers = 1 + num_rnn_layers
+        self.layers = nn.ModuleList(
+            [GaussianEmbedding(emb_dim)]
+            + [RNNUnit(emb_dim) for _ in range(num_rnn_layers)]
         )
 
     def forward(self, x):
-        # NB Gaussian embedding of emission values, []
-        x = self.rnn_units[0]
-
-        # NB standard
-        batch_size, seq_len, emb_dim = x.shape
+        batch_size, seq_len, num_features = x.shape
 
         # NB equivalent to the start probability PI; per dataset in the batch.
         h_prev = [
-            torch.zeros(batch_size, emb_dim, device=x.device)
+            torch.zeros(batch_size, self.emb_dim, device=x.device)
             for _ in range(self.num_layers)
         ]
 
@@ -175,14 +171,16 @@ class RNN(nn.Module):
 
         # TODO too slow!
         for t in range(seq_len):
-            input_t = x[:, t]
-
-            for l, rnn_unit in enumerate(self.rnn_units):
+            # NB expand single token to a length 1 sequence.
+            input_t = x[:, t, :].view(-1, 1, -1)
+            input_t = self.layers[0].forward(input_t)
+            """
+            for l, rnn_unit in enumerate(self.layers[1:]):
                 h_new = rnn_unit(input_t, h_prev[l])
                 h_prev[l] = h_new
 
                 input_t = h_new
-
+            """
             outputs.append(input_t)
 
         return torch.stack(outputs, dim=1)
@@ -196,7 +194,9 @@ if __name__ == "__main__":
     means = [0.0, 5.0]
     stds = [1.0, 1.0]
 
-    model = RNN(len(means), 1)
+    num_states = len(means)
+
+    model = RNN(num_states, 1)
     model.to(device)
 
     dataset = HMMDataset(
@@ -212,29 +212,29 @@ if __name__ == "__main__":
 
     observations, states = next(dataloader)
 
-    # NB [batch_size, seq_length, single feature/emission].
+    # NB [batch_size, seq_length, single feature].
     assert observations.shape == torch.Size([32, 50, 1])
 
-    # estimate = model.forward(observations)
+    # embedding = GaussianEmbedding(num_states).forward(observations)
+    # assert embedding.shape == torch.Size([32, 50, num_states])
 
-    """
-    for batch_idx, (observations, states) in enumerate(dataloader):
-        print(f"Batch {batch_idx + 1}")
-        print(
-            "Observations:", observations.shape
-        )  # Shape: (batch_size, sequence_length)
-        print("States:", states.shape)  # Shape: (batch_size, sequence_length)
+    estimate = model.forward(observations)
 
-        break
-    """
-    """
+    print(estimate.shape)
+
+    exit(0)
+
+    # NB [batch_size, seq_length, -lnP for _ in num_states].
+    assert estimate.shape == torch.Size([32, 50, num_states])
+
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=1.0e-3)
 
     num_epochs = 10
 
+    # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0.0
@@ -262,6 +262,3 @@ if __name__ == "__main__":
         print(
             f"Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(dataloader):.4f}"
         )
-
-    print("Training complete!")
-    """
