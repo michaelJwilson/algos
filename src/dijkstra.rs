@@ -107,7 +107,7 @@ fn get_graph_fixture() -> HashMap<usize, Vec<Edge>> {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_graph_fixture -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_dijkstra -- --nocapture
     use super::*;
 
     #[test]
