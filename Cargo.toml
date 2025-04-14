@@ -21,7 +21,7 @@ spectral = "0.6.0"
 serde = { version = "1.0.116", optional = false }
 statrs = "0.18.0"
 nalgebra = "0.29"
-nalgebra-lapack = "0.14"
+# nalgebra-lapack = "0.14"
 
 argmin = "0.10.0"
 argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }
@@ -36,5 +36,6 @@ approx = "0.4"
 [profile.dev]
 opt-level = 3  # Otherwise the tests run too slow
 
-# [build]
-# rustflags = ["-C", "target-cpu=native"]
+# NB build customized to mac/arm 64.
+[build]
+rustflags = ["-C", "target-cpu=arm64"]
