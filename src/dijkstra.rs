@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use petgraph::graph::{NodeIndex, UnGraph};
 use petgraph::algo::dijkstra as petgraph_dijkstra;
 use petgraph::data::FromElements;
+use petgraph::dot::{Dot, Config};
 
 /*
 ----  TODO  ----
@@ -39,29 +40,21 @@ impl AdjacencyList {
     }
 
     fn get_edges(&self) -> Vec<(u32, u32, u32)> {
-        let mut result = Vec::new();
-
-        for (&from, neighbors) in &self.edges {
-            for edge in neighbors {
-                // NB no weights.
-                result.push((from as u32, edge.to as u32, edge.weight as u32));
-            }
-	    }
-
-        result
+        self.edges
+	    .iter()
+	    .flat_map(|(&from, neighbors)| {
+            neighbors.iter().map(move |edge| (from as u32, edge.to as u32, edge.weight as u32))
+	    })
+        .collect()
     }
 
     fn get_endpoints(&self) -> Vec<(u32, u32)> {
-        let mut endpoints_list = Vec::new();
-        
-        for (&from, neighbors) in &self.edges {
-            for edge in neighbors {
-                // NB no weights.
-                endpoints_list.push((from as u32, edge.to as u32));
-            }
-        }
-        
-        endpoints_list
+        self.edges
+        .iter()
+        .flat_map(|(&from, neighbors)| {
+            neighbors.iter().map(move |edge| (from as u32, edge.to as u32))
+        })
+        .collect()
     }
 }
 
@@ -163,15 +156,10 @@ mod tests {
 
     #[test]
     fn test_dijkstra() {
-        let start = 0;
-        let goal = 3;
-
         let adjs = get_adjacencies_fixture();
+        let cost = dijkstra(adjs, 0, 3).unwrap();
 
-        match dijkstra(adjs, start, goal) {
-            Some(cost) => println!("Shortest path cost from {} to {} is {}", start, goal, cost),
-            None => println!("No path found from {} to {}", start, goal),
-        }
+        assert_eq!(4, cost);
     }
 
     #[test]
@@ -184,31 +172,20 @@ mod tests {
        let adjs = get_adjacencies_fixture();
        let edges = adjs.get_edges();
 
-       // NB <u32, ()> specify the type of the node and edge weights.
-       let graph = UnGraph::<u32, (u32)>::from_edges(&edges);
+       // NB <u32, u32> specify the type of the node and edge weights.
+       let graph = UnGraph::<u32, u32>::from_edges(&edges);
 
        // NB find the shortest path from `0` to `3` using `1` as the cost for every edge.
        let node_map = petgraph_dijkstra(&graph, start.into(), Some(goal.into()), |edge| *edge.weight());
-       /*
-       for (node, cost) in &node_map {
-           println!("Node: {}, Cost: {}", node.index(), cost);
-       }
-       */
-       let mut exp = 0;
-
-       // NB assumes unit weight on edges.
-       match dijkstra(adjs, start, goal) {
-            Some(cost) => {
-                println!("Shortest path cost from {} to {} is {}", start, goal, cost);
-
-                exp = cost;
-            },
-            None => println!("No path found from {} to {}", start, goal),
-        };
+       let exp = dijkstra(adjs, start, goal).unwrap();
 
        // NB attempt to cast usize to u32 and unwrap the option.
        let result = node_map.get(&NodeIndex::new(goal.try_into().unwrap())).unwrap();
 
        assert_eq!(&exp, result);
+
+       // NB see: https://magjac.com/graphviz-visual-editor/;
+       //    also with no labels: Dot::with_config(&graph, &[Config::EdgeNoLabel])
+       println!("{:?}", Dot::new(&graph));
     }
 } 
