@@ -171,14 +171,18 @@ mod tests {
        let adjs = get_adjacencies_fixture();
        let edges = adjs.get_endpoints();
 
-       println!("Edges: {:?}", edges);
+       // println!("Edges: {:?}", edges);
 
        // NB <usize, ()> specify the type of the node and edge weights.
-       // let graph = UnGraph::<usize, ()>::from_edges(&edges);
+       let graph = UnGraph::<usize, ()>::from_edges(&edges);
 
-       // NB find the shortest path from `1` to `4` using `1` as the cost for every edge.
-       let node_map = dijkstra(&g, 0.into(), Some(3.into()), |_| 1);
-       
-       assert_eq!(&1i32, node_map.get(&NodeIndex::new(4)).unwrap());
+       // NB find the shortest path from `0` to `3` using `1` as the cost for every edge.
+       let node_map = petgraph_dijkstra(&graph, 0.into(), Some(3.into()), |_| 1);
+
+       // NB assumes unit weight on edges.
+       let exp = 2i32;
+       let result = node_map.get(&NodeIndex::new(3)).unwrap();
+
+       assert_eq!(&exp, result);
     }
 } 
