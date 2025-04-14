@@ -123,6 +123,9 @@ class GaussianEmbedding(nn.Module):
 
 
 class RNNUnit(nn.Module):
+    """
+    See: https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
+    """
     # NNB emb_dim is == num_states in a HMM; where the values == -ln probs.
     def __init__(self, emb_dim):
         super(RNNUnit, self).__init__()
