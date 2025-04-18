@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+from algos.rnn.hmm_dataset import HMMDataset
 
 logging.basicConfig(
     level=logging.INFO,
