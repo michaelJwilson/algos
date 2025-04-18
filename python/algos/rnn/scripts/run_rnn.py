@@ -23,8 +23,8 @@ def main():
 
     num_states = 2
     num_sequences = 256
-    sequence_length = 1_000
-    batch_size = 256
+    sequence_length = 4
+    batch_size = 1
     num_layers = 1
     learning_rate = 1.0
 
@@ -69,9 +69,20 @@ def main():
 
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    criterion = nn.CrossEntropyLoss()    
+    loss = criterion(estimate.view(-1, estimate.size(-1)), states.view(-1))
+    
+    log_probs = estimate.gather(2, states.unsqueeze(-1)).squeeze(-1)
+    result = torch.sum(log_probs) / log_probs.numel()
+    
+    logger.info(f"{log_probs}")
+    logger.info(f"{result}")
+    
+    logger.info(f"{loss}")
 
+    exit(0)
+    
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     num_epochs = 5
 
     # NB an epoch is a complete pass through the data (in batches).
@@ -86,7 +97,10 @@ def main():
                 observations
             )  # Shape: (batch_size, sequence_length, num_states)
 
+            # NB conserves last dim. axis and collapses remaining dims. to 1D.
             outputs = outputs.view(-1, outputs.size(-1))
+
+            # NB flattens states to 1D
             states = states.view(-1)
 
             # NB equivalent to -ln P_s under the model for known state s.
