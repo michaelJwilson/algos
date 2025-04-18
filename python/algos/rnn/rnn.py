@@ -1,13 +1,9 @@
 import logging
-import random
 
-import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
-import torch.optim as optim
 
-from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
