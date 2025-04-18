@@ -17,15 +17,14 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-
 def main():
     set_seed(42)
     device = get_device()
 
     num_states = 2
-    num_sequences = 100
-    sequence_length = 500
-    batch_size = 1
+    num_sequences = 256
+    sequence_length = 1_000
+    batch_size = 256
     num_layers = 1
     learning_rate = 1.0
 
@@ -82,12 +81,13 @@ def main():
 
         # NB cycles through all sequences.
         for batch_idx, (observations, states) in enumerate(dataloader):
+            ## >>>>
             outputs = model(
                 observations
             )  # Shape: (batch_size, sequence_length, num_states)
 
-            outputs = outputs.view(-1, outputs.size(-1))  # Flatten for loss computation
-            states = states.view(-1)  # Flatten target states
+            outputs = outputs.view(-1, outputs.size(-1))
+            states = states.view(-1)
 
             # NB equivalent to -ln P_s under the model for known state s.
             loss = criterion(outputs, states)
@@ -102,7 +102,7 @@ def main():
 
             total_loss += loss.item()
 
-        if epoch % 5 == 0:
+        if epoch % 1 == 0:
             logger.info(
                 f"----  Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"
             )
