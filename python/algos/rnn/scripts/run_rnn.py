@@ -76,8 +76,7 @@ def main():
     result = torch.sum(log_probs) / log_probs.numel()
     
     logger.info(f"{log_probs}")
-    logger.info(f"{result}")
-    
+    logger.info(f"{result}")    
     logger.info(f"{loss}")
 
     exit(0)
