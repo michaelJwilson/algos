@@ -64,7 +64,7 @@ def main():
 
     # logger.info(f"{embedding}")
     # logger.info(f"{estimate}")
-    
+
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
 
@@ -72,7 +72,7 @@ def main():
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    
+
     num_epochs = 5
 
     # NB an epoch is a complete pass through the data (in batches).
@@ -111,6 +111,7 @@ def main():
 
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
+
 
 if __name__ == "__main__":
     main()

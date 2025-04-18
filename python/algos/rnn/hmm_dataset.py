@@ -60,6 +60,6 @@ class HMMDataset(Dataset):
 
         logger.debug(f"{states}")
         logger.debug(f"{observations}")
-        
+
         # NB when called as a batch, will have shape [batch_size, seq_length, 1].
         return observations, states

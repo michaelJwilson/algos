@@ -68,6 +68,7 @@ class RNNUnit(nn.Module):
     """
     See: https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
     """
+
     # NB emb_dim is == num_states in a HMM; where the values == -ln probs.
     def __init__(self, emb_dim, device=None):
         super(RNNUnit, self).__init__()
@@ -79,7 +80,7 @@ class RNNUnit(nn.Module):
         # self.Uh = torch.randn(emb_dim, emb_dim)
         self.Uh = torch.zeros(emb_dim, emb_dim, device=device)
         self.Uh = nn.Parameter(self.Uh, requires_grad=False)
-        
+
         # NB novel: equivalent to a linear 'distortion' of the
         #    state probs. under the assumed emission model.
         # self.Wh = torch.randn(emb_dim, emb_dim)
@@ -91,7 +92,7 @@ class RNNUnit(nn.Module):
         # self.b = nn.Parameter(torch.zeros(emb_dim))
 
         # -- activations --
-        # NB tanh == RELU bounded (-1, 1).  
+        # NB tanh == RELU bounded (-1, 1).
         # self.phi = torch.tanh
         self.phi = nn.Identity
 
@@ -120,7 +121,7 @@ class RNN(nn.Module):
 
         # NB RNN patches outliers by emitting a corrected state_emission per layer.
         self.num_layers = 1 + num_rnn_layers
-        
+
         self.layers = nn.ModuleList(
             [GaussianEmbedding(emb_dim)]
             + [RNNUnit(emb_dim) for _ in range(num_rnn_layers)]
