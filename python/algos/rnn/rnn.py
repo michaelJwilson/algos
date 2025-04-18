@@ -8,15 +8,20 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from algos.rnn.hmm_dataset import HMMDataset
+from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
+
 class GaussianEmbedding(nn.Module):
-    def __init__(self, num_states):
+    def __init__(self, num_states, device=None):
         """
         Args:
             num_states (int): Number of Gaussian-distributed states.
         """
         super(GaussianEmbedding, self).__init__()
+        
+        if device is None:
+            device = get_device()
 
         self.num_states = num_states
 
@@ -66,8 +71,11 @@ class RNNUnit(nn.Module):
     """
 
     # NNB emb_dim is == num_states in a HMM; where the values == -ln probs.
-    def __init__(self, emb_dim):
+    def __init__(self, emb_dim, device=None):
         super(RNNUnit, self).__init__()
+
+        if device is None:
+            device = get_device()
 
         # NB equivalent to a transfer matrix.
         # self.Uh = nn.Parameter(torch.randn(emb_dim, emb_dim))
@@ -99,9 +107,12 @@ class RNNUnit(nn.Module):
 
 
 class RNN(nn.Module):
-    def __init__(self, emb_dim, num_rnn_layers):
+    def __init__(self, emb_dim, num_rnn_layers, device=None):
         super(RNN, self).__init__()
 
+        if device is None:
+            device = get_device()
+        
         # NB assumed number of states
         self.emb_dim = emb_dim
 

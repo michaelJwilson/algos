@@ -3,11 +3,12 @@ import logging
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
 
 class HMMDataset(Dataset):
-    def __init__(self, num_sequences, sequence_length, trans, means, stds):
+    def __init__(self, num_sequences, sequence_length, trans, means, stds, device=None):
         """
         Args:
             num_sequences (int): Number of sequences in the dataset.
@@ -16,6 +17,9 @@ class HMMDataset(Dataset):
             means (list): List of means for Gaussian emissions for each state.
             stds (list): List of standard deviations for Gaussian emissions for each state.
         """
+        if device is None:
+            self.device = get_device()
+        
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
         self.trans = trans
@@ -47,9 +51,9 @@ class HMMDataset(Dataset):
                 self.means[states[t]], self.stds[states[t]]
             )
 
-        states = torch.tensor(states, dtype=torch.long, device=device)
+        states = torch.tensor(states, dtype=torch.long, device=self.device)
         observations = torch.tensor(
-            observations, dtype=torch.float, device=device
+            observations, dtype=torch.float, device=self.device
         ).unsqueeze(-1)
 
         # NB when called as a batch, will have shape [batch_size, seq_length, 1].

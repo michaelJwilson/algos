@@ -1,11 +1,12 @@
 import logging
 
+import torch
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from algos.rnn.hmm_dataset import HMMDataset
-from algos.rnn.rnn import RNN
-from algos.rnn.utils import set_seed
+from algos.rnn.rnn import RNN, GaussianEmbedding
+from algos.rnn.utils import set_seed, get_device
 from torch.utils.data import DataLoader
 
 logging.basicConfig(
