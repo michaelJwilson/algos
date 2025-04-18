@@ -25,12 +25,12 @@ def main():
     num_states = 2
     num_sequences = 100
     sequence_length = 500
-    batch_size = 32
+    batch_size = 1
     num_layers = 1
     learning_rate = 1.0
 
     # NB defines true parameters.
-    trans = np.array([[0.7, 0.3], [0.4, 0.6]])
+    trans = np.array([[1.0, 0.0], [0.0, 1.0]])
 
     means = [5.0, 10.0]
     stds = [1.0, 1.0]
@@ -56,9 +56,15 @@ def main():
     embedding = GaussianEmbedding(num_states).forward(observations)
     assert embedding.shape == torch.Size([batch_size, sequence_length, num_states])
 
+    # NB embedding is -lnP per-state for Gaussian emission.
     emission = torch.exp(-embedding[0, :, :])
+
+    # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(observations)
 
+    # logger.info(f"{embedding}")
+    # logger.info(f"{estimate}")
+    
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
 
@@ -66,8 +72,8 @@ def main():
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-    num_epochs = 50
+    
+    num_epochs = 5
 
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(num_epochs):
@@ -105,7 +111,6 @@ def main():
 
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
-
 
 if __name__ == "__main__":
     main()

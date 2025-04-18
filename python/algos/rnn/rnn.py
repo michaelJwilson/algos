@@ -27,13 +27,14 @@ class GaussianEmbedding(nn.Module):
         self.means = torch.tensor([5.0, 10.0], device=device)
         self.means = nn.Parameter(self.means)
 
+        # NB unit variances.
         self.log_vars = torch.zeros(num_states, device=device)
         self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
 
     def forward(self, x):
         """
         Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, sequence_length), representing the sequence of features.
+            x (torch.Tensor): Input tensor of shape (batch_size, sequence_length, num_features), representing the sequence of features.
 
         Returns:
             torch.Tensor: Negative log-probabilities for each state and each value in the sequence,
@@ -41,9 +42,9 @@ class GaussianEmbedding(nn.Module):
         """
         batch_size, sequence_length, _ = x.shape
 
-        variances = torch.exp(self.log_vars)  # Shape: (num_states,)
+        variances = torch.exp(self.log_vars)
 
-        # NB expand means and variances to match the sequence: (1, 1, num_states); i.e. batch_size and sequence of 1.
+        # NB expand means and variances to match the sequence: (batch_size, 1, num_states); i.e. batch_size and sequence of 1.
         means_broadcast = self.means.view(1, 1, self.num_states)
         variances_broadcast = variances.view(1, 1, self.num_states)
 
@@ -59,15 +60,15 @@ class GaussianEmbedding(nn.Module):
             norm + ((x_broadcast - means_broadcast) ** 2) / variances_broadcast
         )
 
-        return neg_log_probs  # Shape: (batch_size, sequence_length, num_states)
+        # NB shape = (batch_size, sequence_length, num_states)
+        return neg_log_probs
 
 
 class RNNUnit(nn.Module):
     """
     See: https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
     """
-
-    # NNB emb_dim is == num_states in a HMM; where the values == -ln probs.
+    # NB emb_dim is == num_states in a HMM; where the values == -ln probs.
     def __init__(self, emb_dim, device=None):
         super(RNNUnit, self).__init__()
 
@@ -75,20 +76,23 @@ class RNNUnit(nn.Module):
             device = get_device()
 
         # NB equivalent to a transfer matrix.
-        # self.Uh = nn.Parameter(torch.randn(emb_dim, emb_dim))
+        # self.Uh = torch.randn(emb_dim, emb_dim)
         self.Uh = torch.zeros(emb_dim, emb_dim, device=device)
-
+        self.Uh = nn.Parameter(self.Uh, requires_grad=False)
+        
         # NB novel: equivalent to a linear 'distortion' of the
         #    state probs. under the assumed emission model.
-        # self.Wh = nn.Parameter(torch.randn(emb_dim, emb_dim))
+        # self.Wh = torch.randn(emb_dim, emb_dim)
         self.Wh = torch.eye(emb_dim, device=device)
+        self.Wh = nn.Parameter(self.Wh, requires_grad=False)
 
-        # NB normalization
+        # -- normalization --
         # NB relatively novel: would equate to the norm of log probs.
         # self.b = nn.Parameter(torch.zeros(emb_dim))
 
-        # NB activations
-        # self.phi = torch.tanh # tanh == RELU bounded (-1, 1).
+        # -- activations --
+        # NB tanh == RELU bounded (-1, 1).  
+        # self.phi = torch.tanh
         self.phi = nn.Identity
 
     def forward(self, x, h):
@@ -96,8 +100,9 @@ class RNNUnit(nn.Module):
         result += h @ self.Uh
 
         # result -= self.b
-        # norm = torch.logsumexp(result, dim=-1).unsqueeze(-1)
-        result = F.softmax(result, dim=-1)
+
+        # NB https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
+        result = F.softmax(-result, dim=-1)
 
         # HACK BUG apply activation
         return result
@@ -115,6 +120,7 @@ class RNN(nn.Module):
 
         # NB RNN patches outliers by emitting a corrected state_emission per layer.
         self.num_layers = 1 + num_rnn_layers
+        
         self.layers = nn.ModuleList(
             [GaussianEmbedding(emb_dim)]
             + [RNNUnit(emb_dim) for _ in range(num_rnn_layers)]
@@ -150,4 +156,4 @@ class RNN(nn.Module):
             """
             outputs.append(input_t)
 
-        return torch.stack(outputs, dim=1)
+        return -torch.stack(outputs, dim=1)

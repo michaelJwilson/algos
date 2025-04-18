@@ -27,7 +27,7 @@ class HMMDataset(Dataset):
         self.trans = trans
         self.means = means
         self.stds = stds
-        self.num_states = trans.shape[0]
+        self.num_states = len(self.means)
 
         logger.info(
             f"Generating HMMDataset with true parameters:\nM={self.means}\nT=\n{self.trans}"
@@ -58,5 +58,8 @@ class HMMDataset(Dataset):
             observations, dtype=torch.float, device=self.device
         ).unsqueeze(-1)
 
+        logger.debug(f"{states}")
+        logger.debug(f"{observations}")
+        
         # NB when called as a batch, will have shape [batch_size, seq_length, 1].
         return observations, states
