@@ -8,6 +8,7 @@ from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
 
+
 class HMMDataset(Dataset):
     def __init__(self, num_sequences, sequence_length, trans, means, stds, device=None):
         """
@@ -20,7 +21,7 @@ class HMMDataset(Dataset):
         """
         if device is None:
             self.device = get_device()
-        
+
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
         self.trans = trans

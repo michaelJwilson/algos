@@ -8,6 +8,7 @@ from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
 
+
 class GaussianEmbedding(nn.Module):
     def __init__(self, num_states, device=None):
         """
@@ -15,7 +16,7 @@ class GaussianEmbedding(nn.Module):
             num_states (int): Number of Gaussian-distributed states.
         """
         super(GaussianEmbedding, self).__init__()
-        
+
         if device is None:
             device = get_device()
 
@@ -23,7 +24,7 @@ class GaussianEmbedding(nn.Module):
 
         # NB Trainable parameters: mean and log(variance) for each state
         # self.means = torch.randn(num_states, device=device)
-        self.means = torch.tensor([5., 10.], device=device)
+        self.means = torch.tensor([5.0, 10.0], device=device)
         self.means = nn.Parameter(self.means)
 
         self.log_vars = torch.zeros(num_states, device=device)
@@ -82,7 +83,7 @@ class RNNUnit(nn.Module):
         # self.Wh = nn.Parameter(torch.randn(emb_dim, emb_dim))
         self.Wh = torch.eye(emb_dim, device=device)
 
-        # NB normalization 
+        # NB normalization
         # NB relatively novel: would equate to the norm of log probs.
         # self.b = nn.Parameter(torch.zeros(emb_dim))
 
@@ -108,7 +109,7 @@ class RNN(nn.Module):
 
         if device is None:
             device = get_device()
-        
+
         # NB assumed number of states
         self.emb_dim = emb_dim
 

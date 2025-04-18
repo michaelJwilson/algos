@@ -17,6 +17,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
 def main():
     set_seed(42)
     device = get_device()
@@ -27,7 +28,7 @@ def main():
     batch_size = 32
     num_layers = 1
     learning_rate = 1.0
-    
+
     # NB defines true parameters.
     trans = np.array([[0.7, 0.3], [0.4, 0.6]])
 
@@ -57,7 +58,7 @@ def main():
 
     emission = torch.exp(-embedding[0, :, :])
     estimate = model.forward(observations)
-    
+
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
 
@@ -67,7 +68,7 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     num_epochs = 50
-    
+
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(num_epochs):
         model.train()
@@ -78,13 +79,13 @@ def main():
             outputs = model(
                 observations
             )  # Shape: (batch_size, sequence_length, num_states)
-            
+
             outputs = outputs.view(-1, outputs.size(-1))  # Flatten for loss computation
             states = states.view(-1)  # Flatten target states
-            
+
             # NB equivalent to -ln P_s under the model for known state s.
             loss = criterion(outputs, states)
-            
+
             optimizer.zero_grad()
 
             # NB compute gradient with backprop.
@@ -99,11 +100,12 @@ def main():
             logger.info(
                 f"----  Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"
             )
-            
+
             params = model.parameters()
 
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
+
 
 if __name__ == "__main__":
     main()
