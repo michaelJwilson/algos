@@ -26,9 +26,8 @@ class RNNUnit(nn.Module):
     def __init__(self, emb_dim, device=None, requires_grad=False):
         super(RNNUnit, self).__init__()
 
-        if device is None:
-            self.device = get_device()
-
+        self.device = get_device() if device is None else device
+                        
         if not requires_grad:
             self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
             self.Wh = torch.eye(emb_dim, device=self.device)
@@ -38,17 +37,17 @@ class RNNUnit(nn.Module):
 
         else:
             # NB equivalent to a transfer matrix: contributes h . U
-            self.Uh = torch.randn(emb_dim, emb_dim)
+            self.Uh = torch.randn(emb_dim, emb_dim, device=self.device)
 
             # NB novel: equivalent to a linear 'distortion' of the
             #    state probs. under the assumed emission model.
-            self.Wh = torch.randn(emb_dim, emb_dim)
+            self.Wh = torch.randn(emb_dim, emb_dim, device=self.device)
 
             # -- normalization --
             # NB relatively novel: would equate to the norm of log probs.
             #    instead we introduce softmax for actual normalization.
             #
-            self.b = torch.zeros(emb_dim)
+            self.b = torch.zeros(emb_dim, device=self.device)
 
             # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
             self.phi = torch.tanh
@@ -80,11 +79,11 @@ class RNN(nn.Module):
     W is a distortion of the embedding (equivalent to a cumulative
     ln P mapping?).
     """
+
     def __init__(self, emb_dim, num_rnn_layers, device=None):
         super(RNN, self).__init__()
 
-        if device is None:
-            self.device = get_device()
+        self.device = get_device() if device is None else device
 
         # NB embedding dimension == assumed number of states.
         self.emb_dim = emb_dim
@@ -94,8 +93,8 @@ class RNN(nn.Module):
         self.num_layers = 1 + num_rnn_layers
 
         self.layers = nn.ModuleList(
-            [GaussianEmbedding(emb_dim)]
-            + [RNNUnit(emb_dim) for _ in range(num_rnn_layers)]
+            [GaussianEmbedding(emb_dim, device=self.device)]
+            + [RNNUnit(emb_dim, device=self.device) for _ in range(num_rnn_layers)]
         )
 
         self.to(device)

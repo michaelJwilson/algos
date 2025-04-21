@@ -58,7 +58,7 @@ def main():
     assert observations.shape == torch.Size([batch_size, sequence_length, 1])
 
     # NB embedding is -lnP per-state for Gaussian emission.
-    embedding = GaussianEmbedding(num_states).forward(observations)
+    embedding = GaussianEmbedding(num_states, device=device).forward(observations)
 
     assert embedding.shape == torch.Size([batch_size, sequence_length, num_states])
 
@@ -72,15 +72,15 @@ def main():
     
     summary(model, input_size=(batch_size, sequence_length, num_states))
 
-    logger.info(f"\n\nDone.\n\n")
-    
-    exit(0)
-    
-    # NB forward model is lnP to match CrossEntropyLoss()
+    # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                                                                                             
     estimate = model.forward(observations)
 
     logger.info(f"{estimate}")
+
+    logger.info(f"\n\nDone.\n\n")
     
+    exit(0)
+        
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
 

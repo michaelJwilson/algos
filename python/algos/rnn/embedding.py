@@ -14,8 +14,7 @@ class GaussianEmbedding(nn.Module):
         """
         super(GaussianEmbedding, self).__init__()
 
-        if device is None:
-            device = get_device()
+        self.device = get_device() if device is None else device
 
         self.num_states = num_states
 
@@ -26,7 +25,7 @@ class GaussianEmbedding(nn.Module):
         # NB fixed, unit variances.
         self.log_vars = torch.zeros(num_states, device=device)
 
-        self.means = nn.Parameter(self.means)
+        self.means = nn.Parameter(self.means, requires_grad=True)
         self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
 
         logger.info(
