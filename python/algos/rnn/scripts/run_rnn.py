@@ -63,18 +63,17 @@ def main():
 
     emission = torch.exp(-embedding[0, :, :])
 
-    print(emission)
-
-    exit(0)
+    logger.info(f"Realized Gaussian emission embedding=\n{emission}")
 
     model = RNN(num_states, num_layers)
 
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(observations)
 
-    # logger.info(f"{embedding}")
-    # logger.info(f"{estimate}")
+    logger.info(f"{estimate}")
 
+    exit(0)
+    
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
 
