@@ -1,5 +1,6 @@
 import torch
 import logging
+import torch.nn.functional as F
 from torch import nn
 from algos.rnn.utils import get_device
 
@@ -61,6 +62,8 @@ class GaussianEmbedding(nn.Module):
         neg_log_probs = (
             norm + ((x_broadcast - means_broadcast) ** 2) / variances_broadcast
         )
+
+        neg_log_probs = F.softmin(neg_log_probs, dim=-1)
         
         # NB shape = (batch_size, sequence_length, num_states)
         return neg_log_probs
