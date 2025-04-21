@@ -37,23 +37,26 @@ class RNNUnit(nn.Module):
 
         else:
             # NB equivalent to a transfer matrix: contributes h . U
-            self.Uh = torch.randn(emb_dim, emb_dim).to(self.device)
-
+            # self.Uh = torch.randn(emb_dim, emb_dim).to(self.device)
+            self.Uh = torch.eye(emb_dim, m=emb_dim).to(self.device)
+            
             # NB novel: equivalent to a linear 'distortion' of the
             #    state probs. under the assumed emission model.
-            self.Wh = torch.randn(emb_dim, emb_dim).to(self.device)
-
+            # self.Wh = torch.randn(emb_dim, emb_dim).to(self.device)
+            self.Wh = torch.eye(emb_dim, m=emb_dim).to(self.device)
+            
             # -- normalization --
             # NB relatively novel: would equate to the norm of log probs.
             #    instead we introduce softmax for actual normalization.
             #
-            self.b = torch.zeros(emb_dim).to(self.device)
+            # self.b = torch.zeros(emb_dim).to(self.device)
 
             # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
-            self.phi = torch.tanh
-
+            # self.phi = torch.tanh
+            self.phi = nn.Identity
+            
         self.Uh = nn.Parameter(self.Uh, requires_grad=requires_grad)
-        self.Wh = nn.Parameter(self.Wh, requires_grad=requires_grad)
+        self.Wh = nn.Parameter(self.Wh, requires_grad=False)
         # self.b = nn.Parameter(self.b, requires_grad=requires_grad)
 
     def forward(self, x, h):
@@ -66,7 +69,7 @@ class RNNUnit(nn.Module):
         # NB https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
         result = F.softmin(result, dim=-1)
 
-        # HACK BUG apply activation
+        # HACK BUG apply activation?
         return result
 
 
