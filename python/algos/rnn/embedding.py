@@ -63,7 +63,8 @@ class GaussianEmbedding(nn.Module):
             norm + ((x_broadcast - means_broadcast) ** 2) / variances_broadcast
         )
 
-        neg_log_probs = F.softmin(neg_log_probs, dim=-1)
-        
+        # TODO normalize with ~logsumexp.
+        # neg_log_probs = torch.log(F.softmin(neg_log_probs, dim=-1))
+
         # NB shape = (batch_size, sequence_length, num_states)
         return neg_log_probs
