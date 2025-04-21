@@ -14,12 +14,12 @@ def get_device():
 
 
 def set_seed(seed):
-    random.seed(seed)  # Python random module
-    np.random.seed(seed)  # NumPy
-    torch.manual_seed(seed)  # PyTorch CPU
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
     if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)  # PyTorch GPU
-        torch.cuda.manual_seed_all(seed)  # All GPUs
-    torch.backends.cudnn.deterministic = True  # Ensure deterministic behavior
-    torch.backends.cudnn.benchmark = False  # Disable auto-tuning for reproducibility
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
