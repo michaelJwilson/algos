@@ -75,7 +75,7 @@ def main():
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                                                                                             
     estimate = model.forward(observations)
 
-    logger.info(f"{torch.exp(estimate[0, :, :])}")
+    logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
 
     logger.info(f"\n\nDone.\n\n")
     

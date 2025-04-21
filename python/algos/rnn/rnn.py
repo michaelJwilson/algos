@@ -29,25 +29,25 @@ class RNNUnit(nn.Module):
         self.device = get_device() if device is None else device
                         
         if not requires_grad:
-            self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
-            self.Wh = torch.eye(emb_dim, device=self.device)
+            self.Uh = torch.zeros(emb_dim, emb_dim).to(self.device)
+            self.Wh = torch.eye(emb_dim).to(self.device)
 
             # NB assume no non-linearities.
             self.phi = nn.Identity
 
         else:
             # NB equivalent to a transfer matrix: contributes h . U
-            self.Uh = torch.randn(emb_dim, emb_dim, device=self.device)
+            self.Uh = torch.randn(emb_dim, emb_dim).to(self.device)
 
             # NB novel: equivalent to a linear 'distortion' of the
             #    state probs. under the assumed emission model.
-            self.Wh = torch.randn(emb_dim, emb_dim, device=self.device)
+            self.Wh = torch.randn(emb_dim, emb_dim).to(self.device)
 
             # -- normalization --
             # NB relatively novel: would equate to the norm of log probs.
             #    instead we introduce softmax for actual normalization.
             #
-            self.b = torch.zeros(emb_dim, device=self.device)
+            self.b = torch.zeros(emb_dim).to(self.device)
 
             # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
             self.phi = torch.tanh
@@ -96,6 +96,7 @@ class RNN(nn.Module):
             + [RNNUnit(emb_dim, device=self.device) for _ in range(num_rnn_layers)]
         )
 
+        # TODO why is this necessary?
         self.to(device)
 
     def forward(self, x):
