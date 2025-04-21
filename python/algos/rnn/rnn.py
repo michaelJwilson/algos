@@ -11,35 +11,48 @@ logger = logging.getLogger(__name__)
 
 class RNNUnit(nn.Module):
     """
-    See: https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
+    Evaluates an RR unit Phi(x.W + h.U + b) for input x and h.
+
+    NB W coresponds to a linear distortion of the input embedding, U
+       corresponds to a linear transfer of the input hidden state and
+       b equates to the normalization of a log probs. embedding.
+    
+    See:
+       https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
     """
     # NB emb_dim is == num_states in a HMM; where the values == -ln probs.
-    def __init__(self, emb_dim, device=None):
+    def __init__(self, emb_dim, device=None, requires_grad=False):
         super(RNNUnit, self).__init__()
 
         if device is None:
             self.device = get_device()
 
-        # NB equivalent to a transfer matrix.
+        # NB equivalent to a transfer matrix: contributes h . U
         # self.Uh = torch.randn(emb_dim, emb_dim)
         self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
-        self.Uh = nn.Parameter(self.Uh, requires_grad=False)
 
         # NB novel: equivalent to a linear 'distortion' of the
         #    state probs. under the assumed emission model.
         # self.Wh = torch.randn(emb_dim, emb_dim)
         self.Wh = torch.eye(emb_dim, device=self.device)
-        self.Wh = nn.Parameter(self.Wh, requires_grad=False)
 
         # -- normalization --
         # NB relatively novel: would equate to the norm of log probs.
-        # self.b = nn.Parameter(torch.zeros(emb_dim))
+        #    instead we introduce softmax for actual normalization.
+        # 
+        # self.b = torch.zeros(emb_dim)
 
         # -- activations --
-        # NB tanh == RELU bounded (-1, 1).
+        # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
         # self.phi = torch.tanh
+        #
+        # NB assume no non-linearities.
         self.phi = nn.Identity
 
+        self.Uh = nn.Parameter(self.Uh, requires_grad=requires_grad)
+        self.Wh = nn.Parameter(self.Wh, requires_grad=requires_grad)
+        # self.b = nn.Parameter(self.b, requires_grad=requires_grad)
+        
     def forward(self, x, h):
         result = x @ self.Wh
         result += h @ self.Uh
