@@ -11,17 +11,21 @@ use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 fn bfs(residual_graph: &Vec<Vec<i32>>, source: usize, sink: usize, parent: &mut Vec<isize>) -> bool {
     let mut visited = vec![false; residual_graph.len()];
     let mut queue = VecDeque::new();
-
-    queue.push_back(source);
+    
     visited[source] = true;
     parent[source] = -1;
 
+    queue.push_back(source);
+
+    // NB first-in-first-out queue.
     while let Some(u) = queue.pop_front() {
+        // NB loop over all un-visited neighbours.
         for v in 0..residual_graph.len() {
             if !visited[v] && residual_graph[u][v] > 0 {
-                queue.push_back(v);
                 parent[v] = u as isize;
                 visited[v] = true;
+
+                queue.push_back(v);
 
                 if v == sink {
                     return true;
@@ -38,6 +42,7 @@ fn ford_fulkerson(graph: Vec<Vec<i32>>, source: usize, sink: usize) -> i32 {
     let mut parent = vec![-1; graph.len()];
     let mut max_flow = 0;
 
+    // NB while there is an 'augmenting path' by breadth-first search.
     while bfs(&residual_graph, source, sink, &mut parent) {
         let mut path_flow = i32::MAX;
 
