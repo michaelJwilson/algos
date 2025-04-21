@@ -42,6 +42,7 @@ pub mod sqrt;
 pub mod kadane_maxsubarray;
 pub mod minka;
 pub mod dijkstra;
+pub mod ford_fulkerson;
 
 // NB list of deprecated modules.
 // pub mod matrix;
