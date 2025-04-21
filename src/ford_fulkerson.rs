@@ -4,11 +4,11 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 
 /*
-----  TODO  ----
-- Ford Fulkerson algorithm for max. flow on a directed graph.
+Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 */
 
 fn bfs(residual_graph: &Vec<Vec<i32>>, source: usize, sink: usize, parent: &mut Vec<isize>) -> bool {
+    // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
     let mut visited = vec![false; residual_graph.len()];
     let mut queue = VecDeque::new();
     
@@ -37,8 +37,13 @@ fn bfs(residual_graph: &Vec<Vec<i32>>, source: usize, sink: usize, parent: &mut 
     false
 }
 
-fn ford_fulkerson(graph: Vec<Vec<i32>>, source: usize, sink: usize) -> i32 {
+fn edmonds_karp(graph: Vec<Vec<i32>>, source: usize, sink: usize) -> i32 {
+    // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
+    //    and the inverse flow, f_uv on the backward edges.
     let mut residual_graph = graph.clone();
+
+    // NB save the frontier node that discovered a node on the tree as the parent, allowing for
+    //    back trace.
     let mut parent = vec![-1; graph.len()];
     let mut max_flow = 0;
 
@@ -98,9 +103,9 @@ mod tests {
     }
 
     #[test]
-    fn test_ford_fulkerson() {
+    fn test_edmonds_karp() {
         let (source, sink, max_flow, graph) = get_adjacencies_fixture();
-        let max_flow = ford_fulkerson(graph, source, sink);
+        let max_flow = edmonds_karp(graph, source, sink);
     }
 
     #[test]
@@ -133,6 +138,7 @@ mod tests {
           (4, 5, 4),
        ]);
 
+       // NB seems to be Edmonds-Karp; accepts anti-parallel edges.
        let (max_flow, _) = petgraph_ford_fulkerson(&graph, source, destination);
 
        assert_eq!(23, max_flow);
