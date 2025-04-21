@@ -71,11 +71,15 @@ class RNNUnit(nn.Module):
 
 
 class RNN(nn.Module):
+    """
+    Evaluates an auto-regressive ('next token') multi-layer RNN
+    of layers Phi(x.W + h.U + b)
+    """
     def __init__(self, emb_dim, num_rnn_layers, device=None):
         super(RNN, self).__init__()
 
         if device is None:
-            device = get_device()
+            self.device = get_device()
 
         # NB assumed number of states
         self.emb_dim = emb_dim
