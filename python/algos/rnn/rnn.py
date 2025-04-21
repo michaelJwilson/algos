@@ -64,7 +64,7 @@ class RNNUnit(nn.Module):
         # result -= self.b
         #
         # NB https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
-        result = F.softmax(-result, dim=-1)
+        result = F.softmin(result, dim=-1)
 
         # HACK BUG apply activation
         return result
