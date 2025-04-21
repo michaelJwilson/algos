@@ -18,17 +18,17 @@ class RNNUnit(nn.Module):
         super(RNNUnit, self).__init__()
 
         if device is None:
-            device = get_device()
+            self.device = get_device()
 
         # NB equivalent to a transfer matrix.
         # self.Uh = torch.randn(emb_dim, emb_dim)
-        self.Uh = torch.zeros(emb_dim, emb_dim, device=device)
+        self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
         self.Uh = nn.Parameter(self.Uh, requires_grad=False)
 
         # NB novel: equivalent to a linear 'distortion' of the
         #    state probs. under the assumed emission model.
         # self.Wh = torch.randn(emb_dim, emb_dim)
-        self.Wh = torch.eye(emb_dim, device=device)
+        self.Wh = torch.eye(emb_dim, device=self.device)
         self.Wh = nn.Parameter(self.Wh, requires_grad=False)
 
         # -- normalization --

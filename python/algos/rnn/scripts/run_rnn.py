@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch import optim
+from torchinfo import summary
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN, GaussianEmbedding
 from algos.rnn.utils import get_device, set_seed
@@ -67,12 +68,18 @@ def main():
 
     model = RNN(num_states, num_layers)
 
+    logger.info(f"RNN model summary:\n")
+    
+    summary(model, input_size=(batch_size, sequence_length, num_states))
+
+    logger.info(f"\n\nDone.\n\n")
+    
+    exit(0)
+    
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(observations)
 
     logger.info(f"{estimate}")
-
-    exit(0)
     
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
