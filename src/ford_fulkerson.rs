@@ -1,3 +1,6 @@
+#![feature(test)] // Enable the nightly-only test feature
+extern crate test;
+
 use std::collections::VecDeque;
 
 use petgraph::graph::{Graph, NodeIndex, UnGraph};
@@ -72,6 +75,40 @@ fn edmonds_karp(graph: Vec<Vec<i32>>, source: usize, sink: usize) -> i32 {
     }
 
     max_flow
+}
+
+#[bench]
+fn edmonds_karp_bench(bench: &mut Bencher) {
+    static NODE_COUNT: usize = 1_000;
+
+    let mut g = Graph::new_undirected();
+
+    let nodes: Vec<NodeIndex<_>> = (0..NODE_COUNT)
+        .into_iter()
+        .map(|i| g.add_node(i))
+        .collect();
+
+    for i in 0..NODE_COUNT {
+        let n1 = nodes[i];
+        let neighbour_count = i % 8 + 3; // Number of neighbors for each node
+        let j_from = max(0, i as i32 - neighbour_count as i32 / 2) as usize;
+        let j_to = min(NODE_COUNT, j_from + neighbour_count);
+
+        for j in j_from..j_to {
+            let n2 = nodes[j];
+            let distance = (i + 3) % 10; // Edge weight
+            g.add_edge(n1, n2, distance);
+        }
+    }
+
+    // Define the start and end nodes
+    let start = nodes[0];
+    let end = nodes[NODE_COUNT - 1];
+
+    bench.iter(|| {
+        // TODO |e| *e.weight()
+        let _scores = petgraph_ford_fulkerson(&g, start, end)
+    });
 }
 
 fn get_adjacencies_fixture() -> (usize, usize, usize, Vec<Vec<i32>>) {
