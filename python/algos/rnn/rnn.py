@@ -26,28 +26,31 @@ class RNNUnit(nn.Module):
 
         if device is None:
             self.device = get_device()
+            
+        if not requires_grad:
+            self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
+            self.Wh = torch.eye(emb_dim, device=self.device)
 
-        # NB equivalent to a transfer matrix: contributes h . U
-        # self.Uh = torch.randn(emb_dim, emb_dim)
-        self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
+            # NB assume no non-linearities. 
+            self.phi = nn.Identity
+            
+        else:    
+            # NB equivalent to a transfer matrix: contributes h . U
+            self.Uh = torch.randn(emb_dim, emb_dim)
 
-        # NB novel: equivalent to a linear 'distortion' of the
-        #    state probs. under the assumed emission model.
-        # self.Wh = torch.randn(emb_dim, emb_dim)
-        self.Wh = torch.eye(emb_dim, device=self.device)
+            # NB novel: equivalent to a linear 'distortion' of the
+            #    state probs. under the assumed emission model.
+            self.Wh = torch.randn(emb_dim, emb_dim)
+            
+            
+            # -- normalization --
+            # NB relatively novel: would equate to the norm of log probs.
+            #    instead we introduce softmax for actual normalization.
+            # 
+            self.b = torch.zeros(emb_dim)
 
-        # -- normalization --
-        # NB relatively novel: would equate to the norm of log probs.
-        #    instead we introduce softmax for actual normalization.
-        # 
-        # self.b = torch.zeros(emb_dim)
-
-        # -- activations --
-        # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
-        # self.phi = torch.tanh
-        #
-        # NB assume no non-linearities.
-        self.phi = nn.Identity
+            # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
+            self.phi = torch.tanh
 
         self.Uh = nn.Parameter(self.Uh, requires_grad=requires_grad)
         self.Wh = nn.Parameter(self.Wh, requires_grad=requires_grad)
@@ -57,8 +60,9 @@ class RNNUnit(nn.Module):
         result = x @ self.Wh
         result += h @ self.Uh
 
+        # -- normalization -
         # result -= self.b
-
+        # 
         # NB https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
         result = F.softmax(-result, dim=-1)
 
