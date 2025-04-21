@@ -17,24 +17,25 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
 def main():
-    set_seed(42)
+    # NB should be mps on mac.
     device = get_device()
+
+    set_seed(42)
 
     num_states = 2
     num_sequences = 256
-    sequence_length = 4
-    batch_size = 1
+    sequence_length = 20
+    batch_size = 256
     num_layers = 1
-    learning_rate = 1.0
+    learning_rate = 1.0e-3
 
     # NB defines true parameters.
     trans = np.array([[1.0, 0.0], [0.0, 1.0]])
 
     means = [5.0, 10.0]
     stds = [1.0, 1.0]
-
-    model = RNN(num_states, num_layers)
 
     dataset = HMMDataset(
         num_sequences=num_sequences,
@@ -52,11 +53,18 @@ def main():
     # NB [batch_size, seq_length, single feature].
     assert observations.shape == torch.Size([batch_size, sequence_length, 1])
 
+    # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding(num_states).forward(observations)
+
     assert embedding.shape == torch.Size([batch_size, sequence_length, num_states])
 
-    # NB embedding is -lnP per-state for Gaussian emission.
     emission = torch.exp(-embedding[0, :, :])
+
+    print(emission)
+
+    exit(0)
+
+    model = RNN(num_states, num_layers)
 
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(observations)
@@ -69,18 +77,16 @@ def main():
 
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
-    criterion = nn.CrossEntropyLoss()    
+    criterion = nn.CrossEntropyLoss()
     loss = criterion(estimate.view(-1, estimate.size(-1)), states.view(-1))
-    
+
     log_probs = estimate.gather(2, states.unsqueeze(-1)).squeeze(-1)
     result = torch.sum(log_probs) / log_probs.numel()
-    
+
     logger.info(f"{log_probs}")
-    logger.info(f"{result}")    
+    logger.info(f"{result}")
     logger.info(f"{loss}")
 
-    exit(0)
-    
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     num_epochs = 5
 

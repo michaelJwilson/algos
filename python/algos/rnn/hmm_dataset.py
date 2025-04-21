@@ -51,7 +51,7 @@ class HMMDataset(Dataset):
         self.observations = np.zeros(self.sequence_length, dtype=float)
 
         logger.info(
-            f"Generating HMMDataset with true parameters:\nM={self.means}\nT=\n{self.trans}"
+            f"Generating HMMDataset on {self.device} with true parameters:\nM={self.means}\nT=\n{self.trans}"
         )
 
     def __len__(self):
@@ -61,6 +61,7 @@ class HMMDataset(Dataset):
         """
         Generate a single HMM sequence (on the fly).
         """
+        # TODO necessary?
         self.states[:] = 0
         self.observations[:] = 0.0
 
