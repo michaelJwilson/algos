@@ -27,11 +27,12 @@ def main():
 
     num_states = 2
     num_sequences = 256
-    sequence_length = 20
+    sequence_length = 2_000
     batch_size = 256
     num_layers = 1
-    learning_rate = 1.0e-3
-
+    learning_rate = 5.0e-2
+    num_epochs = 250
+    
     # NB defines true parameters.
     jump_rate = 0.3
     trans = np.array([[1. - jump_rate, jump_rate], [jump_rate, 1. - jump_rate]])
@@ -76,10 +77,6 @@ def main():
     estimate = model.forward(observations)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
-
-    logger.info(f"\n\nDone.\n\n")
-    
-    exit(0)
         
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
@@ -92,12 +89,13 @@ def main():
     log_probs = estimate.gather(2, states.unsqueeze(-1)).squeeze(-1)
     result = torch.sum(log_probs) / log_probs.numel()
 
-    logger.info(f"{log_probs}")
-    logger.info(f"{result}")
-    logger.info(f"{loss}")
+    # logger.info(f"\n{log_probs}")
+    # logger.info(f"\n{result}")
+    # logger.info(f"\n{loss}")
 
+    # exit(0)
+    
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    num_epochs = 5
 
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(num_epochs):
@@ -140,6 +138,7 @@ def main():
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
 
-
+    logger.info(f"\n\nDone.\n\n")
+                
 if __name__ == "__main__":
     main()
