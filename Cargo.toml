@@ -33,7 +33,7 @@ GSL = "7.0"
 
 [dev-dependencies]
 approx = "0.4"
-test = "0.1"
+criterion = "0.4"
 
 [profile.dev]
 opt-level = 3  # Otherwise the tests run too slow
