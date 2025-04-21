@@ -30,7 +30,7 @@ class RNNUnit(nn.Module):
                         
         if not requires_grad:
             self.Uh = torch.zeros(emb_dim, emb_dim).to(self.device)
-            self.Wh = torch.eye(emb_dim).to(self.device)
+            self.Wh = torch.eye(emb_dim, m=emb_dim).to(self.device)
 
             # NB assume no non-linearities.
             self.phi = nn.Identity

@@ -69,10 +69,10 @@ def main():
 
     model = RNN(num_states, num_layers, device=device)
 
-    logger.info(f"RNN model summary:\n")
+    logger.info(f"RNN model summary:\n{model}")
     
-    summary(model, input_size=(batch_size, sequence_length, num_states))
-        
+    # summary(model, input_size=(batch_size, sequence_length, num_states))
+
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                                                                                             
     estimate = model.forward(observations)
 
@@ -128,7 +128,7 @@ def main():
 
             total_loss += loss.item()
 
-        if epoch % 1 == 0:
+        if epoch % 10 == 0:
             logger.info(
                 f"----  Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"
             )
