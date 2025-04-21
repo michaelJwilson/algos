@@ -9,6 +9,7 @@ from algos.rnn.embedding import GaussianEmbedding
 
 logger = logging.getLogger(__name__)
 
+
 class RNNUnit(nn.Module):
     """
     Evaluates an RR unit Phi(x.W + h.U + b) for input x and h.
@@ -16,37 +17,37 @@ class RNNUnit(nn.Module):
     NB W coresponds to a linear distortion of the input embedding, U
        corresponds to a linear transfer of the input hidden state and
        b equates to the normalization of a log probs. embedding.
-    
+
     See:
        https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
     """
+
     # NB emb_dim is == num_states in a HMM; where the values == -ln probs.
     def __init__(self, emb_dim, device=None, requires_grad=False):
         super(RNNUnit, self).__init__()
 
         if device is None:
             self.device = get_device()
-            
+
         if not requires_grad:
             self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
             self.Wh = torch.eye(emb_dim, device=self.device)
 
-            # NB assume no non-linearities. 
+            # NB assume no non-linearities.
             self.phi = nn.Identity
-            
-        else:    
+
+        else:
             # NB equivalent to a transfer matrix: contributes h . U
             self.Uh = torch.randn(emb_dim, emb_dim)
 
             # NB novel: equivalent to a linear 'distortion' of the
             #    state probs. under the assumed emission model.
             self.Wh = torch.randn(emb_dim, emb_dim)
-            
-            
+
             # -- normalization --
             # NB relatively novel: would equate to the norm of log probs.
             #    instead we introduce softmax for actual normalization.
-            # 
+            #
             self.b = torch.zeros(emb_dim)
 
             # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
@@ -55,14 +56,14 @@ class RNNUnit(nn.Module):
         self.Uh = nn.Parameter(self.Uh, requires_grad=requires_grad)
         self.Wh = nn.Parameter(self.Wh, requires_grad=requires_grad)
         # self.b = nn.Parameter(self.b, requires_grad=requires_grad)
-        
+
     def forward(self, x, h):
         result = x @ self.Wh
         result += h @ self.Uh
 
         # -- normalization -
         # result -= self.b
-        # 
+        #
         # NB https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
         result = F.softmax(-result, dim=-1)
 
@@ -73,7 +74,11 @@ class RNNUnit(nn.Module):
 class RNN(nn.Module):
     """
     Evaluates an auto-regressive ('next token') multi-layer RNN
-    of layers Phi(x.W + h.U + b)
+    of layers Phi(x.W + h.U + b).
+
+    Here x is the input embedding (-lnP for Gaussian emission),
+    W is a distortion of the embedding (equivalent to a cumulative
+    ln P mapping?).
     """
     def __init__(self, emb_dim, num_rnn_layers, device=None):
         super(RNN, self).__init__()
@@ -81,10 +86,11 @@ class RNN(nn.Module):
         if device is None:
             self.device = get_device()
 
-        # NB assumed number of states
+        # NB embedding dimension == assumed number of states.
         self.emb_dim = emb_dim
 
-        # NB RNN patches outliers by emitting a corrected state_emission per layer.
+        # NB first layer is embedding; RNN patches outliers by
+        #    emitting a corrected state_emission per layer.
         self.num_layers = 1 + num_rnn_layers
 
         self.layers = nn.ModuleList(
@@ -95,10 +101,14 @@ class RNN(nn.Module):
         self.to(device)
 
     def forward(self, x):
+        """
+        x is the observed feature vector [batch_size, sequence_length, feature_dim],
+        to which an embedding layer is applied to obtain result [batch_size, sequence_length, emb_dim].
+        """
         batch_size, seq_len, num_features = x.shape
 
         # TODO define as trainable tensor.
-        # NB equivalent to the start probability PI; per dataset in the batch.
+        # NB equivalent to the start probability PI; per layer.
         h_prev = [
             torch.zeros(batch_size, self.emb_dim, device=x.device)
             for _ in range(self.num_layers)
@@ -111,7 +121,7 @@ class RNN(nn.Module):
             # NB expand single token to a length 1 sequence.
             input_t = x[:, t, :].unsqueeze(1)
 
-            # NB Gaussian emission embedding.
+            # NB observed features -> Gaussian emission embedding, result is -lnP per state.
             input_t = self.layers[0].forward(input_t).squeeze(1)
             """
             for l, rnn_unit in enumerate(self.layers[1:]):
