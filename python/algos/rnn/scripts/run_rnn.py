@@ -32,7 +32,8 @@ def main():
     learning_rate = 1.0e-3
 
     # NB defines true parameters.
-    trans = np.array([[1.0, 0.0], [0.0, 1.0]])
+    jump_rate = 0.3
+    trans = np.array([[1. - jump_rate, jump_rate], [jump_rate, 1. - jump_rate]])
 
     means = [5.0, 10.0]
     stds = [1.0, 1.0]
@@ -49,7 +50,9 @@ def main():
 
     dataloader_iter = iter(dataloader)
     observations, states = next(dataloader_iter)
-
+    
+    logger.info(f"Realized HMM simulation:\n{states[0,:]}\n{observations[0,:,:]}")
+    
     # NB [batch_size, seq_length, single feature].
     assert observations.shape == torch.Size([batch_size, sequence_length, 1])
 

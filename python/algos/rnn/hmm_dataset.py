@@ -1,3 +1,4 @@
+
 import logging
 
 import numpy as np
@@ -80,7 +81,7 @@ class HMMDataset(Dataset):
         ).unsqueeze(-1)
 
         logger.debug(f"{states}")
-        logger.debug(f"{observations}")
+        logger.debug(f"Realized HMM simulation:\n{observations}")
 
         # NB when called as a batch, will have shape [batch_size, seq_length, 1].
         return observations, states
