@@ -19,11 +19,11 @@ class GaussianEmbedding(nn.Module):
         self.num_states = num_states
 
         # NB Trainable parameters: mean and log(variance) for each state
-        # self.means = torch.randn(num_states, device=device)
-        self.means = torch.tensor([5.0, 10.0], device=device)
+        self.means = torch.randn(num_states, dtype=torch.float32).to(self.device)
+        # self.means = torch.tensor([5.0, 10.0], dtype=torch.float32).to(self.device)
 
         # NB fixed, unit variances.
-        self.log_vars = torch.zeros(num_states, device=device)
+        self.log_vars = torch.zeros(num_states, dtype=torch.float32).to(self.device)
 
         self.means = nn.Parameter(self.means, requires_grad=True)
         self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
@@ -56,10 +56,11 @@ class GaussianEmbedding(nn.Module):
         # NB log of normalization constant
         norm = 0.5 * torch.log(2 * torch.pi * variances_broadcast)
 
+        # TODO BUG device issue: self.means on cpu, not mps??
         # NB compute negative log-probabilities for each state and each value in the sequence
         neg_log_probs = (
             norm + ((x_broadcast - means_broadcast) ** 2) / variances_broadcast
         )
-
+        
         # NB shape = (batch_size, sequence_length, num_states)
         return neg_log_probs

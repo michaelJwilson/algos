@@ -66,16 +66,16 @@ def main():
 
     logger.info(f"Realized Gaussian emission embedding=\n{emission}")
 
-    model = RNN(num_states, num_layers)
+    model = RNN(num_states, num_layers, device=device)
 
     logger.info(f"RNN model summary:\n")
     
     summary(model, input_size=(batch_size, sequence_length, num_states))
-
+        
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                                                                                             
     estimate = model.forward(observations)
 
-    logger.info(f"{estimate}")
+    logger.info(f"{torch.exp(estimate[0, :, :])}")
 
     logger.info(f"\n\nDone.\n\n")
     

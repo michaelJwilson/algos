@@ -79,7 +79,6 @@ class RNN(nn.Module):
     W is a distortion of the embedding (equivalent to a cumulative
     ln P mapping?).
     """
-
     def __init__(self, emb_dim, num_rnn_layers, device=None):
         super(RNN, self).__init__()
 
@@ -109,7 +108,7 @@ class RNN(nn.Module):
         # TODO define as trainable tensor.
         # NB equivalent to the start probability PI; per layer.
         h_prev = [
-            torch.zeros(batch_size, self.emb_dim, device=x.device)
+            torch.zeros(batch_size, self.emb_dim, device=self.device)
             for _ in range(self.num_layers)
         ]
 

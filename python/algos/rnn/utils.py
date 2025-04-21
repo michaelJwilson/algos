@@ -5,10 +5,13 @@ import torch
 
 
 def get_device():
+    # TODO HACK
+    return "cpu"
+    
     if torch.backends.mps.is_available():
-        device = torch.device("mps")  # Use MPS (GPU)
+        device = torch.device("mps")
     else:
-        device = torch.device("cpu")  # Fallback to CPU
+        device = torch.device("cpu")
 
     return device
 
