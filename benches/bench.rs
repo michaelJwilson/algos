@@ -1,6 +1,6 @@
+use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::ford_fulkerson::get_large_graph_fixture;
-use algos::counter::{get_counter_fixture};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 
@@ -42,7 +42,6 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let _ = petgraph_ford_fulkerson(&g, source, sink);
         })
     });
-
 
     c.bench_function("counter", |b| {
         b.iter(|| {
