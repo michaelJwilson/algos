@@ -65,5 +65,5 @@ overflow-checks = false
 rustflags = ["-C", "target-cpu=native"]
 
 [[bench]]
-name = "bench"
+name = "benchmarks"
 harness = false
