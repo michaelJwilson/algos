@@ -65,18 +65,18 @@ pub fn likelihood_beta_binomial(training_data: Vec<Vec<u64>>, alphas: Vec<f64>) 
     let mut result: f64 = 1.0;
     let sum_alphas: f64 = alphas.iter().sum();
 
-    for ii in 0..training_data.len() {
-        let num_obs = training_data[ii].len();
+    for data in &training_data {
+        let num_obs = data.len();
         let mut interim = gamma(sum_alphas) / gamma(num_obs as f64 + sum_alphas);
 
-        for jj in 0..alphas.len() {
-            let num_in_class: f64 = training_data[ii]
+        for (jj, alpha) in alphas.iter().enumerate() {
+            let num_in_class: f64 = data
                 .iter()
                 .filter(|&&xx| xx == jj as u64)
                 .count() as f64;
 
-            interim *= gamma(num_in_class + alphas[jj]);
-            interim /= gamma(alphas[jj]);
+            interim *= gamma(num_in_class + alpha);
+            interim /= gamma(*alpha);
         }
 
         result *= interim;
@@ -101,11 +101,11 @@ pub fn max_likelihood_polya_mean(training_data: Vec<Vec<u64>>, alphas: Vec<f64>)
     // NB max. likelihood estimate of polya mean @ fixed precision;  eqn. (118) of Minka (2000).
     let mut total_damped_counts: Vec<f64> = vec![0.; alphas.len()];
 
-    for ii in 0..training_data.len() {
+    for data in &training_data {
         let mut sample_class_counts: Vec<f64> = Vec::new();
 
         for jj in 0..alphas.len() {
-            let num_in_class: f64 = training_data[ii]
+            let num_in_class: f64 = data
                 .iter()
                 .filter(|&&xx| xx == jj as u64)
                 .count() as f64;

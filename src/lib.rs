@@ -3,7 +3,6 @@
 #![allow(non_snake_case)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
-// #![allow(clippy::ptr_arg)]
 
 // NB declare the public modules.
 pub mod archer;
