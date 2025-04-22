@@ -21,7 +21,7 @@ spectral = "0.6.0"
 serde = { version = ">1.0.116", optional = true }
 statrs = "0.18.0"
 nalgebra = ">0.29"
-petgraph = "0.8.1"
+petgraph = { version = "0.8.1", features = ["rayon"] }
 
 argmin = "0.10.0"
 argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }

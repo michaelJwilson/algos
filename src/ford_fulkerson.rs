@@ -1,12 +1,12 @@
+use rand::seq::IteratorRandom;
+use rand::thread_rng;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::graph::{Graph, NodeIndex, UnGraph};
 
-/*
-Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
-*/
+//  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 
 fn bfs(
     residual_graph: &Vec<Vec<i32>>,
@@ -80,28 +80,18 @@ fn edmonds_karp(graph: Vec<Vec<i32>>, source: usize, sink: usize) -> i32 {
     max_flow
 }
 
-fn get_large_graph_fixture() -> (NodeIndex, NodeIndex, isize, UnGraph<usize, usize>) {
-    static NODE_COUNT: usize = 25;
-
-    let mut g = Graph::new_undirected();
-
-    let nodes: Vec<NodeIndex<_>> = (0..NODE_COUNT).into_iter().map(|i| g.add_node(i)).collect();
-
-    for i in 0..NODE_COUNT {
-        let n1 = nodes[i];
-        let neighbour_count = i % 8 + 3; // Number of neighbors for each node, max. 11
-        let j_from = max(0, i as i32 - neighbour_count as i32 / 2) as usize;
-        let j_to = min(NODE_COUNT, j_from + neighbour_count);
-
-        for j in j_from..j_to {
-            let n2 = nodes[j];
-            let distance = (i + 3) % 10; // Edge weight
-            g.add_edge(n1, n2, distance);
-        }
-    }
+fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isize, Graph<u8, u8>) {
+    let mut g = Graph::<u8, u8>::new();
+    let nodes: Vec<_> = (0..node_count).map(|i| g.add_node(i as u8)).collect();
 
     let source = nodes[0];
-    let sink = nodes[NODE_COUNT - 1];
+    let sink = nodes[node_count - 1];
+
+    for j in 0..node_count as usize {
+        for i in j + 1..node_count as usize {
+            g.add_edge(nodes[j], nodes[i], 1 as u8);
+        }
+    }
 
     (source, sink, -1, g)
 }
@@ -126,7 +116,7 @@ fn get_adjacencies_fixture() -> (usize, usize, usize, Vec<Vec<i32>>) {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test ford_fulkerson -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_petgraph_ford_fulkerson_large -- --nocapture
     use super::*;
 
     #[test]
@@ -178,7 +168,14 @@ mod tests {
 
     #[test]
     fn test_petgraph_ford_fulkerson_large() {
-        let (source, sink, _, g) = get_large_graph_fixture();
+        let (source, sink, _, g) = get_large_graph_fixture(200);
         let (max_flow, _) = petgraph_ford_fulkerson(&g, source, sink);
+
+        println!(
+            "Large graph fixture with {:?} edges and nodes {:?} has max. flow {:?}",
+            g.edge_count(),
+            g.node_count(),
+            max_flow,
+        );
     }
 }
