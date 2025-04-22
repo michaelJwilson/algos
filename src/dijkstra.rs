@@ -48,7 +48,7 @@ impl AdjacencyList {
             .flat_map(|(&from, neighbors)| {
                 neighbors
                     .iter()
-                    .map(move |edge| (from as u32, edge.to as u32, edge.weight as u32))
+                    .map(move |edge| (from, edge.to, edge.weight))
             })
             .collect()
     }
@@ -59,7 +59,7 @@ impl AdjacencyList {
             .flat_map(|(&from, neighbors)| {
                 neighbors
                     .iter()
-                    .map(move |edge| (from as u32, edge.to as u32))
+                    .map(move |edge| (from, edge.to))
             })
             .collect()
     }
