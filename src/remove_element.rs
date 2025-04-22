@@ -53,7 +53,7 @@ pub fn remove_element(array: &mut [i32], value: i32) -> i32 {
 }
 
 impl Solution {
-    pub fn remove_element(nums: &mut Vec<i32>, val: i32) -> i32 {
+    pub fn remove_element(nums: &mut [i32], val: i32) -> i32 {
         remove_element(nums, val)
     }
 }

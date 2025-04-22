@@ -9,7 +9,7 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 
 fn bfs(
-    residual_graph: &Vec<Vec<i32>>,
+    residual_graph: &[Vec<i32>],
     source: usize,
     sink: usize,
     parent: &mut [isize],

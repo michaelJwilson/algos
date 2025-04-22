@@ -1,6 +1,6 @@
 struct Solution;
 
-fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<i32>) {
+fn merge_sorted<'a>(m: i32, nums1: &'a mut [i32], n: i32, nums2: &'a mut [i32]) {
     assert!(nums1.len() as i32 == (m + n));
     assert!(nums2.len() as i32 == n);
 
@@ -56,7 +56,7 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<
     // println!("{:?}, {:?}, {:?} \t {:?}", nums1.len(), jj, nums1, nums2);
 }
 
-fn merge_sorted_optimal(m: i32, nums1: &mut Vec<i32>, n: i32, nums2: &Vec<i32>) {
+fn merge_sorted_optimal(m: i32, nums1: &mut [i32], n: i32, nums2: &[i32]) {
     //  Use a two-pointer approach to merge the two sorted arrays in-place.
     //  The idea is to start from the end of both arrays and place the largest
     //  elements at the end of nums1. This way, you avoid overwriting elements
@@ -86,7 +86,7 @@ fn merge_sorted_optimal(m: i32, nums1: &mut Vec<i32>, n: i32, nums2: &Vec<i32>) 
 }
 
 impl Solution {
-    pub fn merge(nums1: &mut Vec<i32>, m: i32, nums2: &mut Vec<i32>, n: i32) {
+    pub fn merge(nums1: &mut [i32], m: i32, nums2: &mut [i32], n: i32) {
         merge_sorted_optimal(m, nums1, n, nums2);
     }
 }
