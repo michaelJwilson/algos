@@ -5,7 +5,7 @@ pub fn get_plus_one(input: Vec<i32>, idx: usize) -> Vec<i32> {
 
     if input[idx] < 9 {
         result[idx] = input[idx] + 1;
-        return result;
+        result
     } else {
         result[idx] = 0;
 
@@ -13,9 +13,9 @@ pub fn get_plus_one(input: Vec<i32>, idx: usize) -> Vec<i32> {
             let mut interim = vec![1];
             interim.extend(result);
 
-            return interim;
+            interim
         } else {
-            return get_plus_one(result, idx - 1);
+            get_plus_one(result, idx - 1)
         }
     }
 }

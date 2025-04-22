@@ -88,7 +88,7 @@ fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isize, G
     let sink = nodes[node_count - 1];
 
     for j in 0..node_count {
-        for i in j + 1..node_count as usize {
+        for i in j + 1..node_count {
             g.add_edge(nodes[j], nodes[i], 1_u8);
         }
     }

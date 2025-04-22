@@ -50,7 +50,7 @@ fn min_mutations(start_gene: String, end_gene: String, bank: Vec<String>) -> i32
         }
     }
 
-    return -1;
+    -1
 }
 
 impl Solution {

@@ -38,7 +38,7 @@ impl Solution {
 
         let mut num_states = init_num_states();
 
-        return climb_stairs(n as usize, &mut num_states) as i32;
+        climb_stairs(n as usize, &mut num_states) as i32
     }
 }
 

@@ -1,14 +1,15 @@
 /// NB  Determine the length of the collatz sequence beginning at `n`.
 ///     See: https://en.wikipedia.org/wiki/Collatz_conjecture
+#[inline]
 fn collatz(n: u32) -> u32 {
     if n == 0 {
-        return 0;
+        0
     } else if n == 1 {
-        return 1;
+        1
     } else if n % 2 == 0 {
-        return n / 2;
+        n / 2
     } else {
-        return 3 * n + 1;
+        3 * n + 1
     }
 }
 
