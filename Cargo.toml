@@ -13,8 +13,10 @@ serde-1 = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 rayon = ">1.5"
-ndarray = { version = ">=0.16", features = ["rayon", "serde-1", "blas"] }
-ndarray-linalg = { version="0.17.0", features = ["openblas"]}
+
+# NB "blas"
+ndarray = { version = ">=0.16", features = ["rayon", "serde-1"] }
+# ndarray-linalg = { version="0.17.0", features = ["openblas"]}
 
 rand = ">0.8"
 rand_distr = ">0.4"
@@ -26,10 +28,10 @@ nalgebra = ">0.29"
 petgraph = { version = "0.8.1", features = ["rayon"] }
 rustc-hash = "2.1.1"
 
-argmin = "0.10.0"
-argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }
-argmin_testfunctions = "0.2.0"
-argmin-observer-slog = "0.1.0"
+# argmin = "0.10.0"
+# argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }
+# argmin_testfunctions = "0.2.0"
+# argmin-observer-slog = "0.1.0"
 
 GSL = "7.0"
 
@@ -41,17 +43,17 @@ criterion = ">0.4"
 # NB The Rust compiler splits crates into multiple codegen units to parallelize
 # (and thus speed up) compilation. However, this might cause it to miss some potential
 # optimizations.
-codegen-units = 1
-opt-level = 3
-lto = "thin"
+# codegen-units = 1
+# opt-level = 3
+# lto = "fat"
 overflow-checks = true
 
 [profile.release]
 codegen-units = 1
 opt-level = 3
 lto = true
-overflow-checks = true
-panic = "abort"
+overflow-checks = false
+# panic = "abort"
 
 # NB "target-cpu=arm64"; "target-cpu=native".
 [build]
