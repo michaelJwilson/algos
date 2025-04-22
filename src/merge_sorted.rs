@@ -14,7 +14,7 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut [i32], n: i32, nums2: &'a mut [i32]) 
     for (ii, val) in nums1.iter_mut().enumerate() {
         // NB we march along nums1 until we find an element > that first in num2;
         if (*val > nums2[jj]) && ((ii as i32) < m) {
-            let mut to_swap = val.clone();
+            let mut to_swap = *val;
 
             // nums1[ii] = nums2[jj];
             // nums2[jj] = to_swap;
@@ -39,7 +39,7 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut [i32], n: i32, nums2: &'a mut [i32]) 
 
         // NB swap in a zero-pad.
         if ii as i32 >= m {
-            let mut zero = val.clone();
+            let mut zero = *val;
 
             // nums1[ii] = nums2[jj];
             // nums2[jj] = zero;

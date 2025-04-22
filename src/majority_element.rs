@@ -45,7 +45,7 @@ mod tests {
 
     #[test]
     fn test_majority_element_one() {
-        let mut nums = vec![3, 2, 3];
+        let nums = vec![3, 2, 3];
         let exp = 3;
 
         let result = Solution::majority_element(nums);
@@ -55,7 +55,7 @@ mod tests {
 
     #[test]
     fn test_majority_element_two() {
-        let mut nums = vec![2, 2, 1, 1, 1, 2, 2];
+        let nums = vec![2, 2, 1, 1, 1, 2, 2];
         let exp = 2;
 
         let result = Solution::majority_element(nums);

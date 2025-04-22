@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     pub fn test_remove_element_four_swap_idx() {
-        let mut nums: Vec<i32> = vec![3, 3];
+        let nums: Vec<i32> = vec![3, 3];
         let swap_idx = get_swap_idx(nums, 0, 1, 3);
 
         assert_eq!(swap_idx, None);

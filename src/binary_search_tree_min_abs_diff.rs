@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn test_binary_search_tree_search() {
-        let mut bst = generate_test_tree(0);
+        let bst = generate_test_tree(0);
 
         assert_eq!(bst.search(6), true);
         assert_eq!(bst.search(5), false);
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_binary_search_tree_inorder() {
-        let mut bst = generate_test_tree(0);
+        let bst = generate_test_tree(0);
 
         // NB [1 3 4 6 7 8 10 13 14].
         bst.print_in_order();

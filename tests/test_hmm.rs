@@ -5,13 +5,11 @@ mod tests {
 
     // NB array! is a macro.
     fn setup_new_hmm() -> HMM {
-        let A = array![[0.7, 0.3], [0.4, 0.6]];
+        let a = array![[0.7, 0.3], [0.4, 0.6]];
+        let b = array![[0.5, 0.5], [0.1, 0.9]];
+        let pi = array![0.6, 0.4];
 
-        let B = array![[0.5, 0.5], [0.1, 0.9]];
-
-        let PI = array![0.6, 0.4];
-
-        HMM::new(A, B, PI)
+        HMM::new(a, b, pi)
     }
 
     #[test]
