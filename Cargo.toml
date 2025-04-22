@@ -35,7 +35,10 @@ approx = ">0.4"
 criterion = ">0.4"
 
 [profile.dev]
-opt-level = 3  # Otherwise the tests run too slow
+opt-level = 3
+lto = true
+codegen-units = 1
+overflow-checks = true
 
 # NB build customized to mac/arm 64.
 [build]
