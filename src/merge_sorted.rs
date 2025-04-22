@@ -41,10 +41,13 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<
 
         // NB swap in a zero-pad.
         if ii as i32 >= m {
-            let zero = nums1[ii];
+            let mut zero = nums1[ii];
 
-            nums1[ii] = nums2[jj];
-            nums2[jj] = zero;
+            // nums1[ii] = nums2[jj];
+            // nums2[jj] = zero;
+
+            std::mem::swap(&mut nums1[ii], &mut nums2[jj]);
+            std::mem::swap(&mut nums2[jj], &mut zero);
 
             jj += 1;
         }

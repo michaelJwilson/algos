@@ -10,6 +10,12 @@ fn transpose(matrix: [[i32; 3]; 3]) -> [[i32; 3]; 3] {
         }
     }
 
+    for (i, row) in matrix.iter().enumerate() {
+        for (j, &item) in row.iter().enumerate() {
+            result[j][i] = item;
+        }
+    }
+
     result
 }
 
