@@ -12,7 +12,7 @@ fn bfs(
     residual_graph: &Vec<Vec<i32>>,
     source: usize,
     sink: usize,
-    parent: &mut Vec<isize>,
+    parent: &mut [isize],
 ) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
     let mut visited = vec![false; residual_graph.len()];

@@ -21,7 +21,7 @@ pub fn get_swap_idx(
     None
 }
 
-pub fn remove_element(array: &mut Vec<i32>, value: i32) -> i32 {
+pub fn remove_element(array: &mut [i32], value: i32) -> i32 {
     if array.is_empty() {
         return 0;
     }

@@ -92,7 +92,7 @@ impl GameOfLife {
 }
 
 impl Solution {
-    pub fn game_of_life(board: &mut Vec<Vec<i32>>) {
+    pub fn game_of_life(board: &mut [Vec<i32>]) {
         let num_rows = board.len();
         let num_cols = board[0].len();
 

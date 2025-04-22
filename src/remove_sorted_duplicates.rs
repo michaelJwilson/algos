@@ -35,7 +35,7 @@ fn remove_sorted_duplicates(nums1: &mut [i32]) -> i32 {
 }
 
 impl Solution {
-    pub fn remove_duplicates(nums: &mut Vec<i32>) -> i32 {
+    pub fn remove_duplicates(nums: &mut [i32]) -> i32 {
         remove_sorted_duplicates(nums)
     }
 }
