@@ -1,3 +1,4 @@
+use ndarray::Array2;
 use rand::rng;
 use rand::seq::IteratorRandom;
 use std::cmp::{max, min};
@@ -8,9 +9,9 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 
-fn bfs(residual_graph: &[Vec<i32>], source: usize, sink: usize, parent: &mut [isize]) -> bool {
+fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [isize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
-    let mut visited = vec![false; residual_graph.len()];
+    let mut visited = vec![false; residual_graph.nrows()];
     let mut queue = VecDeque::new();
 
     visited[source] = true;
@@ -21,16 +22,16 @@ fn bfs(residual_graph: &[Vec<i32>], source: usize, sink: usize, parent: &mut [is
     // NB first-in-first-out queue.
     while let Some(u) = queue.pop_front() {
         // NB loop over all un-visited neighbours.
-        for v in 0..residual_graph.len() {
-            if !visited[v] && residual_graph[u][v] > 0 {
+        for v in 0..residual_graph.nrows() {
+            if !visited[v] && residual_graph[[u, v]] > 0 {
                 parent[v] = u as isize;
                 visited[v] = true;
-
-                queue.push_back(v);
 
                 if v == sink {
                     return true;
                 }
+
+                queue.push_back(v);
             }
         }
     }
@@ -38,34 +39,41 @@ fn bfs(residual_graph: &[Vec<i32>], source: usize, sink: usize, parent: &mut [is
     false
 }
 
-fn edmonds_karp(graph: Vec<Vec<i32>>, source: usize, sink: usize) -> i32 {
+fn edmonds_karp(graph: Array2<i32>, source: usize, sink: usize) -> i32 {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //    and the inverse flow, f_uv on the backward edges.
     let mut residual_graph = graph.clone();
 
     // NB save the frontier node that discovered a node on the tree as the parent, allowing for
     //    back trace.
-    let mut parent = vec![-1; graph.len()];
+    let mut parent = vec![-1; graph.nrows()];
     let mut max_flow = 0;
 
     // NB while there is an 'augmenting path' by breadth-first search.
     while bfs(&residual_graph, source, sink, &mut parent) {
         let mut path_flow = i32::MAX;
 
-        // Find the minimum residual capacity in the path filled by BFS
+        // NB find the minimum residual capacity in the path filled by BFS
         let mut v = sink;
+
+        // NB minimum capacity on the augmenting path
         while v != source {
             let u = parent[v] as usize;
-            path_flow = path_flow.min(residual_graph[u][v]);
+
+            path_flow = path_flow.min(residual_graph[[u,v]]);
+
             v = u;
         }
 
-        // Update residual capacities of the edges and reverse edges
+        // NB update residual capacities of the edges and reverse edges
         let mut v = sink;
+
         while v != source {
             let u = parent[v] as usize;
-            residual_graph[u][v] -= path_flow;
-            residual_graph[v][u] += path_flow;
+
+            residual_graph[[u, v]] -= path_flow;
+            residual_graph[[v, u]] += path_flow;
+
             v = u;
         }
 
@@ -91,7 +99,8 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isiz
     (source, sink, -1, g)
 }
 
-fn get_adjacencies_fixture() -> (usize, usize, usize, Vec<Vec<i32>>) {
+fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
+    /*
     let graph = vec![
         vec![0, 16, 0, 13, 0, 0, 0], // (0, 1, 16); (0, 3, 13);
         vec![0, 0, 10, 0, 12, 0, 0], // (1, 2, 10); (1, 4, 12);
@@ -101,6 +110,21 @@ fn get_adjacencies_fixture() -> (usize, usize, usize, Vec<Vec<i32>>) {
         vec![0, 0, 0, 0, 7, 0, 4],   // (5, 4, 7); (5, 6, 4);
         vec![0, 0, 0, 0, 0, 0, 0],   // sink
     ];
+    */
+
+    let mut graph = Array2::<i32>::zeros((7, 7));
+
+    graph[[0, 1]] = 16;
+    graph[[0, 3]] = 13;
+    graph[[1, 2]] = 10;
+    graph[[1, 4]] = 12;
+    graph[[2, 3]] = 10;
+    graph[[3, 1]] = 4;
+    graph[[3, 5]] = 14;
+    graph[[4, 3]] = 9;
+    graph[[4, 6]] = 20;
+    graph[[5, 4]] = 7;
+    graph[[5, 6]] = 4;
 
     let source = 0;
     let sink = 6;
@@ -163,14 +187,6 @@ mod tests {
 
     #[test]
     fn test_petgraph_ford_fulkerson_large() {
-        /*
-        let guard = pprof::ProfilerGuardBuilder::default()
-            .frequency(1000)
-            .blocklist(&["libc", "libgcc", "pthread", "vdso"])
-            .build()
-            .unwrap();
-        */
-
         let (source, sink, _, g) = get_large_graph_fixture(200);
         let (max_flow, _) = petgraph_ford_fulkerson(&g, source, sink);
 

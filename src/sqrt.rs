@@ -35,7 +35,7 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings" cargo test test_sqrt -- --nocapture
+    // cargo test sqrt -- --nocapture
     use super::*;
 
     #[test]

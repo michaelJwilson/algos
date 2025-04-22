@@ -1,16 +1,16 @@
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::ford_fulkerson::get_large_graph_fixture;
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use nalgebra::DMatrix;
 use ndarray::Array2;
-use nalgebra::{DMatrix};
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 
 fn fibonacci_slow(n: u64) -> u64 {
     match n {
         0 => 1,
         1 => 1,
-        n => fibonacci_slow(n-1) + fibonacci_slow(n-2),
+        n => fibonacci_slow(n - 1) + fibonacci_slow(n - 2),
     }
 }
 
@@ -77,17 +77,17 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let a = Array2::<f64>::zeros((10_000, 10_000));
             let b = Array2::<f64>::ones((10_000, 10_000));
-            
+
             let mut result = Array2::<f64>::zeros((10_000, 10_000));
 
             for i in 0..10_000 {
                 for j in 0..10_000 {
                     let mut sum = 0.0;
-                    
+
                     for k in 0..10_000 {
                         sum += a[[i, k]] * b[[k, j]];
                     }
-                    
+
                     result[[i, j]] = sum;
                 }
             }
@@ -97,15 +97,17 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
 fn bench_fibonacci(c: &mut Criterion) {
     let mut group = c.benchmark_group("Fibonacci");
-    
+
     for i in [20u64, 21u64].iter() {
-        group.bench_with_input(BenchmarkId::new("Recursive", i), i, 
-            |b, i| b.iter(|| fibonacci_slow(*i)));
-            
-        group.bench_with_input(BenchmarkId::new("Iterative", i), i, 
-            |b, i| b.iter(|| fibonacci_fast(*i)));
+        group.bench_with_input(BenchmarkId::new("Recursive", i), i, |b, i| {
+            b.iter(|| fibonacci_slow(*i))
+        });
+
+        group.bench_with_input(BenchmarkId::new("Iterative", i), i, |b, i| {
+            b.iter(|| fibonacci_fast(*i))
+        });
     }
-    
+
     group.finish();
 }
 

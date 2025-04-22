@@ -7,7 +7,6 @@ struct Solution;
 //
 // NB dynamic programming.  Fibonacci like.
 //
-
 pub fn init_num_states() -> Vec<usize> {
     // NB num_states for num_stairs = {0, 1, 2};
     let num_states: Vec<usize> = vec![0, 1, 2];
@@ -44,7 +43,7 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings" cargo test test_climb_stairs -- --nocapture
+    // cargo test test_climb_stairs -- --nocapture
     use super::*;
 
     #[test]
