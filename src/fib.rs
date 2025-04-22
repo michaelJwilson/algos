@@ -6,9 +6,9 @@ fn fib(n: u32) -> u32 {
     //    utilises a Last-In-First_Out call stack, prone
     //    to stack overflow / crashing (for large n).
     if n < 2 {
-        return n;
+        n
     } else {
-        return fib(n - 1) + fib(n - 2);
+        fib(n - 1) + fib(n - 2)
     }
 }
 
