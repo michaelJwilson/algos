@@ -37,8 +37,8 @@ impl AdjacencyList {
 
     fn add_edge(&mut self, from: u32, to: u32, weight: u32) {
         self.edges.entry(from).or_default().push(Edge {
-            to: to,
-            weight: weight,
+            to,
+            weight,
         });
     }
 

@@ -1,7 +1,7 @@
 struct Solution;
 
 // NB naive pairwise test;  works for relatively small price list.
-pub fn naive_max_profit(prices: &Vec<i32>) -> i32 {
+pub fn naive_max_profit(prices: &[i32]) -> i32 {
     if prices.len() < 2 {
         return 0;
     }
@@ -24,7 +24,7 @@ pub fn backward_max_profit(prices: &Vec<i32>) -> i32 {
 
     let last_idx = prices.len() - 1;
     let mut max_profit: i32 = 0;
-    let mut max_prices: Vec<i32> = vec![0; prices.len() as usize];
+    let mut max_prices: Vec<i32> = vec![0; prices.len()];
 
     max_prices[last_idx] = prices[last_idx];
 

@@ -34,7 +34,6 @@ impl TreeNode {
 ///
 /// See `std::collections::VecDeque`:
 ///     <https://doc.rust-lang.org/std/collections/struct.VecDeque.html>
-
 impl Solution {
     pub fn average_of_levels(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<f64> {
         // NB if passed an empty tree, do nothing.

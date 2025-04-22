@@ -1,5 +1,5 @@
 use rand::seq::IteratorRandom;
-use rand::thread_rng;
+use rand::rng;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 

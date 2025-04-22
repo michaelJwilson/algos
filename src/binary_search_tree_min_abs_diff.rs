@@ -45,12 +45,10 @@ impl BinarySearchTree {
             } else {
                 node.left = Some(new_node);
             }
+        } else if let Some(right) = node.right.as_mut() {
+            Self::insert_node(right, new_node);
         } else {
-            if let Some(right) = node.right.as_mut() {
-                Self::insert_node(right, new_node);
-            } else {
-                node.right = Some(new_node);
-            }
+            node.right = Some(new_node);
         }
     }
 

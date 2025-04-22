@@ -23,22 +23,22 @@ impl GameOfLife {
         let scratch: Array2<i32> = lattice.clone();
 
         GameOfLife {
-            num_rows: num_rows,
-            num_cols: num_cols,
-            lattice: lattice,
-            scratch: scratch,
+            num_rows,
+            num_cols,
+            lattice,
+            scratch,
         }
     }
 
-    pub fn from_array(array: Array2<i32>) -> Self {
-        let (num_rows, num_cols) = array.dim();
-        let scratch: Array2<i32> = array.clone();
+    pub fn from_array(lattice: Array2<i32>) -> Self {
+        let (num_rows, num_cols) = lattice.dim();
+        let scratch: Array2<i32> = lattice.clone();
 
         GameOfLife {
             num_rows,
             num_cols,
-            lattice: array,
-            scratch: scratch,
+            lattice,
+            scratch,
         }
     }
 

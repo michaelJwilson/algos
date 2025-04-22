@@ -17,7 +17,7 @@ impl TreeNode {
     #[inline]
     pub fn new(val: i32) -> Self {
         TreeNode {
-            val: val,
+            val,
             left: None,
             right: None,
         }
