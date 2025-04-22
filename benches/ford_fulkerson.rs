@@ -5,7 +5,8 @@ use algos::ford_fulkerson::get_large_graph_fixture;
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("petgraph_ford_fulkerson", |b| {
         b.iter(|| {
-            let (source, sink, _, g) = get_large_graph_fixture(10_000);
+            // NB visium is 5K spots.
+            let (source, sink, _, g) = get_large_graph_fixture(5_000);
             let (max_flow, _) =
                 petgraph_ford_fulkerson(&g, source, sink);
         })
