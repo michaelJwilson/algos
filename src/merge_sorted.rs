@@ -11,18 +11,16 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut [i32], n: i32, nums2: &'a mut [i32]) 
 
     let mut jj = 0;
 
-    for ii in 0..nums1.len() {
-        // println!("{:?}, {:?}, {:?} \t {:?}", ii, jj, nums1, nums2);
-
+    for (ii, val) in nums1.iter_mut().enumerate() {
         // NB we march along nums1 until we find an element > that first in num2;
-        if (nums1[ii] > nums2[jj]) && ((ii as i32) < m) {
-            let mut to_swap = nums1[ii];
+        if (*val > nums2[jj]) && ((ii as i32) < m) {
+            let mut to_swap = val.clone();
 
             // nums1[ii] = nums2[jj];
             // nums2[jj] = to_swap;
 
             // NB we swap the elements between the array and fix up the nums2 order;
-            std::mem::swap(&mut nums1[ii], &mut nums2[jj]);
+            std::mem::swap(&mut *val, &mut nums2[jj]);
             std::mem::swap(&mut nums2[jj], &mut to_swap);
 
             for kk in 0..nums2.len() - 1 {
@@ -41,12 +39,12 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut [i32], n: i32, nums2: &'a mut [i32]) 
 
         // NB swap in a zero-pad.
         if ii as i32 >= m {
-            let mut zero = nums1[ii];
+            let mut zero = val.clone();
 
             // nums1[ii] = nums2[jj];
             // nums2[jj] = zero;
 
-            std::mem::swap(&mut nums1[ii], &mut nums2[jj]);
+            std::mem::swap(&mut *val, &mut nums2[jj]);
             std::mem::swap(&mut nums2[jj], &mut zero);
 
             jj += 1;
