@@ -16,13 +16,13 @@ pub fn longest_common_prefix(strs: Vec<String>) -> String {
     let mut prefix: String = String::new();
     let first_string: Vec<char> = strs[0].chars().collect();
 
-    for ii in 0..shortest_length {
-        let current_letter = first_string[ii];
+    // NB yields references to the first shortest_length chars in first_string.
+    for (ii, current_letter) in first_string.iter().enumerate().take(shortest_length) {
         let mut to_append = true;
 
         // NB if only one string is provided, this will silently skip, as desired.
         for ss in &strs[1..] {
-            if ss.chars().nth(ii) != Some(current_letter) {
+            if ss.chars().nth(ii) != Some(*current_letter) {
                 to_append = false;
                 break;
             }
@@ -30,7 +30,7 @@ pub fn longest_common_prefix(strs: Vec<String>) -> String {
 
         // NB pre-pends, i.e. reverse order to what we would like.
         if to_append {
-            prefix.push(current_letter);
+            prefix.push(*current_letter);
         } else {
             break;
         }

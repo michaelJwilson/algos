@@ -4,12 +4,6 @@ fn transpose(matrix: [[i32; 3]; 3]) -> [[i32; 3]; 3] {
     let mut result: [[i32; 3]; 3] = [[0; 3]; 3];
 
     // NB Inclusive, i in {0, 1, 2}.
-    for i in 0..=2 {
-        for j in 0..=2 {
-            result[i][j] = matrix[j][i];
-        }
-    }
-
     for (i, row) in matrix.iter().enumerate() {
         for (j, &item) in row.iter().enumerate() {
             result[j][i] = item;
