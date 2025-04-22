@@ -23,3 +23,11 @@ See also:
     - The Rust performance book
       https://nnethercote.github.io/perf-book/build-configuration.html
 
+    - Criterion
+      https://bheisler.github.io/criterion.rs/book/user_guide/comparing_functions.html
+
+    - pprof-rs
+      ...
+
+    - nalgebra (NB column-major order!)
+      ...

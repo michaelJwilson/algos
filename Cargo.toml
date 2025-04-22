@@ -14,9 +14,12 @@ serde-1 = [
 [dependencies]
 rayon = ">1.5"
 
-# NB "blas"
-ndarray = { version = ">=0.16", features = ["rayon", "serde-1"] }
-# ndarray-linalg = { version="0.17.0", features = ["openblas"]}
+# NB openblas by default; 
+nalgebra = { version = "0.33.2" }
+
+# NB "rayon", "serde-1" "matrixmultiply-threading"
+ndarray = { version = ">=0.16", features = ["rayon", "blas"] }
+ndarray-linalg = { version="0.17.0", features = ["openblas"]}
 
 rand = ">0.8"
 rand_distr = ">0.4"
@@ -24,7 +27,6 @@ rand_chacha = ">0.3"
 spectral = "0.6.0"
 serde = { version = ">1.0.116", optional = true }
 statrs = "0.18.0"
-nalgebra = ">0.29"
 petgraph = { version = "0.8.1", features = ["rayon"] }
 rustc-hash = "2.1.1"
 pprof = { version = ">0.11", features = ["flamegraph"] }
