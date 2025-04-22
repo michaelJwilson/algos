@@ -1,9 +1,21 @@
-use algos::archer::archer;
-// use algos::binary_tree::query_binary_tree;
-// use algos::potts::test_potts;
+use pprof;
+use std::fs::File;
+use algos::dijkstra::{dijkstra, get_adjacencies_fixture};
 
 fn main() {
-    archer();
-    // query_binary_tree();
-    // test_potts();
+    let guard = pprof::ProfilerGuardBuilder::default()
+        .frequency(1_000)
+        .blocklist(&["libc", "libgcc", "pthread", "vdso"])
+        .build()
+        .unwrap();
+        
+    let adjs = get_adjacencies_fixture();
+    let cost = dijkstra(adjs, 0, 3).unwrap();
+
+    if let Ok(report) = guard.report().build() {
+        let file = File::create("flamegraph.svg").unwrap();
+        let mut options = pprof::flamegraph::Options::default();
+        options.image_width = Some(2500);
+        report.flamegraph_with_options(file, &mut options).unwrap();
+    };
 }

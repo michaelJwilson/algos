@@ -27,6 +27,7 @@ statrs = "0.18.0"
 nalgebra = ">0.29"
 petgraph = { version = "0.8.1", features = ["rayon"] }
 rustc-hash = "2.1.1"
+pprof = { version = ">0.11", features = ["flamegraph"] }
 
 # argmin = "0.10.0"
 # argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }

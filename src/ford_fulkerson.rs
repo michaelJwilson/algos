@@ -111,7 +111,7 @@ fn get_adjacencies_fixture() -> (usize, usize, usize, Vec<Vec<i32>>) {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_petgraph_ford_fulkerson_large -- --nocapture
+    // cargo test test_petgraph_ford_fulkerson_large -- --nocapture
     use super::*;
 
     #[test]
@@ -163,6 +163,14 @@ mod tests {
 
     #[test]
     fn test_petgraph_ford_fulkerson_large() {
+        /*
+        let guard = pprof::ProfilerGuardBuilder::default()
+            .frequency(1000)
+            .blocklist(&["libc", "libgcc", "pthread", "vdso"])
+            .build()
+            .unwrap();
+        */
+
         let (source, sink, _, g) = get_large_graph_fixture(200);
         let (max_flow, _) = petgraph_ford_fulkerson(&g, source, sink);
 
