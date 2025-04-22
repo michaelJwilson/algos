@@ -4,7 +4,6 @@
 //  NB  height-balanced implies same number of elements left/right
 //      for each parent.
 //
-
 // NB Data-class like.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {
@@ -24,24 +23,19 @@ impl TreeNode {
     }
 }
 
-pub fn sorted_array_to_bst(nums: Vec<i32>) -> Option<Box<TreeNode>> {
-    // NB function wrapper with nums input as ref., not Vector.
-    fn helper(nums: &[i32]) -> Option<Box<TreeNode>> {
-        if nums.is_empty() {
-            return None;
-        }
-
-        let mid = nums.len() / 2;
-        let mut root = TreeNode::new(nums[mid]);
-
-        // NB recursive call.
-        root.left = helper(&nums[..mid]);
-        root.right = helper(&nums[mid + 1..]);
-
-        Some(Box::new(root))
+pub fn sorted_array_to_bst(nums: &[i32]) -> Option<Box<TreeNode>> {
+    if nums.is_empty() {
+        return None;
     }
 
-    helper(&nums)
+    let mid = nums.len() / 2;
+    let mut root = TreeNode::new(nums[mid]);
+
+    // NB recursive call.
+    root.left = sorted_array_to_bst(&nums[..mid]);
+    root.right = sorted_array_to_bst(&nums[mid + 1..]);
+
+    Some(Box::new(root))
 }
 
 pub fn print_tree(node: &Option<Box<TreeNode>>, depth: usize) {
@@ -99,13 +93,13 @@ pub fn in_order_traversal(node: &Option<Box<TreeNode>>) -> Vec<i32> {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings" cargo test test_sorted_array_to_bst -- --nocapture
+    // cargo test test_sorted_array_to_bst -- --nocapture
     use super::*;
 
     #[test]
     pub fn test_sorted_array_to_bst() {
         let nums = vec![-10, -3, 0, 5, 9];
-        let bst = sorted_array_to_bst(nums);
+        let bst = sorted_array_to_bst(&nums);
         let pst = pre_order_traversal(&bst);
         let exp = [-10, -3, 0, 5, 9];
 

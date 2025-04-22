@@ -1,7 +1,6 @@
 // use std::collections::HashMap;
 use rustc_hash::FxHashMap as HashMap;
 
-
 use rand::Rng;
 use std::hash::Hash;
 
@@ -47,13 +46,12 @@ pub fn get_counter_fixture(num_samples: usize) -> Counter<u32> {
     let mut rng = rand::rng();
     let mut ctr = Counter::new();
 
-    
     for _ in 0..num_samples {
         let draw: u32 = rng.random_range(0..num_samples) as u32;
 
         ctr.count(draw);
     }
-    
+
     assert_eq!(num_samples as u32, ctr.times_seen_all());
 
     ctr
