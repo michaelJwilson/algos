@@ -23,7 +23,7 @@ mod tests {
         let pmf: Vec<f64> = vec![0.1, 0.2, 0.3, 0.4];
         let mut cat = Categorical::new(&pmf).unwrap();
 
-        for ii in (0..pmf.len()) {
+        for ii in 0..pmf.len() {
             let result = cat.pmf(ii.try_into().unwrap());
 
             assert_eq!(result, pmf[ii]);

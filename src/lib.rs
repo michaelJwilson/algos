@@ -2,6 +2,7 @@
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(unused_imports)]
+#![allow(unused_variables)]
 
 // NB declare the public modules.
 pub mod archer;

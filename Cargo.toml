@@ -40,3 +40,7 @@ opt-level = 3  # Otherwise the tests run too slow
 # NB build customized to mac/arm 64.
 [build]
 rustflags = ["-C", "target-cpu=arm64"]
+
+[[bench]]
+name = "fibonacci"
+harness = false
