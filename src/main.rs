@@ -1,7 +1,7 @@
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
-use pprof;
-use std::fs::File;
-use log::{error, info, warn};
+use log::{info, warn};
+// use pprof;
+// use std::fs::File;
 
 fn main() {
     /*

@@ -23,7 +23,7 @@ pub mod fib;
 pub mod ford_fulkerson;
 pub mod game_of_life;
 pub mod geometry;
-pub mod hash_map;
+pub mod counter;
 pub mod hmm;
 pub mod kadane_maxsubarray;
 pub mod last_word_length;

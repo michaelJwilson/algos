@@ -155,12 +155,12 @@ pub fn get_adjacencies_fixture_large(num_nodes: usize) -> AdjacencyList {
     // NB adjaceny list representation, with a list of edges for each node.
     let mut adjs = AdjacencyList::new();
 
-    for	jj in 0..num_nodes {
-        for ii in jj+1..num_nodes { 
+    for jj in 0..num_nodes {
+        for ii in jj + 1..num_nodes {
             adjs.add_edge(jj as u32, ii as u32, 1);
         }
     }
-    
+
     adjs
 }
 
