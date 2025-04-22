@@ -29,7 +29,7 @@ impl BinarySearchTree {
     //         asked with one question per level starting at the root.
     fn insert(&mut self, val: i32) {
         let new_node = Box::new(TreeNode::new(val));
-	
+
         if let Some(root) = self.root.as_mut() {
             Self::insert_node(root, new_node);
         } else {
@@ -39,7 +39,7 @@ impl BinarySearchTree {
 
     fn insert_node(node: &mut Box<TreeNode>, new_node: Box<TreeNode>) {
         if new_node.val < node.val {
-	    // NB left must potentially be mutable. 
+            // NB left must potentially be mutable.
             if let Some(left) = node.left.as_mut() {
                 Self::insert_node(left, new_node);
             } else {
@@ -75,24 +75,28 @@ impl BinarySearchTree {
     fn min_diff(&self) -> i32 {
         let mut prev = None;
         let mut min_diff = i32::MAX;
-	
+
         Self::in_order_traversal_min_diff(&self.root, &mut prev, &mut min_diff);
-	
+
         min_diff
     }
 
     // NB values for an in-order traversal of a BST are in ascending order.
-    fn in_order_traversal_min_diff(node: &Option<Box<TreeNode>>, prev: &mut Option<i32>, min_diff: &mut i32) {
+    fn in_order_traversal_min_diff(
+        node: &Option<Box<TreeNode>>,
+        prev: &mut Option<i32>,
+        min_diff: &mut i32,
+    ) {
         if let Some(node) = node {
-	    // NB delegate left first for in-order traversal.
+            // NB delegate left first for in-order traversal.
             Self::in_order_traversal_min_diff(&node.left, prev, min_diff);
 
-	    // NB unpack prev to prev_val.
+            // NB unpack prev to prev_val.
             if let Some(prev_val) = prev {
-	        // NB update min_diff.
+                // NB update min_diff.
                 *min_diff = (*min_diff).min((node.val - *prev_val).abs());
             }
-	    
+
             *prev = Some(node.val);
 
             Self::in_order_traversal_min_diff(&node.right, prev, min_diff);
@@ -119,44 +123,43 @@ mod tests {
     use super::*;
 
     fn generate_test_tree(index: i32) -> BinarySearchTree {
-       let mut bst = BinarySearchTree::new();
+        let mut bst = BinarySearchTree::new();
 
-       // NB see https://www.cs.usfca.edu/~galles/visualization/BST.html
-       let elements = if index == 0 {
-           vec![8, 3, 10, 1, 6, 14, 4, 7, 13]
-       } else if index == 1 {
-           vec![4,2,6,1,3]
-       }
-         else {
-           vec![1, 0, 48, 12, 49]
-       };
+        // NB see https://www.cs.usfca.edu/~galles/visualization/BST.html
+        let elements = if index == 0 {
+            vec![8, 3, 10, 1, 6, 14, 4, 7, 13]
+        } else if index == 1 {
+            vec![4, 2, 6, 1, 3]
+        } else {
+            vec![1, 0, 48, 12, 49]
+        };
 
-       for el in elements.iter() {
-           bst.insert(*el);
-       }
+        for el in elements.iter() {
+            bst.insert(*el);
+        }
 
-       bst
+        bst
     }
 
     #[test]
     fn test_binary_search_tree_search() {
         let mut bst = generate_test_tree(0);
-	
-	assert_eq!(bst.search(6), true);
-	assert_eq!(bst.search(5), false);
+
+        assert_eq!(bst.search(6), true);
+        assert_eq!(bst.search(5), false);
     }
 
     #[test]
     fn test_binary_search_tree_inorder() {
-       let mut bst = generate_test_tree(0);
+        let mut bst = generate_test_tree(0);
 
-       // NB [1 3 4 6 7 8 10 13 14].
-       bst.print_in_order();
+        // NB [1 3 4 6 7 8 10 13 14].
+        bst.print_in_order();
     }
-    
+
     #[test]
     fn test_binary_search_tree_min_diff() {
-	assert_eq!(generate_test_tree(1).min_diff(), 1);
-	assert_eq!(generate_test_tree(2).min_diff(), 1);
+        assert_eq!(generate_test_tree(1).min_diff(), 1);
+        assert_eq!(generate_test_tree(2).min_diff(), 1);
     }
 }

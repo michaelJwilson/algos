@@ -23,7 +23,7 @@ pub fn get_needle_haystack(needle: &str, haystack: &str) -> i32 {
 
 impl Solution {
     pub fn str_str(haystack: String, needle: String) -> i32 {
-        get_needle_haystack(&needle, &haystack)       
+        get_needle_haystack(&needle, &haystack)
     }
 }
 
@@ -34,40 +34,40 @@ mod tests {
 
     #[test]
     pub fn test_needle_haystack() {
-       let needle = "sad";
-       let haystack = "sadbut sad";
+        let needle = "sad";
+        let haystack = "sadbut sad";
 
-       let index = get_needle_haystack(needle, haystack);
+        let index = get_needle_haystack(needle, haystack);
 
-       assert_eq!(index, 0);
+        assert_eq!(index, 0);
     }
 
     #[test]
     pub fn test_needle_haystack_invalid() {
-       let needle = "leeto";
-       let haystack = "leetcode";
+        let needle = "leeto";
+        let haystack = "leetcode";
 
-       let index = get_needle_haystack(needle, haystack);
+        let index = get_needle_haystack(needle, haystack);
 
-       assert_eq!(index, -1);
+        assert_eq!(index, -1);
     }
 
     #[test]
     pub fn test_needle_haystack_tooshort() {
-       let needle = "aaaa".to_string();
-       let haystack = "aaa".to_string();
+        let needle = "aaaa".to_string();
+        let haystack = "aaa".to_string();
 
-       let index = Solution::str_str(haystack, needle);
-       assert_eq!(index, -1);
+        let index = Solution::str_str(haystack, needle);
+        assert_eq!(index, -1);
     }
 
     #[test]
     pub fn test_needle_haystack_solution() {
-       let needle = "sad".to_string();
-       let haystack = "sadbut sad".to_string();
+        let needle = "sad".to_string();
+        let haystack = "sadbut sad".to_string();
 
-       let index = Solution::str_str(haystack, needle);
+        let index = Solution::str_str(haystack, needle);
 
-       assert_eq!(index, 0);
+        assert_eq!(index, 0);
     }
 }

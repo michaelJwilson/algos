@@ -1,6 +1,6 @@
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::VecDeque;
+use std::rc::Rc;
 
 struct Solution;
 
@@ -15,10 +15,10 @@ impl TreeNode {
     #[inline]
     pub fn new(val: i32) -> Self {
         TreeNode {
-	    val: val,
-	    left: None,
-	    right: None,
-	}
+            val: val,
+            left: None,
+            right: None,
+        }
     }
 }
 
@@ -37,7 +37,7 @@ impl TreeNode {
 
 impl Solution {
     pub fn average_of_levels(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<f64> {
-    	// NB if passed an empty tree, do nothing.
+        // NB if passed an empty tree, do nothing.
         if root.is_none() {
             return vec![];
         }
@@ -45,13 +45,13 @@ impl Solution {
         let mut result: Vec<f64> = Vec::new();
         let mut num_nodes: Vec<i32> = Vec::new();
 
-	// NB queue of (node, level) pairs.
+        // NB queue of (node, level) pairs.
         let mut queue: VecDeque<(Rc<RefCell<TreeNode>>, usize)> = VecDeque::new();
 
-	// NB put root onto the queue.
+        // NB put root onto the queue.
         queue.push_back((root.unwrap(), 0));
 
-	// NB process the node.
+        // NB process the node.
         while let Some((node, level)) = queue.pop_front() {
             let node = node.borrow();
 
@@ -63,7 +63,7 @@ impl Solution {
             result[level] += node.val as f64;
             num_nodes[level] += 1;
 
-	    // NB place the (up to two) child nodes into the queue.
+            // NB place the (up to two) child nodes into the queue.
             if let Some(left) = node.left.clone() {
                 queue.push_back((left, level + 1));
             }
@@ -73,7 +73,11 @@ impl Solution {
             }
         }
 
-        result.iter().zip(num_nodes.iter()).map(|(&sum, &count)| sum / count as f64).collect()
+        result
+            .iter()
+            .zip(num_nodes.iter())
+            .map(|(&sum, &count)| sum / count as f64)
+            .collect()
     }
 }
 
@@ -87,19 +91,21 @@ mod tests {
         let exp = vec![3.0, 14.5, 11.0];
         let root = Rc::new(RefCell::new(TreeNode::new(3)));
 
-	// NB unwrap -> result or panic.
-	root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(9))));
-	root.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(20))));
+        // NB unwrap -> result or panic.
+        root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(9))));
+        root.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(20))));
 
-	root.borrow_mut().right.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(15))));
-	root.borrow_mut().right.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(7))));
+        root.borrow_mut().right.as_ref().unwrap().borrow_mut().left =
+            Some(Rc::new(RefCell::new(TreeNode::new(15))));
+        root.borrow_mut().right.as_ref().unwrap().borrow_mut().right =
+            Some(Rc::new(RefCell::new(TreeNode::new(7))));
 
-	let level_averages = Solution::average_of_levels(Some(root));
+        let level_averages = Solution::average_of_levels(Some(root));
 
-	for ii in 0..level_averages.len() {
-	    println!("{:?} \t {:?}", level_averages[ii], exp[ii]);
+        for ii in 0..level_averages.len() {
+            println!("{:?} \t {:?}", level_averages[ii], exp[ii]);
 
-	    assert_eq!(level_averages[ii], exp[ii]);
-	}
+            assert_eq!(level_averages[ii], exp[ii]);
+        }
     }
 }

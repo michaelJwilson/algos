@@ -1,8 +1,8 @@
+use std::error::Error;
 use std::fs;
 use std::io::Read;
-use std::error::Error;
 
-// NB 
+// NB
 fn read_count(path: &str) -> Result<i32, Box<dyn Error>> {
     let mut count_str = String::new();
     fs::File::open(path)?.read_to_string(&mut count_str)?;
@@ -18,11 +18,10 @@ mod tests {
     #[ignore]
     fn test_read_count() {
         fs::write("count.dat", "1i3").unwrap();
-	
-    	match read_count("count.dat") {
-	    Ok(count) => println!("Count: {count}"),
+
+        match read_count("count.dat") {
+            Ok(count) => println!("Count: {count}"),
             Err(err) => println!("Error: {err}"),
         }
     }
 }
-

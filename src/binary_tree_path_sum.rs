@@ -1,5 +1,5 @@
-use::std::rc::Rc;
-use::std::cell::RefCell;
+use ::std::cell::RefCell;
+use ::std::rc::Rc;
 
 struct Solution;
 
@@ -14,10 +14,10 @@ impl TreeNode {
     #[inline]
     pub fn new(val: i32) -> Self {
         TreeNode {
-	    val,
-	    left: None,
-	    right: None,
-	}
+            val,
+            left: None,
+            right: None,
+        }
     }
 }
 
@@ -31,7 +31,7 @@ impl Solution {
         if let Some(node) = node {
             let node = node.borrow();
             let val = node.val;
-	    
+
             if node.left.is_none() && node.right.is_none() {
                 return val == target_sum;
             }
@@ -39,8 +39,8 @@ impl Solution {
             // NB recursively check the left and right subtrees
             Self::dfs(&node.left, target_sum - val) || Self::dfs(&node.right, target_sum - val)
         } else {
-	    false
-	}
+            false
+        }
     }
 }
 
@@ -68,36 +68,65 @@ mod tests {
         assert!(result == exp);
     }
 
-
     #[test]
     fn test_binary_tree_path_sum_large() {
         let root = Rc::new(RefCell::new(TreeNode::new(5)));
-	
-    	root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(4))));
-    	root.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(8))));
-    	root.borrow_mut().left.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(11))));
-    	root.borrow_mut().left.as_ref().unwrap().borrow_mut().left.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(7))));
-    	root.borrow_mut().left.as_ref().unwrap().borrow_mut().left.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(2))));
-    	root.borrow_mut().right.as_ref().unwrap().borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(13))));
-    	root.borrow_mut().right.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(4))));
-    	root.borrow_mut().right.as_ref().unwrap().borrow_mut().right.as_ref().unwrap().borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(1))));
 
-    	let target_sum = 22;
+        root.borrow_mut().left = Some(Rc::new(RefCell::new(TreeNode::new(4))));
+        root.borrow_mut().right = Some(Rc::new(RefCell::new(TreeNode::new(8))));
+        root.borrow_mut().left.as_ref().unwrap().borrow_mut().left =
+            Some(Rc::new(RefCell::new(TreeNode::new(11))));
+        root.borrow_mut()
+            .left
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .left
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .left = Some(Rc::new(RefCell::new(TreeNode::new(7))));
+        root.borrow_mut()
+            .left
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .left
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .right = Some(Rc::new(RefCell::new(TreeNode::new(2))));
+        root.borrow_mut().right.as_ref().unwrap().borrow_mut().left =
+            Some(Rc::new(RefCell::new(TreeNode::new(13))));
+        root.borrow_mut().right.as_ref().unwrap().borrow_mut().right =
+            Some(Rc::new(RefCell::new(TreeNode::new(4))));
+        root.borrow_mut()
+            .right
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .right
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .right = Some(Rc::new(RefCell::new(TreeNode::new(1))));
 
-	let exp = true;
-    	let result = Solution::has_path_sum(Some(root), target_sum);
-	
+        let target_sum = 22;
+
+        let exp = true;
+        let result = Solution::has_path_sum(Some(root), target_sum);
+
         assert!(result == exp);
     }
 
     #[test]
     fn test_binary_tree_path_sum_empty() {
         let root = None;
-	let target_sum = 0;
+        let target_sum = 0;
 
-	let exp = false;
-	let result = Solution::has_path_sum(root, target_sum);
+        let exp = false;
+        let result = Solution::has_path_sum(root, target_sum);
 
-	assert!(result == exp);
+        assert!(result == exp);
     }
 }

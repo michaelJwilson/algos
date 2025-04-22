@@ -37,21 +37,24 @@ mod tests {
 
     #[test]
     fn test_abcabcbb() {
-       assert_eq!(get_longest_substring("abcabcbb"), 3);
+        assert_eq!(get_longest_substring("abcabcbb"), 3);
     }
 
     #[test]
     fn test_bbbbb() {
-       assert_eq!(get_longest_substring("bbbbb"), 1);
+        assert_eq!(get_longest_substring("bbbbb"), 1);
     }
 
     #[test]
     fn test_pwwkew() {
-       assert_eq!(get_longest_substring("pwwkew"), 3);
+        assert_eq!(get_longest_substring("pwwkew"), 3);
     }
 
     #[test]
     fn test_Solution() {
-       assert_eq!(Solution::length_of_longest_substring("abcabcbb".to_string()), 3);
+        assert_eq!(
+            Solution::length_of_longest_substring("abcabcbb".to_string()),
+            3
+        );
     }
 }

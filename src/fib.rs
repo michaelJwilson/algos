@@ -17,8 +17,8 @@ mod tests {
 
     #[test]
     fn test_fib() {
-       let n = 20;
-       
-       println!("fib({n}) = {}", fib(n));
+        let n = 20;
+
+        println!("fib({n}) = {}", fib(n));
     }
 }

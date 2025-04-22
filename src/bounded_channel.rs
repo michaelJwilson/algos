@@ -16,13 +16,13 @@ fn bounded_channel() {
     //    new thread.
     thread::spawn(move || {
         let thread_id = thread::current().id();
-	
+
         for i in 0..10 {
             tx.send(format!("Message {i}")).unwrap();
-	    
+
             println!("{thread_id:?}: sent Message {i}");
         }
-	
+
         println!("{thread_id:?}: done");
     });
 
@@ -40,6 +40,6 @@ mod tests {
 
     #[test]
     fn test_bounded_channel() {
-       bounded_channel();
+        bounded_channel();
     }
 }

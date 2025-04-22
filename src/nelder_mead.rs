@@ -1,10 +1,10 @@
-use ndarray::{array, Array1};
-use argmin::core::{observers::ObserverMode, Executor, State, Error, CostFunction, Gradient, Hessian};
+use argmin::core::{
+    observers::ObserverMode, CostFunction, Error, Executor, Gradient, Hessian, State,
+};
 use argmin::solver::neldermead::NelderMead;
 use argmin_observer_slog::SlogLogger;
-use argmin_testfunctions::{
-    rosenbrock, rosenbrock_derivative, rosenbrock_hessian
-};
+use argmin_testfunctions::{rosenbrock, rosenbrock_derivative, rosenbrock_hessian};
+use ndarray::{array, Array1};
 
 struct Rosenbrock {}
 
@@ -13,7 +13,7 @@ impl CostFunction for Rosenbrock {
     type Output = f64;
 
     fn cost(&self, p: &Self::Param) -> Result<Self::Output, Error> {
-         Ok(rosenbrock(&p.to_vec()))
+        Ok(rosenbrock(&p.to_vec()))
     }
 }
 
@@ -35,23 +35,18 @@ impl Hessian for Rosenbrock {
     }
 }
 
-
 #[test]
 fn test_rosenbrock() -> Result<(), Error> {
     let cost = Rosenbrock {};
 
-    let solver = NelderMead::new(vec![
-        array![-1.0, 3.0],
-        array![2.0, 1.5],
-        array![2.0, -1.0],
-    ])
-    .with_sd_tolerance(0.0001)?;
+    let solver = NelderMead::new(vec![array![-1.0, 3.0], array![2.0, 1.5], array![2.0, -1.0]])
+        .with_sd_tolerance(0.0001)?;
 
     let res = Executor::new(cost, solver)
         .configure(|state| state.max_iters(100))
-	// .add_observer(SlogLogger::term(), ObserverMode::Always)
+        // .add_observer(SlogLogger::term(), ObserverMode::Always)
         .run()?;
-	
+
     println!("{res}");
 
     let best = res.state().get_best_param().unwrap();

@@ -29,7 +29,7 @@ pub fn get_sqrt(input: i64) -> i64 {
 
 impl Solution {
     pub fn my_sqrt(x: i32) -> i64 {
-    	get_sqrt(x as i64)
+        get_sqrt(x as i64)
     }
 }
 
@@ -41,26 +41,41 @@ mod tests {
     #[test]
     pub fn test_sqrt_4() {
         let result = get_sqrt(4);
-	
-	assert_eq!(result, 2);
+
+        assert_eq!(result, 2);
     }
 
     #[test]
-    pub	fn test_sqrt_8() {
-      	let result = get_sqrt(8);
+    pub fn test_sqrt_8() {
+        let result = get_sqrt(8);
 
         assert_eq!(result, 2);
     }
 
     #[test]
     pub fn test_sqrt_digits() {
-        let digits = vec![0, 1, 10, 12, 21, 101, 144, 155, 1_00, 2_147_395_599, 2_147_395_600];
-	let exp: Vec<i64> = digits.iter().map(|&xx| (xx as f64).sqrt().floor() as i64).collect();
+        let digits = vec![
+            0,
+            1,
+            10,
+            12,
+            21,
+            101,
+            144,
+            155,
+            1_00,
+            2_147_395_599,
+            2_147_395_600,
+        ];
+        let exp: Vec<i64> = digits
+            .iter()
+            .map(|&xx| (xx as f64).sqrt().floor() as i64)
+            .collect();
 
-	for ii in 0..digits.len() {
-	    let result = Solution::my_sqrt(digits[ii]);
+        for ii in 0..digits.len() {
+            let result = Solution::my_sqrt(digits[ii]);
 
-	    assert_eq!(result, exp[ii]);
-	}
-    }    
+            assert_eq!(result, exp[ii]);
+        }
+    }
 }

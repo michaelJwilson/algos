@@ -3,7 +3,7 @@ use algos::archer::archer;
 // use algos::potts::test_potts;
 
 fn main() {
-   archer();
-   // query_binary_tree();
-   // test_potts();
+    archer();
+    // query_binary_tree();
+    // test_potts();
 }

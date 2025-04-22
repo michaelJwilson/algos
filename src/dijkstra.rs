@@ -1,10 +1,10 @@
-use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
 
-use petgraph::graph::{NodeIndex, UnGraph};
 use petgraph::algo::dijkstra as petgraph_dijkstra;
 use petgraph::data::FromElements;
-use petgraph::dot::{Dot, Config};
+use petgraph::dot::{Config, Dot};
+use petgraph::graph::{NodeIndex, UnGraph};
 
 /*
 ----  TODO  ----
@@ -36,25 +36,32 @@ impl AdjacencyList {
     }
 
     fn add_edge(&mut self, from: u32, to: u32, weight: u32) {
-       self.edges.entry(from).or_default().push(Edge { to: to, weight: weight });
+        self.edges.entry(from).or_default().push(Edge {
+            to: to,
+            weight: weight,
+        });
     }
 
     fn get_edges(&self) -> Vec<(u32, u32, u32)> {
         self.edges
-	    .iter()
-	    .flat_map(|(&from, neighbors)| {
-            neighbors.iter().map(move |edge| (from as u32, edge.to as u32, edge.weight as u32))
-	    })
-        .collect()
+            .iter()
+            .flat_map(|(&from, neighbors)| {
+                neighbors
+                    .iter()
+                    .map(move |edge| (from as u32, edge.to as u32, edge.weight as u32))
+            })
+            .collect()
     }
 
     fn get_endpoints(&self) -> Vec<(u32, u32)> {
         self.edges
-        .iter()
-        .flat_map(|(&from, neighbors)| {
-            neighbors.iter().map(move |edge| (from as u32, edge.to as u32))
-        })
-        .collect()
+            .iter()
+            .flat_map(|(&from, neighbors)| {
+                neighbors
+                    .iter()
+                    .map(move |edge| (from as u32, edge.to as u32))
+            })
+            .collect()
     }
 }
 
@@ -93,7 +100,10 @@ fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
 
     // NB initialize distances: start/root node is at zero distance & to be processed first.
     dist.insert(start, 0);
-    heap.push(State { cost: 0, position: start });
+    heap.push(State {
+        cost: 0,
+        position: start,
+    });
 
     // NB returns the min. distance state in the queue, starting with the root.
     while let Some(State { cost, position }) = heap.pop() {
@@ -164,28 +174,32 @@ mod tests {
 
     #[test]
     fn test_petgraph_dijkstra() {
-       // NB see:
-       //    https://docs.rs/petgraph/latest/petgraph/#example
-       let start = 0;
-       let goal = 3;
+        // NB see:
+        //    https://docs.rs/petgraph/latest/petgraph/#example
+        let start = 0;
+        let goal = 3;
 
-       let adjs = get_adjacencies_fixture();
-       let edges = adjs.get_edges();
+        let adjs = get_adjacencies_fixture();
+        let edges = adjs.get_edges();
 
-       // NB <u32, u32> specify the type of the node and edge weights.
-       let graph = UnGraph::<u32, u32>::from_edges(&edges);
+        // NB <u32, u32> specify the type of the node and edge weights.
+        let graph = UnGraph::<u32, u32>::from_edges(&edges);
 
-       // NB find the shortest path from `0` to `3` using `1` as the cost for every edge.
-       let node_map = petgraph_dijkstra(&graph, start.into(), Some(goal.into()), |edge| *edge.weight());
-       let exp = dijkstra(adjs, start, goal).unwrap();
+        // NB find the shortest path from `0` to `3` using `1` as the cost for every edge.
+        let node_map = petgraph_dijkstra(&graph, start.into(), Some(goal.into()), |edge| {
+            *edge.weight()
+        });
+        let exp = dijkstra(adjs, start, goal).unwrap();
 
-       // NB attempt to cast usize to u32 and unwrap the option.
-       let result = node_map.get(&NodeIndex::new(goal.try_into().unwrap())).unwrap();
+        // NB attempt to cast usize to u32 and unwrap the option.
+        let result = node_map
+            .get(&NodeIndex::new(goal.try_into().unwrap()))
+            .unwrap();
 
-       assert_eq!(&exp, result);
+        assert_eq!(&exp, result);
 
-       // NB see: https://magjac.com/graphviz-visual-editor/;
-       //    also with no labels: Dot::with_config(&graph, &[Config::EdgeNoLabel])
-       println!("{:?}", Dot::new(&graph));
+        // NB see: https://magjac.com/graphviz-visual-editor/;
+        //    also with no labels: Dot::with_config(&graph, &[Config::EdgeNoLabel])
+        println!("{:?}", Dot::new(&graph));
     }
-} 
+}
