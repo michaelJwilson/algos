@@ -40,10 +40,10 @@ mod tests {
 
         for jj in 0..10_000 {
             let draw: i32 = rng.random_range(0..10_000);
-            
+
             ctr.count(draw);
         }
-        
+
         for i in 10..20 {
             println!("saw {} values equal to {}", ctr.times_seen(i), i);
         }
