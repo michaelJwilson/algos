@@ -17,8 +17,7 @@ fn majority_element(nums: &Vec<i32>) -> i32 {
         }
     }
 
-    #[cfg(debug_statements)]
-    println!("{:?}", result);
+    // println!("{:?}", result);
 
     let mut max_key: i32 = -1;
     let mut max_value: i32 = -1;

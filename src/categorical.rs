@@ -5,7 +5,7 @@ mod tests {
     // NB place all "parent" definitions in test scope.
     use super::*;
     use approx::assert_abs_diff_eq;
-    use rand::thread_rng;
+    use rand::rng;
 
     const TOLERANCE: f64 = 1e-6;
 
@@ -33,7 +33,7 @@ mod tests {
     #[test]
     fn test_categorical_sample() {
         // NB tests sampling from given categorical.
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let pmf: Vec<f64> = vec![0.1, 0.2, 0.3, 0.4];
         let cat = Categorical::new(&pmf).unwrap();
 

@@ -12,8 +12,7 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<
     let mut jj = 0;
 
     for ii in 0..nums1.len() {
-        #[cfg(debug_statements)]
-        println!("{:?}, {:?}, {:?} \t {:?}", ii, jj, nums1, nums2);
+        // println!("{:?}, {:?}, {:?} \t {:?}", ii, jj, nums1, nums2);
 
         // NB we march along nums1 until we find an element > that first in num2;
         if (nums1[ii] > nums2[jj]) && ((ii as i32) < m) {
@@ -45,16 +44,16 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<
         }
     }
 
-    #[cfg(debug_statements)]
-    println!("{:?}, {:?}, {:?} \t {:?}", nums1.len(), jj, nums1, nums2);
+    // println!("{:?}, {:?}, {:?} \t {:?}", nums1.len(), jj, nums1, nums2);
 }
 
 fn merge_sorted_optimal(m: i32, nums1: &mut Vec<i32>, n: i32, nums2: &Vec<i32>) {
-    ///  Use a two-pointer approach to merge the two sorted arrays in-place.
-    ///  The idea is to start from the end of both arrays and place the largest
-    ///  elements at the end of nums1. This way, you avoid overwriting elements
-    ///  in nums1 that have not been processed yet.
-    // NB last index in nums1 that's not zero padded;
+    //  Use a two-pointer approach to merge the two sorted arrays in-place.
+    //  The idea is to start from the end of both arrays and place the largest
+    //  elements at the end of nums1. This way, you avoid overwriting elements
+    //  in nums1 that have not been processed yet.
+    //
+    //  NB last index in nums1 that's not zero padded;
     let mut i = m as isize - 1;
 
     // NB last index in num2;

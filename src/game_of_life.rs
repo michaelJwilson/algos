@@ -18,9 +18,9 @@ struct GameOfLife {
 impl GameOfLife {
     pub fn new(num_rows: usize, num_cols: usize) -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(RAND_SEED);
-        let mut lattice: Array2<i32> =
-            Array2::from_shape_fn((num_rows, num_cols), |_| rng.gen_range(0..2));
-        let mut scratch: Array2<i32> = lattice.clone();
+        let lattice: Array2<i32> =
+            Array2::from_shape_fn((num_rows, num_cols), |_| rng.random_range(0..2));
+        let scratch: Array2<i32> = lattice.clone();
 
         GameOfLife {
             num_rows: num_rows,
@@ -32,7 +32,7 @@ impl GameOfLife {
 
     pub fn from_array(array: Array2<i32>) -> Self {
         let (num_rows, num_cols) = array.dim();
-        let mut scratch: Array2<i32> = array.clone();
+        let scratch: Array2<i32> = array.clone();
 
         GameOfLife {
             num_rows,
@@ -96,7 +96,7 @@ impl Solution {
         let num_rows = board.len();
         let num_cols = board[0].len();
 
-        let mut array = Array2::from_shape_fn((num_rows, num_cols), |(i, j)| board[i][j]);
+        let array = Array2::from_shape_fn((num_rows, num_cols), |(i, j)| board[i][j]);
 
         let mut game = GameOfLife::from_array(array);
 

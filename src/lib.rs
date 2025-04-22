@@ -1,6 +1,7 @@
 // NB module level configuration.
 #![allow(dead_code)]
 #![allow(non_snake_case)]
+#![allow(unused_imports)]
 
 // NB declare the public modules.
 pub mod archer;

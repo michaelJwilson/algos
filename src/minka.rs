@@ -47,10 +47,10 @@ pub fn sample_beta_binomial(
         let mut interim = Vec::new();
 
         for _ii in 0..num_trials {
-            let pp = beta.sample(&mut rand::thread_rng());
+            let pp = beta.sample(&mut rand::rng());
             let bin = Binomial::new(1, pp).unwrap();
 
-            let sample = bin.sample(&mut rand::thread_rng());
+            let sample = bin.sample(&mut rand::rng());
 
             interim.push(sample);
         }
