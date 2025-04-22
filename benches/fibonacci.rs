@@ -11,11 +11,11 @@ fn fibonacci(n: u64) -> u64 {
         _ => {
             for _ in 0..n {
                 let c = a + b;
-                
+
                 a = b;
                 b = c;
             }
-            
+
             b
         }
     }

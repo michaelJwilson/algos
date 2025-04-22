@@ -42,5 +42,5 @@ opt-level = 3  # Otherwise the tests run too slow
 rustflags = ["-C", "target-cpu=arm64"]
 
 [[bench]]
-name = "fibonacci"
+name = "ford_fulkerson"
 harness = false
