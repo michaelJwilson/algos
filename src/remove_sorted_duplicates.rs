@@ -9,8 +9,7 @@ fn remove_sorted_duplicates(nums1: &mut Vec<i32>) -> i32 {
     let mut ii: i32 = nums1.len() as i32 - 1;
 
     while ii >= 0 {
-        #[cfg(debug_statements)]
-        println!("{:?} {:?} {:?}", nums1, this_unique_index, this_unique);
+        // println!("{:?} {:?} {:?}", nums1, this_unique_index, this_unique);
 
         if nums1[ii as usize] < this_unique {
             for jj in 0..num_unique_elements as usize {
@@ -30,8 +29,7 @@ fn remove_sorted_duplicates(nums1: &mut Vec<i32>) -> i32 {
         nums1[ii] = nums1[this_unique_index + ii];
     }
 
-    #[cfg(debug_statements)]
-    println!("{:?} {:?}", nums1, num_unique_elements);
+    // println!("{:?} {:?}", nums1, num_unique_elements);
 
     num_unique_elements
 }

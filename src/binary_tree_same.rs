@@ -35,9 +35,9 @@ impl Solution {
                 let other_left = other_node.borrow().left.clone();
                 let other_right = other_node.borrow().right.clone();
 
-                ((node.borrow().val == other_node.borrow().val)
+                (node.borrow().val == other_node.borrow().val)
                     && (Solution::is_same_tree(left, other_left))
-                    && (Solution::is_same_tree(right, other_right)))
+                    && (Solution::is_same_tree(right, other_right))
             }
 
             (None, None) => true,

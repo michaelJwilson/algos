@@ -1,4 +1,3 @@
-use rand::prelude::*;
 use rand_distr::{Beta, Binomial, Distribution};
 use rgsl::psi::trigamma::psi_1;
 use statrs::function::gamma::{digamma, gamma};
@@ -44,10 +43,10 @@ pub fn sample_beta_binomial(
     let beta = Beta::new(alpha, beta).unwrap();
     let mut result = Vec::new();
 
-    for ss in 0..num_samples {
+    for _ss in 0..num_samples {
         let mut interim = Vec::new();
 
-        for ii in 0..num_trials {
+        for _ii in 0..num_trials {
             let pp = beta.sample(&mut rand::thread_rng());
             let bin = Binomial::new(1, pp).unwrap();
 

@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 fn get_longest_substring(input_str: &str) -> usize {
-    let mut chars = input_str.chars();
     let mut seen = HashSet::new();
     let mut max_len = 0;
     let mut start = 0;

@@ -12,7 +12,7 @@ const RAND_SEED: u64 = 42;
 fn create_lattice(size: usize, num_clones: i32) -> Array2<i32> {
     let mut rng = ChaCha8Rng::seed_from_u64(RAND_SEED);
     let lattice: Array2<i32> =
-        Array2::from_shape_fn((size, size), |_| rng.gen_range(0..num_clones));
+        Array2::from_shape_fn((size, size), |_| rng.random_range(0..num_clones));
 
     lattice
 }
