@@ -1,9 +1,12 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use rustc_hash::FxHashMap as HashMap;
+
 use std::hash::Hash;
+use rand::Rng;
 
 /// NB counter counts (u64) the number of times each value
 ///    of (generic) type T has been seen.  Data-class like.
-struct Counter<T> {
+pub struct Counter<T> {
     values: HashMap<T, u64>,
 }
 
@@ -12,7 +15,7 @@ impl<T: Eq + Hash> Counter<T> {
     /// NB Create a new Counter.
     fn new() -> Self {
         Counter {
-            values: HashMap::new(),
+            values: HashMap::default(),
         }
     }
 
@@ -27,22 +30,27 @@ impl<T: Eq + Hash> Counter<T> {
     }
 }
 
+pub fn get_counter_fixture(num_samples: usize) -> Counter<usize> {
+    let mut rng = rand::rng();
+    let mut ctr = Counter::new();
+
+    for jj in 0..num_samples {
+        let draw: usize = rng.random_range(0..num_samples);
+
+        ctr.count(draw);
+    }
+
+    ctr
+}
+
 #[cfg(test)]
 mod tests {
     // cargo test hash_map -- --nocapture
     use super::*;
-    use rand::Rng;
 
     #[test]
     fn test_counter() {
-        let mut rng = rand::rng();
-        let mut ctr = Counter::new();
-
-        for jj in 0..10_000 {
-            let draw: i32 = rng.random_range(0..10_000);
-
-            ctr.count(draw);
-        }
+        let ctr = get_counter_fixture(10_000);
 
         for i in 10..20 {
             println!("saw {} values equal to {}", ctr.times_seen(i), i);

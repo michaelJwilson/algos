@@ -1,5 +1,6 @@
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::ford_fulkerson::get_large_graph_fixture;
+use algos::counter::{get_counter_fixture};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 
@@ -30,7 +31,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("dijkstra", |b| {
         b.iter(|| {
             let adjs = get_adjacencies_fixture_large(100);
-            let cost = dijkstra(adjs, 0, 100).unwrap();
+            let _ = dijkstra(adjs, 0, 100).unwrap();
         })
     });
 
@@ -38,7 +39,14 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             // NB visium is 5K spots.
             let (source, sink, _, g) = get_large_graph_fixture(5_000);
-            let (max_flow, _) = petgraph_ford_fulkerson(&g, source, sink);
+            let _ = petgraph_ford_fulkerson(&g, source, sink);
+        })
+    });
+
+
+    c.bench_function("counter", |b| {
+        b.iter(|| {
+            let _ = get_counter_fixture(10_000);
         })
     });
 }
