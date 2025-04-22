@@ -1,6 +1,6 @@
 struct Solution;
 
-fn remove_sorted_duplicates(nums1: &mut Vec<i32>) -> i32 {
+fn remove_sorted_duplicates(nums1: &mut [i32]) -> i32 {
     let mut this_unique_index = nums1.len() - 1;
     let mut this_unique = nums1[this_unique_index];
 

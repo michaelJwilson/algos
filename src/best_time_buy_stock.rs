@@ -17,7 +17,7 @@ pub fn naive_max_profit(prices: &[i32]) -> i32 {
     max_profit
 }
 
-pub fn backward_max_profit(prices: &Vec<i32>) -> i32 {
+pub fn backward_max_profit(prices: &[i32]) -> i32 {
     if prices.len() < 2 {
         return 0;
     }

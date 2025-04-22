@@ -85,7 +85,7 @@ pub fn likelihood_beta_binomial(training_data: Vec<Vec<u64>>, alphas: Vec<f64>) 
     result
 }
 
-pub fn polya_damped_counts(class_counts: Vec<f64>, alphas: &Vec<f64>) -> Vec<f64> {
+pub fn polya_damped_counts(class_counts: Vec<f64>, alphas: &[f64]) -> Vec<f64> {
     let mut result: Vec<f64> = Vec::new();
 
     for ii in 0..class_counts.len() {

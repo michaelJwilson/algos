@@ -2,7 +2,7 @@ struct Solution;
 
 use std::collections::HashMap;
 
-fn majority_element(nums: &Vec<i32>) -> i32 {
+fn majority_element(nums: &[i32]) -> i32 {
     let num_elements = nums.len();
     let mut result = HashMap::new();
 
@@ -40,7 +40,7 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_majority_element_one -- --nocapture
+    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_majority_element -- --nocapture
     use super::*;
 
     #[test]
