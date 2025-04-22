@@ -56,11 +56,7 @@ impl AdjacencyList {
     fn get_endpoints(&self) -> Vec<(u32, u32)> {
         self.edges
             .iter()
-            .flat_map(|(&from, neighbors)| {
-                neighbors
-                    .iter()
-                    .map(move |edge| (from, edge.to))
-            })
+            .flat_map(|(&from, neighbors)| neighbors.iter().map(move |edge| (from, edge.to)))
             .collect()
     }
 }

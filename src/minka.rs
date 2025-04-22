@@ -70,10 +70,7 @@ pub fn likelihood_beta_binomial(training_data: Vec<Vec<u64>>, alphas: Vec<f64>) 
         let mut interim = gamma(sum_alphas) / gamma(num_obs as f64 + sum_alphas);
 
         for (jj, alpha) in alphas.iter().enumerate() {
-            let num_in_class: f64 = data
-                .iter()
-                .filter(|&&xx| xx == jj as u64)
-                .count() as f64;
+            let num_in_class: f64 = data.iter().filter(|&&xx| xx == jj as u64).count() as f64;
 
             interim *= gamma(num_in_class + alpha);
             interim /= gamma(*alpha);
@@ -105,10 +102,7 @@ pub fn max_likelihood_polya_mean(training_data: Vec<Vec<u64>>, alphas: Vec<f64>)
         let mut sample_class_counts: Vec<f64> = Vec::new();
 
         for jj in 0..alphas.len() {
-            let num_in_class: f64 = data
-                .iter()
-                .filter(|&&xx| xx == jj as u64)
-                .count() as f64;
+            let num_in_class: f64 = data.iter().filter(|&&xx| xx == jj as u64).count() as f64;
             sample_class_counts.push(num_in_class);
         }
 

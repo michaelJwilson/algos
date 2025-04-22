@@ -8,12 +8,7 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 
-fn bfs(
-    residual_graph: &[Vec<i32>],
-    source: usize,
-    sink: usize,
-    parent: &mut [isize],
-) -> bool {
+fn bfs(residual_graph: &[Vec<i32>], source: usize, sink: usize, parent: &mut [isize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
     let mut visited = vec![false; residual_graph.len()];
     let mut queue = VecDeque::new();
@@ -80,7 +75,7 @@ fn edmonds_karp(graph: Vec<Vec<i32>>, source: usize, sink: usize) -> i32 {
     max_flow
 }
 
-fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isize, Graph<u8, u8>) {
+pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isize, Graph<u8, u8>) {
     let mut g = Graph::<u8, u8>::new();
     let nodes: Vec<_> = (0..node_count).map(|i| g.add_node(i as u8)).collect();
 
