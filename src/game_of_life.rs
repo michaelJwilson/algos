@@ -101,10 +101,16 @@ impl Solution {
         let mut game = GameOfLife::from_array(array);
 
         game.update();
-
+        /*
         for i in 0..num_rows {
             for j in 0..num_cols {
                 board[i][j] = game.lattice[(i, j)];
+            }
+        }
+        */
+        for (i, row) in board.iter_mut().enumerate().take(num_rows) {
+            for (j, cell) in row.iter_mut().enumerate().take(num_cols) {
+                *cell = game.lattice[(i, j)];
             }
         }
     }
