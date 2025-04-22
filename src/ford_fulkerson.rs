@@ -1,5 +1,5 @@
-use rand::seq::IteratorRandom;
 use rand::rng;
+use rand::seq::IteratorRandom;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 
@@ -87,9 +87,9 @@ fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isize, G
     let source = nodes[0];
     let sink = nodes[node_count - 1];
 
-    for j in 0..node_count as usize {
+    for j in 0..node_count {
         for i in j + 1..node_count as usize {
-            g.add_edge(nodes[j], nodes[i], 1 as u8);
+            g.add_edge(nodes[j], nodes[i], 1_u8);
         }
     }
 

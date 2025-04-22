@@ -58,12 +58,19 @@ impl BinarySearchTree {
 
     fn search_node(node: &Option<Box<TreeNode>>, val: i32) -> bool {
         if let Some(node) = node {
+            /*
             if node.val == val {
                 true
             } else if val < node.val {
                 Self::search_node(&node.left, val)
             } else {
                 Self::search_node(&node.right, val)
+            }*/
+
+            match val.cmp(&node.val) {
+                std::cmp::Ordering::Equal => true,
+                std::cmp::Ordering::Less => Self::search_node(&node.left, val),
+                std::cmp::Ordering::Greater => Self::search_node(&node.right, val),
             }
         } else {
             false

@@ -9,12 +9,8 @@ struct Solution;
 //
 
 pub fn init_num_states() -> Vec<usize> {
-    let mut num_states: Vec<usize> = Vec::new();
-
     // NB num_states for num_stairs = {0, 1, 2};
-    num_states.push(0);
-    num_states.push(1);
-    num_states.push(2);
+    let mut num_states: Vec<usize> = vec![0, 1, 2];
 
     num_states
 }
@@ -41,6 +37,7 @@ impl Solution {
         }
 
         let mut num_states = init_num_states();
+
         return climb_stairs(n as usize, &mut num_states) as i32;
     }
 }
