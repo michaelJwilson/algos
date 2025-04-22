@@ -1,4 +1,3 @@
-use rand::{Rng, distributions::Distribution};
 use statrs::distribution::{Categorical, Discrete};
 
 #[cfg(test)]
