@@ -4,7 +4,7 @@ use statrs::function::gamma::{digamma, gamma};
 use std::f64::consts::PI;
 
 const ATOL: f64 = 1.0e-14;
-const EGAMMA: f64 = 0.577215664901532860606512090082402431;
+const EGAMMA: f64 = 0.577_215_664_901_532_9;
 
 pub fn initial_inverse_digamma(y: f64) -> f64 {
     // NB eqn. (149) of Minka, 2000.
@@ -28,7 +28,7 @@ pub fn inverse_digamma(y: f64) -> f64 {
     while increment.abs() > ATOL {
         increment = -(digamma(x) - y) / trigamma(x);
 
-        x = x + increment;
+        x += increment;
     }
 
     x

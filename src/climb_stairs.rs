@@ -10,7 +10,7 @@ struct Solution;
 
 pub fn init_num_states() -> Vec<usize> {
     // NB num_states for num_stairs = {0, 1, 2};
-    let mut num_states: Vec<usize> = vec![0, 1, 2];
+    let num_states: Vec<usize> = vec![0, 1, 2];
 
     num_states
 }

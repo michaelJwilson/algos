@@ -16,7 +16,7 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<
 
         // NB we march along nums1 until we find an element > that first in num2;
         if (nums1[ii] > nums2[jj]) && ((ii as i32) < m) {
-            let to_swap = nums1[ii];
+            let mut to_swap = nums1[ii];
 
             // nums1[ii] = nums2[jj];
             // nums2[jj] = to_swap;
@@ -27,12 +27,13 @@ fn merge_sorted<'a>(m: i32, nums1: &'a mut Vec<i32>, n: i32, nums2: &'a mut Vec<
 
             for kk in 0..nums2.len() - 1 {
                 if nums2[kk + 1] < nums2[kk] {
-                    let to_swap = nums2[kk];
+                    let mut to_swap = nums2[kk];
 
-                    nums2[kk] = nums2[kk + 1];
-                    nums2[kk + 1] = to_swap;
+                    // nums2[kk] = nums2[kk + 1];
+                    // nums2[kk + 1] = to_swap;
 
-                    std::mem::swap(&mut nums2[kk], &mut nums2[kk + 1]);
+                    nums2.swap(kk, kk + 1);
+
                     std::mem::swap(&mut nums2[kk + 1], &mut to_swap);
                 }
             }
