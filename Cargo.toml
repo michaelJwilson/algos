@@ -17,8 +17,8 @@ rayon = ">1.5"
 # NB openblas by default; 
 nalgebra = { version = "0.33.2" }
 
-# NB "rayon", "serde-1" "matrixmultiply-threading"
-ndarray = { version = ">=0.16", features = ["rayon", "blas"] }
+# NB "rayon", "serde-1"
+ndarray = { version = ">=0.16", features = ["blas", "matrixmultiply-threading"] }
 ndarray-linalg = { version="0.17.0", features = ["openblas"]}
 
 rand = ">0.8"

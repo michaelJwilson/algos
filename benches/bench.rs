@@ -57,8 +57,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("linear_algebra_nalgebra", |b| {
         b.iter(|| {
-            let a = DMatrix::from_element(1_000, 1_000, 1.0);
-            let b = DMatrix::<f64>::zeros(1_000, 1_000);
+            let a = DMatrix::from_element(10_000, 10_000, 1.0);
+            let b = DMatrix::<f64>::zeros(10_000, 10_000);
 
             let _ = a.dot(&b);
         })
@@ -66,8 +66,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("linear_algebra_ndarray_fast", |b| {
         b.iter(|| {
-            let a = Array2::<f64>::zeros((1_000, 1_000));
-            let b = Array2::<f64>::ones((1_000, 1_000));
+            let a = Array2::<f64>::zeros((10_000, 10_000));
+            let b = Array2::<f64>::ones((10_000, 10_000));
 
             let _ = a.dot(&b);
         })
@@ -75,16 +75,16 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("linear_algebra_ndarray_slow", |b| {
         b.iter(|| {
-            let a = Array2::<f64>::zeros((1_000, 1_000));
-            let b = Array2::<f64>::ones((1_000, 1_000));
+            let a = Array2::<f64>::zeros((10_000, 10_000));
+            let b = Array2::<f64>::ones((10_000, 10_000));
             
-            let mut result = Array2::<f64>::zeros((1_000, 1_000));
+            let mut result = Array2::<f64>::zeros((10_000, 10_000));
 
-            for i in 0..1_000 {
-                for j in 0..1_000 {
+            for i in 0..10_000 {
+                for j in 0..10_000 {
                     let mut sum = 0.0;
                     
-                    for k in 0..1_000 {
+                    for k in 0..10_000 {
                         sum += a[[i, k]] * b[[k, j]];
                     }
                     
