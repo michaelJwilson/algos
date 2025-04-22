@@ -1,3 +1,4 @@
+use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::ford_fulkerson::get_large_graph_fixture;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
@@ -24,7 +25,14 @@ fn fibonacci(n: u64) -> u64 {
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("fib 20", |b| b.iter(|| fibonacci(black_box(20))));
+    c.bench_function("fib(20)", |b| b.iter(|| fibonacci(black_box(20))));
+
+    c.bench_function("dijkstra", |b| {
+        b.iter(|| {
+            let adjs = get_adjacencies_fixture_large(100);
+            let cost = dijkstra(adjs, 0, 100).unwrap();
+        })
+    });
 
     c.bench_function("petgraph_ford_fulkerson", |b| {
         b.iter(|| {

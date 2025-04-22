@@ -1,6 +1,7 @@
+use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use pprof;
 use std::fs::File;
-use algos::dijkstra::{dijkstra, get_adjacencies_fixture};
+use log::{error, info, warn};
 
 fn main() {
     /*
@@ -11,10 +12,20 @@ fn main() {
         .unwrap();
     */
 
-    println!("Welcome to algos.");
+    env_logger::init();
 
-    let adjs = get_adjacencies_fixture();
-    let cost = dijkstra(adjs, 0, 3).unwrap();
+    info!("Welcome to algos.");
+
+    let adjs = get_adjacencies_fixture_large(100);
+
+    match dijkstra(adjs, 0, 50) {
+        Some(cost) => {
+            info!("The cost is: {}", cost);
+        }
+        None => {
+            warn!("Failed to calculate the Dijkstra distance");
+        }
+    }
 
     /*
     if let Ok(report) = guard.report().build() {
@@ -25,5 +36,5 @@ fn main() {
     };
     */
 
-    println!("Done.");
+    info!("Done.");
 }

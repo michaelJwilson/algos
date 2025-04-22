@@ -10,6 +10,9 @@ LeetCode Top 150:
 uv usage:
     - source .venv/bin/activate
 
+log usage:
+    - RUST_LOG=info ./target/release/algos 
+
 See also:
     - Comprehensive Rust by android @ Google
       https://google.github.io/comprehensive-rust/
