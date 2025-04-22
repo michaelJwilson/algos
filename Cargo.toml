@@ -24,6 +24,7 @@ serde = { version = ">1.0.116", optional = true }
 statrs = "0.18.0"
 nalgebra = ">0.29"
 petgraph = { version = "0.8.1", features = ["rayon"] }
+rustc-hash = "2.1.1"
 
 argmin = "0.10.0"
 argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }
@@ -37,14 +38,24 @@ approx = ">0.4"
 criterion = ">0.4"
 
 [profile.dev]
-opt-level = 3
-lto = true
+# NB The Rust compiler splits crates into multiple codegen units to parallelize
+# (and thus speed up) compilation. However, this might cause it to miss some potential
+# optimizations.
 codegen-units = 1
+opt-level = 3
+lto = "thin"
 overflow-checks = true
 
-# NB build customized to mac/arm 64.
+[profile.release]
+codegen-units = 1
+opt-level = 3
+lto = true
+overflow-checks = true
+panic = "abort"
+
+# NB "target-cpu=arm64"; "target-cpu=native".
 [build]
-rustflags = ["-C", "target-cpu=arm64"]
+rustflags = ["-C", "target-cpu=native"]
 
 [[bench]]
 name = "ford_fulkerson"

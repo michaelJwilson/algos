@@ -1,10 +1,10 @@
 // NB see https://doc.rust-lang.org/std/collections/struct.HashMap.html
-use std::collections::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 struct Solution;
 
 fn get_rosetta_hashmap() -> HashMap<&'static str, i32> {
-    let mut ros_stone = HashMap::new();
+    let mut ros_stone = HashMap::default();
 
     ros_stone.insert("I", 1);
     ros_stone.insert("V", 5);
@@ -79,7 +79,7 @@ pub fn roman_to_int_naive(
 }
 
 fn roman_to_int(s: &str) -> i32 {
-    let mut roman_map = HashMap::new();
+    let mut roman_map = HashMap::default();
 
     roman_map.insert('I', 1);
     roman_map.insert('V', 5);

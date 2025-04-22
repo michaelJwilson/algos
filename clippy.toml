@@ -1,0 +1,2 @@
+# NB see https://nnethercote.github.io/perf-book/hashing.html
+disallowed-types = ["std::collections::HashMap", "std::collections::HashSet"]

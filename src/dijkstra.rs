@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::BinaryHeap;
+use rustc_hash::FxHashMap as HashMap;
 
 use petgraph::algo::dijkstra as petgraph_dijkstra;
 use petgraph::data::FromElements;
@@ -31,7 +32,7 @@ struct AdjacencyList {
 impl AdjacencyList {
     fn new() -> Self {
         Self {
-            edges: HashMap::new(),
+            edges: HashMap::default(),
         }
     }
 
@@ -89,7 +90,7 @@ fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     //  NB maintain current known distance between all encountered node pairs;
     //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&u32::MAX), achieves
     //     initial distances of INF for assumed u32 type.
-    let mut dist: HashMap<u32, u32> = HashMap::new();
+    let mut dist: HashMap<u32, u32> = HashMap::default();
 
     //  NB maintain a priority queue (pop returns the min. distance node in queue) as a BinaryHeap.
     let mut heap = BinaryHeap::new();
