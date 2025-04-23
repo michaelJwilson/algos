@@ -9,7 +9,7 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 
-fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [isize]) -> bool {
+fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
     let mut visited = vec![false; residual_graph.nrows()];
 
@@ -17,7 +17,7 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [i
     let mut queue = VecDeque::with_capacity(residual_graph.nrows());
 
     visited[source] = true;
-    parent[source] = -1;
+    parent[source] = 0;
 
     queue.push_back(source);
 
@@ -26,7 +26,7 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [i
         // NB loop over all un-visited neighbours.
         for v in 0..residual_graph.nrows() {
             if !visited[v] && residual_graph[[u, v]] > 0 {
-                parent[v] = u as isize;
+                parent[v] = u;
                 visited[v] = true;
 
                 if v == sink {
@@ -47,7 +47,7 @@ fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize) -> 
     //
     //    save the frontier node that discovered a node on the tree as the parent, allowing for
     //    back trace.
-    let mut parent = vec![-1; residual_graph.nrows()];
+    let mut parent = vec![0; residual_graph.nrows()];
     let mut max_flow = 0;
 
     // NB while there is an 'augmenting path' by breadth-first search.
@@ -84,7 +84,7 @@ fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize) -> 
     max_flow
 }
 
-pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isize, Graph<u8, u8>) {
+pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usize, Graph<u8, u8>) {
     let mut g = Graph::<u8, u8>::new();
     let nodes: Vec<_> = (0..node_count).map(|i| g.add_node(i as u8)).collect();
 
@@ -97,7 +97,7 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, isiz
         }
     }
 
-    (source, sink, -1, g)
+    (source, sink, 0, g)
 }
 
 fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
