@@ -17,6 +17,12 @@ macro_rules! edge_weight {
     };
 }
 
+macro_rules! node_weight {
+    () => {
+        N::from(0)
+    };
+}
+
 //
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 //
@@ -205,16 +211,14 @@ where
     //
     let mut graph = Graph::<N, E>::with_capacity(6, 10);
 
-    let default_weight = N::from(0);
-
     // TODO define x = N::from(0)?
-    let source = graph.add_node(default_weight);
-    let _ = graph.add_node(default_weight);
-    let _ = graph.add_node(default_weight);
-    let _ = graph.add_node(default_weight);
-    let _ = graph.add_node(default_weight);
+    let source = graph.add_node(node_weight!());
+    let _ = graph.add_node(node_weight!());
+    let _ = graph.add_node(node_weight!());
+    let _ = graph.add_node(node_weight!());
+    let _ = graph.add_node(node_weight!());
 
-    let sink = graph.add_node(default_weight);
+    let sink = graph.add_node(node_weight!());
 
     // NB contains 10 edges (including anti-parallel).
     graph.extend_with_edges([
