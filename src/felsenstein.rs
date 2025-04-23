@@ -12,7 +12,7 @@ struct Node {
 }
 
 #[derive(Debug)]
-struct BST {
+struct Bst {
     root: Node,
 }
 
