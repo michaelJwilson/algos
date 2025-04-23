@@ -1,4 +1,5 @@
 use ndarray::Array2;
+use num_traits::cast::ToPrimitive;
 use rand::rng;
 use rand::seq::IteratorRandom;
 use std::cmp::{max, min};
@@ -10,6 +11,7 @@ use petgraph::algo::spfa;
 use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
 use petgraph::visit::EdgeRef;
 
+//
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 //
 //  WARNING petgraph node/edge deletion shifts indices!  The last node/edge replaces the deletion.
@@ -145,7 +147,7 @@ pub fn min_cut_labelling(
 
     labels
 }
-
+/*
 pub fn get_petgraph_adj_matrix(graph: &Graph<u8, u8>) -> Array2<i32> {
     let num_nodes = graph.node_count();
     let mut adj_matrix = Array2::<i32>::zeros((num_nodes, num_nodes));
@@ -155,6 +157,24 @@ pub fn get_petgraph_adj_matrix(graph: &Graph<u8, u8>) -> Array2<i32> {
         let target = edge.target().index();
 
         adj_matrix[[source, target]] = *edge.weight() as i32;
+    }
+
+    adj_matrix
+}
+*/
+
+pub fn get_petgraph_adj_matrix<N, E>(graph: &Graph<N, E>) -> Array2<i32>
+where
+    E: ToPrimitive, // Ensure edge weights can be converted to i32
+{
+    let num_nodes = graph.node_count();
+    let mut adj_matrix = Array2::<i32>::zeros((num_nodes, num_nodes));
+
+    for edge in graph.edge_references() {
+        let source = edge.source().index();
+        let target = edge.target().index();
+
+        adj_matrix[[source, target]] = edge.weight().to_i32().unwrap();
     }
 
     adj_matrix

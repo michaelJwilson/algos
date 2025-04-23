@@ -70,6 +70,7 @@ dependencies = [
  "log",
  "nalgebra",
  "ndarray",
+ "num-traits",
  "petgraph",
  "pprof",
  "rand 0.9.1",
