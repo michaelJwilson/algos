@@ -1,9 +1,9 @@
-use std::iter::zip;
 use ndarray::Array2;
 use rand::rng;
 use rand::seq::IteratorRandom;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
+use std::iter::zip;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::algo::spfa;
@@ -137,7 +137,11 @@ pub fn min_cut_labelling(
     //
     let path = spfa(&g, source, |edge| *edge.weight()).unwrap();
 
-    let labels: Vec<bool> = path.distances.into_iter().map(| dist | dist < u8::MAX).collect();
+    let labels: Vec<bool> = path
+        .distances
+        .into_iter()
+        .map(|dist| dist < u8::MAX)
+        .collect();
 
     labels
 }
@@ -318,9 +322,9 @@ mod tests {
             let flow = flows_on_edges[ii];
 
             // TODO
-            if flow > 0 && !(flow == *weight) { 
-               let new_edge = (edge.source(), edge.target(), flow);
-               edge_flows.push(new_edge);
+            if flow > 0 && !(flow == *weight) {
+                let new_edge = (edge.source(), edge.target(), flow);
+                edge_flows.push(new_edge);
             }
         }
 
