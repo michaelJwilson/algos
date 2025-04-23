@@ -8,7 +8,10 @@ use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::graph::{Graph, NodeIndex, UnGraph};
 
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
-
+//
+//  WARNING petgraph node/edge deletion shifts indices!  The last node/edge replaces the deletion.
+//
+//  TODO assumes a dense, adjaceny matrix.
 fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
     let mut visited = vec![false; residual_graph.nrows()];
@@ -198,7 +201,7 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usiz
 
 #[cfg(test)]
 mod tests {
-    // cargo test ford_fulkerson -- --nocapture
+    // cargo test test_clrs_graph_fixture  -- --nocapture
     use super::*;
 
     #[test]
@@ -210,6 +213,21 @@ mod tests {
     fn test_edmonds_karp() {
         let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
         let (max_flow, residual_graph) = edmonds_karp(graph, source, sink);
+    }
+
+    #[test]
+    fn test_clrs_graph_fixture() {
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
+
+        // NB O(1) access
+        let num_nodes = graph.node_count();
+        let num_edges = graph.edge_count();
+
+        let node_weight = graph.node_weight(sink).unwrap();
+
+        // NB returns an iterator of all nodes with an edge starting from a, respecting direction.
+        let num_neighbors = graph.neighbors(sink).count();
+        let num_edges = graph.edges(sink).count();
     }
 
     #[test]
@@ -230,10 +248,10 @@ mod tests {
        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
 
-       let (min_cut_edges, visited) = min_cut_pixel_labelling(source, edge_flows);
+       // let (min_cut_edges, visited) = min_cut_pixel_labelling(source, edge_flows);
 
-       println!("{:?}", edge_flows);
-       println!("{:?}", min_cut_edges);
+       // println!("{:?}", edge_flows);
+       // println!("{:?}", min_cut_edges);
     }
 
     #[test]
