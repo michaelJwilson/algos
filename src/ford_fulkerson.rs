@@ -158,6 +158,7 @@ pub fn get_clrs_graph_fixture() -> (NodeIndex, NodeIndex, u8, Graph<u8, u8>) {
     //  of "side-step" nodes.
     //
     let mut graph = Graph::<u8, u8>::with_capacity(6, 10);
+
     let source = graph.add_node(0);
     let _ = graph.add_node(1);
     let _ = graph.add_node(2);
@@ -223,11 +224,17 @@ mod tests {
         let num_nodes = graph.node_count();
         let num_edges = graph.edge_count();
 
-        let node_weight = graph.node_weight(sink).unwrap();
+        assert_eq!(num_nodes,  6);
+        assert_eq!(num_edges, 10);
 
         // NB returns an iterator of all nodes with an edge starting from a, respecting direction.
         let num_neighbors = graph.neighbors(sink).count();
         let num_edges = graph.edges(sink).count();
+
+        println!("{:?}", num_neighbors);
+        println!("{:?}", num_edges);
+
+        let node_weight = graph.node_weight(sink).unwrap();
     }
 
     #[test]
