@@ -1,6 +1,6 @@
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
-use algos::ford_fulkerson::{get_large_graph_fixture, edmonds_karp, get_adjacencies_fixture};
+use algos::ford_fulkerson::{edmonds_karp, get_adjacencies_fixture, get_large_graph_fixture};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;

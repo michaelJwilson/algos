@@ -82,22 +82,6 @@ pub fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize)
     max_flow
 }
 
-pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usize, Graph<u8, u8>) {
-    let mut g = Graph::<u8, u8>::new();
-    let nodes: Vec<_> = (0..node_count).map(|i| g.add_node(i as u8)).collect();
-
-    let source = nodes[0];
-    let sink = nodes[node_count - 1];
-
-    for j in 0..node_count {
-        for i in j + 1..node_count {
-            g.add_edge(nodes[j], nodes[i], 1_u8);
-        }
-    }
-
-    (source, sink, 0, g)
-}
-
 pub fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
     let mut graph = Array2::<i32>::zeros((7, 7));
 
@@ -118,6 +102,22 @@ pub fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
     let max_flow = 23;
 
     (source, sink, max_flow, graph)
+}
+
+pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usize, Graph<u8, u8>) {
+    let mut g = Graph::<u8, u8>::new();
+    let nodes: Vec<_> = (0..node_count).map(|i| g.add_node(i as u8)).collect();
+
+    let source = nodes[0];
+    let sink = nodes[node_count - 1];
+
+    for j in 0..node_count {
+        for i in j + 1..node_count {
+            g.add_edge(nodes[j], nodes[i], 1_u8);
+        }
+    }
+
+    (source, sink, 0, g)
 }
 
 #[cfg(test)]
