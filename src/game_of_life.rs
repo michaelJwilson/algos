@@ -58,6 +58,7 @@ impl GameOfLife {
         }
     }
 
+    #[inline]
     pub fn new_cell_state(live: i32, num_neighbors: i32) -> i32 {
         if live > 0 {
             if num_neighbors < 2 {
@@ -75,6 +76,7 @@ impl GameOfLife {
         }
     }
 
+    #[inline]
     fn valid_indices(&self, i: i32, j: i32) -> bool {
         (i >= 0) && (i < self.num_rows as i32) && (j >= 0) && (j < self.num_cols as i32)
     }
