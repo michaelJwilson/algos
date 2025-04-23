@@ -65,6 +65,7 @@ impl GameOfLife {
 
     pub fn update(&mut self) {
         for ((i, j), &value) in self.lattice.indexed_iter() {
+            // NB calculate the number of neighbors.
             let mut num_neighbors: i32 = 0;
 
             for ishift in 0..=2 {
@@ -84,6 +85,7 @@ impl GameOfLife {
                 }
             }
 
+            // NB update scrate with the new cell state - lattice itself must be preserved.
             self.scratch[(i, j)] = GameOfLife::new_cell_state(value, num_neighbors);
         }
 
