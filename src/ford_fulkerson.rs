@@ -61,7 +61,7 @@ fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize) -> 
         while v != source {
             let u = parent[v] as usize;
 
-            path_flow = path_flow.min(residual_graph[[u,v]]);
+            path_flow = path_flow.min(residual_graph[[u, v]]);
 
             v = u;
         }
@@ -101,18 +101,6 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usiz
 }
 
 fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
-    /*
-    let graph = vec![
-        vec![0, 16, 0, 13, 0, 0, 0], // (0, 1, 16); (0, 3, 13);
-        vec![0, 0, 10, 0, 12, 0, 0], // (1, 2, 10); (1, 4, 12);
-        vec![0, 0, 0, 10, 0, 0, 0],  // (2, 3, 10);
-        vec![0, 4, 0, 0, 0, 14, 0],  // (3, 1, 4); (3, 5, 14);
-        vec![0, 0, 0, 9, 0, 0, 20],  // (4, 3, 9); (4, 6, 20);
-        vec![0, 0, 0, 0, 7, 0, 4],   // (5, 4, 7); (5, 6, 4);
-        vec![0, 0, 0, 0, 0, 0, 0],   // sink
-    ];
-    */
-
     let mut graph = Array2::<i32>::zeros((7, 7));
 
     graph[[0, 1]] = 16;
