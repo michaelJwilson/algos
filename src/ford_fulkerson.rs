@@ -11,6 +11,12 @@ use petgraph::algo::spfa;
 use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
 use petgraph::visit::EdgeRef;
 
+macro_rules! edge_weight {
+    ($value:expr) => {
+        E::from($value)
+    };
+}
+
 //
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 //
@@ -147,21 +153,6 @@ pub fn min_cut_labelling(
 
     labels
 }
-/*
-pub fn get_petgraph_adj_matrix(graph: &Graph<u8, u8>) -> Array2<i32> {
-    let num_nodes = graph.node_count();
-    let mut adj_matrix = Array2::<i32>::zeros((num_nodes, num_nodes));
-
-    for edge in graph.edge_references() {
-        let source = edge.source().index();
-        let target = edge.target().index();
-
-        adj_matrix[[source, target]] = *edge.weight() as i32;
-    }
-
-    adj_matrix
-}
-*/
 
 pub fn get_petgraph_adj_matrix<N, E>(graph: &Graph<N, E>) -> Array2<i32>
 where
@@ -203,36 +194,43 @@ pub fn get_adj_matrix_fixture() -> (usize, usize, usize, Array2<i32>) {
     (source, sink, max_flow, graph)
 }
 
-pub fn get_clrs_graph_fixture() -> (NodeIndex, NodeIndex, u8, Graph<u8, u8>) {
+pub fn get_clrs_graph_fixture<N, E>() -> (NodeIndex, NodeIndex, E, Graph<N, E>)
+where
+    N: Default + From<u8> + Copy,
+    E: From<u8>,
+{
     //  Example of Fig. 24.2 of Cormen, Leiserson, Rivest and Stein, pg. 673.
     //  Contains 6 nodes and 10 edges - including anti-parallel, which necessitates addition
     //  of "side-step" nodes.
     //
-    let mut graph = Graph::<u8, u8>::with_capacity(6, 10);
+    let mut graph = Graph::<N, E>::with_capacity(6, 10);
 
-    let source = graph.add_node(0);
-    let _ = graph.add_node(1);
-    let _ = graph.add_node(2);
-    let _ = graph.add_node(3);
-    let _ = graph.add_node(4);
+    let default_weight = N::from(0);
 
-    let sink = graph.add_node(5);
+    // TODO define x = N::from(0)?
+    let source = graph.add_node(default_weight);
+    let _ = graph.add_node(default_weight);
+    let _ = graph.add_node(default_weight);
+    let _ = graph.add_node(default_weight);
+    let _ = graph.add_node(default_weight);
+
+    let sink = graph.add_node(default_weight);
 
     // NB contains 10 edges (including anti-parallel).
     graph.extend_with_edges([
-        (0, 1, 16),
-        (0, 2, 13),
-        (1, 2, 10),
-        (1, 3, 12),
-        (2, 1, 4),
-        (2, 4, 14),
-        (3, 2, 9),
-        (3, 5, 20),
-        (4, 3, 7),
-        (4, 5, 4),
+        (0, 1, edge_weight!(16)),
+        (0, 2, edge_weight!(13)),
+        (1, 2, edge_weight!(10)),
+        (1, 3, edge_weight!(12)),
+        (2, 1, edge_weight!(4)),
+        (2, 4, edge_weight!(14)),
+        (3, 2, edge_weight!(9)),
+        (3, 5, edge_weight!(20)),
+        (4, 3, edge_weight!(7)),
+        (4, 5, edge_weight!(4)),
     ]);
 
-    (source, sink, 23, graph)
+    (source, sink, 23.into(), graph)
 }
 
 pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usize, Graph<u8, u8>) {
@@ -275,7 +273,7 @@ mod tests {
         //    saturated, min. cut edges are (1 -> 3), (4 -> 3) and (4 -> sink).
         //    implied pixel labelling: {s/0, 1, 2, 4}, {3, t/5}.
         //
-        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
 
         // NB O(1) access
         let num_nodes = graph.node_count();
@@ -315,7 +313,7 @@ mod tests {
         //  NB see:
         //    https://docs.rs/petgraph/latest/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
         //
-        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8,u8>();
 
         // NB seems to be Edmonds-Karp; accepts anti-parallel edges.
         let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
@@ -331,8 +329,21 @@ mod tests {
     }
 
     #[test]
+    fn test_petgraph_ford_fulkerson_large() {
+        let (source, sink, _, g) = get_large_graph_fixture(200);
+        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&g, source, sink);
+
+        println!(
+            "Large graph fixture with {:?} edges and nodes {:?} has max. flow {:?}",
+            g.edge_count(),
+            g.node_count(),
+            max_flow,
+        );
+    }
+
+    #[test]
     fn test_min_cut_labelling() {
-        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
         let (max_flow, flows_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
         let num_nodes = graph.node_count();
@@ -355,15 +366,30 @@ mod tests {
     }
 
     #[test]
-    fn test_petgraph_ford_fulkerson_large() {
-        let (source, sink, _, g) = get_large_graph_fixture(200);
-        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&g, source, sink);
+    fn test_min_cut_labelling_large() {
+        let (source, sink, _, g) = get_large_graph_fixture(10);
+        let (max_flow, flows_on_edges) = petgraph_ford_fulkerson(&g, source, sink);
 
-        println!(
-            "Large graph fixture with {:?} edges and nodes {:?} has max. flow {:?}",
-            g.edge_count(),
-            g.node_count(),
-            max_flow,
-        );
+        let num_nodes = g.node_count();
+        let mut edge_flows = Vec::new();
+
+        for (ii, (edge, weight)) in zip(g.edge_references(), g.edge_weights()).enumerate() {
+            let flow = flows_on_edges[ii];
+
+            // NB non-saturated flow on edge, i.e. not on the min. cut.
+            if flow > 0 && !(flow == *weight) {
+                let new_edge = (edge.source(), edge.target(), flow);
+                
+                edge_flows.push(new_edge);
+            }
+        }
+
+        let labels = min_cut_labelling(num_nodes, edge_flows, source);
+        let label_count = labels.iter().count();
+
+        println!("{:?}\t{:?}", num_nodes, label_count);
+
+        // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
+        // assert_eq!(labels, [true, true, true, false, true, false]);
     }
 }
