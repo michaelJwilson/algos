@@ -1,6 +1,7 @@
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::ford_fulkerson::{edmonds_karp, get_adjacencies_fixture, get_large_graph_fixture};
+use algos::collatz::collatz;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
@@ -34,6 +35,8 @@ fn fibonacci_fast(n: u64) -> u64 {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("fib(20)", |b| b.iter(|| fibonacci_fast(black_box(20))));
+
+    c.bench_function("collatz(100)", |b| b.iter(|| collatz(black_box(100))));
 
     c.bench_function("dijkstra", |b| {
         let num_fail = RefCell::new(0);
