@@ -1,3 +1,4 @@
+use std::iter::zip;
 use ndarray::Array2;
 use rand::rng;
 use rand::seq::IteratorRandom;
@@ -5,7 +6,8 @@ use std::cmp::{max, min};
 use std::collections::VecDeque;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
-use petgraph::graph::{Graph, NodeIndex, UnGraph};
+use petgraph::algo::spfa;
+use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
 use petgraph::visit::EdgeRef;
 
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
@@ -106,43 +108,38 @@ pub fn edmonds_karp(
 }
 
 // TODO assumes a dense, adjaceny matrix.
-pub fn min_cut_pixel_labelling(
-    residual_graph: &Array2<i32>,
-    source: usize,
-) -> (Vec<(usize, usize)>, Vec<bool>) {
-    // NB reachability check from the source
-    let mut visited = vec![false; residual_graph.nrows()];
-    let mut queue = VecDeque::new();
+pub fn min_cut_labelling(
+    node_count: usize,
+    edge_flows: Vec<(NodeIndex, NodeIndex, u8)>,
+    source: NodeIndex,
+) -> Vec<bool> {
+    //  Given forward edges flows for the max. flow, assign a pixel
+    //  labelling by calculating distances from the source and assigning
+    //  according to whether they are reachable.
+    //
+    //  NB  see:
+    //      https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
+    let mut g = Graph::new();
 
-    queue.push_back(source);
-
-    visited[source] = true;
-
-    while let Some(u) = queue.pop_front() {
-        for (v, &capacity) in residual_graph.row(u).indexed_iter() {
-            if capacity > 0 && !visited[v] {
-                visited[v] = true;
-                queue.push_back(v);
-            }
-        }
+    for _ in 0..node_count {
+        // NB node with no weight
+        g.add_node(());
     }
 
-    // NB identify the minimum cut edges
-    let mut min_cut_edges = Vec::with_capacity(residual_graph.nrows());
-
-    for u in 0..residual_graph.nrows() {
-        for (v, &capacity) in residual_graph.row(u).indexed_iter() {
-            // NB if u is reachable from the source and v is not, this is a min-cut edge
-            if visited[u] && !visited[v] {
-                assert_eq!(capacity, 0_i32);
-
-                min_cut_edges.push((u, v));
-            }
-        }
+    // NB see petgraph::graph::Edge
+    for edge in edge_flows.into_iter() {
+        g.add_edge(edge.0, edge.1, edge.2);
     }
 
-    // NB return the max flow, min cut edges, and pixel labelling.
-    (min_cut_edges, visited)
+    // NB compute shortest paths from node source to all others.
+    //    see:
+    //        https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
+    //
+    let path = spfa(&g, source, |edge| *edge.weight()).unwrap();
+
+    let labels: Vec<bool> = path.distances.into_iter().map(| dist | dist < u8::MAX).collect();
+
+    labels
 }
 
 pub fn get_petgraph_adj_matrix(graph: &Graph<u8, u8>) -> Array2<i32> {
@@ -152,7 +149,7 @@ pub fn get_petgraph_adj_matrix(graph: &Graph<u8, u8>) -> Array2<i32> {
     for edge in graph.edge_references() {
         let source = edge.source().index();
         let target = edge.target().index();
-        
+
         adj_matrix[[source, target]] = *edge.weight() as i32;
     }
 
@@ -273,10 +270,8 @@ mod tests {
 
         assert_eq!(exp_max_flow as i32, max_flow);
 
-        let (min_cut_edges, visited) = min_cut_pixel_labelling(&res_graph, 0);
-
-        println!("{:?}", min_cut_edges);
-        println!("{:?}", visited);
+        // println!("{:?}", min_cut_edges);
+        // println!("{:?}", visited);
 
         /*
         // NB returns an iterator of all nodes with an edge starting from a, respecting direction.
@@ -314,12 +309,24 @@ mod tests {
     #[test]
     fn test_min_cut_pixel_labelling() {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
-        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
+        let (max_flow, flows_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        // let (min_cut_edges, visited) = min_cut_pixel_labelling(source, edge_flows);
+        let num_nodes = graph.node_count();
+        let mut edge_flows = Vec::new();
 
-        // println!("{:?}", edge_flows);
-        // println!("{:?}", min_cut_edges);
+        for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
+            let flow = flows_on_edges[ii];
+
+            // TODO
+            if flow > 0 && !(flow == *weight) { 
+               let new_edge = (edge.source(), edge.target(), flow);
+               edge_flows.push(new_edge);
+            }
+        }
+
+        let labels = min_cut_labelling(num_nodes, edge_flows, source);
+
+        assert_eq!(labels, [true, true, true, false, true, false]);
     }
 
     #[test]
