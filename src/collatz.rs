@@ -17,16 +17,18 @@ fn collatz_length(mut n: u32) -> u32 {
     let max_len = 100;
     let mut len = 1;
 
-    while n != 1 {
-        // println!("{n}");
+    println!("{n}\t{len}");
 
+    while n != 1 {
         // NB a Collatz "step".
         n = collatz(n);
         len += 1;
 
         if len > max_len {
-            break;
+            return 0;
         }
+
+        println!("{n}\t{len}");
     }
 
     // NB returns sequence length for a given n.
