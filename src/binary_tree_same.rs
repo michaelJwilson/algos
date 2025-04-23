@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 struct Solution;
 
+//  DEPRECATE Option<Rc<RefCell<TreeNode>>> for Option<Box<TreeNode>>
 //  NB Data-class like, i.e. memory allocation.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {
@@ -50,7 +51,7 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_binary_tree_same -- --nocapture
+    // cargo test test_binary_tree_same -- --nocapture
     //
     // See:
     //     https://leetcode.com/problems/same-tree/description/?envType=study-plan-v2&envId=top-interview-150

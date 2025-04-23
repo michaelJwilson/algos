@@ -18,7 +18,7 @@ fn collatz_length(mut n: u32) -> u32 {
     let mut len = 1;
 
     while n != 1 {
-        println!("{n}");
+        // println!("{n}");
 
         // NB a Collatz "step".
         n = collatz(n);
@@ -35,5 +35,6 @@ fn collatz_length(mut n: u32) -> u32 {
 
 #[test]
 fn test_collatz_length() {
+    //  cargo test collatz -- --nocapture
     assert_eq!(collatz_length(11), 15);
 }
