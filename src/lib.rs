@@ -35,6 +35,7 @@ pub mod min_mutations;
 pub mod minka;
 pub mod needle_haystack;
 // pub mod nelder_mead;
+pub mod felsenstein;
 pub mod plus_one;
 pub mod potts;
 pub mod remove_element;
@@ -45,7 +46,6 @@ pub mod sqrt;
 pub mod tests;
 pub mod transpose;
 pub mod valid_palindrome;
-pub mod felsenstein;
 
 // NB list of deprecated modules.
 // pub mod matrix;

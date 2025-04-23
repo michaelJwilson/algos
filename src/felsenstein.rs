@@ -1,5 +1,5 @@
-use ndarray::Axis;
 use ndarray::Array2;
+use ndarray::Axis;
 use rustc_hash::FxHashMap as HashMap;
 
 /// Represents a node in the binary search tree.
@@ -8,14 +8,13 @@ struct Node {
     id: usize,
     left: Option<Box<Node>>,
     right: Option<Box<Node>>,
-    sequence: Option<char>, // NB A, C, G, T for leaves
+    sequence: Option<char>, //  NB A, C, G, T for leaves
 }
 
 #[derive(Debug)]
 struct BST {
     root: Node,
 }
-
 
 fn get_transition_matrix(branch_length: f64) -> Array2<f64> {
     // NB transition probability matrix for nucleotide mutations (e.g., Jukes-Cantor model)
@@ -27,19 +26,17 @@ fn get_transition_matrix(branch_length: f64) -> Array2<f64> {
     // NB prob. of mutation
     let p_diff = 0.25 - 0.25 * (-4.0 * mutation_rate * branch_length).exp();
 
+    // NB A -> A, C, G, T, etc.
     Array2::from_shape_vec(
         (4, 4),
         vec![
-            p_same, p_diff, p_diff, p_diff, // A -> A, C, G, T
-            p_diff, p_same, p_diff, p_diff, // C -> A, C, G, T
-            p_diff, p_diff, p_same, p_diff, // G -> A, C, G, T
-            p_diff, p_diff, p_diff, p_same, // T -> A, C, G, T
+            p_same, p_diff, p_diff, p_diff, p_diff, p_same, p_diff, p_diff, p_diff, p_diff, p_same,
+            p_diff, p_diff, p_diff, p_diff, p_same,
         ],
     )
     .unwrap()
 }
 
-/// Map nucleotides to indices for the transition matrix.
 fn nucleotide_to_index(nucleotide: char) -> usize {
     match nucleotide {
         'A' => 0,
@@ -57,7 +54,7 @@ fn compute_likelihood(
 ) -> Vec<f64> {
     // NB Recursive function to compute the likelihood at each node using Felsenstein's algorithm.
     if let Some(sequence) = node.sequence {
-        // Leaf node: returns a vector with 1.0 for the observed nucleotide and 0.0 for others.
+        // NB leaf node: returns a vector with 1.0 for the observed nucleotide and 0.0 for others.
         let mut likelihood = vec![0.0; 4];
 
         likelihood[nucleotide_to_index(sequence)] = 1.0;
@@ -65,7 +62,6 @@ fn compute_likelihood(
         return likelihood;
     }
 
-    // Internal node: Compute likelihoods for left and right children.
     let left_likelihood = if let Some(left) = &node.left {
         compute_likelihood(left, transition_matrix, branch_lengths)
     } else {
@@ -78,7 +74,6 @@ fn compute_likelihood(
         vec![0.25; 4] // Default likelihood if no right child
     };
 
-    // Combine likelihoods from left and right children
     let mut combined_likelihood = vec![0.0; 4];
 
     for parent_state in 0..4 {
@@ -86,8 +81,13 @@ fn compute_likelihood(
         let mut right_sum = 0.0;
 
         for child_state in 0..4 {
-            let left_branch_length = branch_lengths.get(&node.left.as_ref().map_or(0, |n| n.id)).unwrap_or(&0.0);
-            let right_branch_length = branch_lengths.get(&node.right.as_ref().map_or(0, |n| n.id)).unwrap_or(&0.0);
+            let left_branch_length = branch_lengths
+                .get(&node.left.as_ref().map_or(0, |n| n.id))
+                .unwrap_or(&0.0);
+
+            let right_branch_length = branch_lengths
+                .get(&node.right.as_ref().map_or(0, |n| n.id))
+                .unwrap_or(&0.0);
 
             left_sum += transition_matrix[[parent_state, child_state]]
                 * left_likelihood[child_state]
@@ -109,7 +109,7 @@ mod tests {
     // cargo test felsenstein -- test_felsenstein_transition_matrix --nocapture
     use super::*;
     use ndarray::array;
-    
+
     #[test]
     fn test_felsenstein_transition_matrix() {
         let branch_length = 0.5;
@@ -120,7 +120,10 @@ mod tests {
         for row in transition_matrix.rows() {
             let row_sum: f64 = row.sum();
 
-            assert!((row_sum - 1.0).abs() < 1e-6, "Row sum is not sufficiently close to 1.0");
+            assert!(
+                (row_sum - 1.0).abs() < 1e-6,
+                "Row sum is not sufficiently close to 1.0"
+            );
         }
     }
 
