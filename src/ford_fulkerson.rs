@@ -11,6 +11,18 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 //
 //  WARNING petgraph node/edge deletion shifts indices!  The last node/edge replaces the deletion.
 //
+//  NB see petgraph source:
+//     https://docs.rs/petgraph/latest/src/petgraph/graph_impl/mod.rs.html#498-510
+//
+//     e.g. pub struct Node:
+//          https://docs.rs/petgraph/latest/src/petgraph/graph_impl/mod.rs.html#221
+//
+//          pub struct Edge:
+//          https://docs.rs/petgraph/latest/src/petgraph/graph_impl/mod.rs.html#165
+//
+//          pub struct Graph (nodes and edges are Vec<Node>, etc.):
+//          https://docs.rs/petgraph/latest/src/petgraph/graph_impl/mod.rs.html#390
+//
 //  TODO assumes a dense, adjaceny matrix.
 fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
