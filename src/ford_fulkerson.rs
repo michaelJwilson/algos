@@ -218,6 +218,12 @@ mod tests {
 
     #[test]
     fn test_clrs_graph_fixture() {
+        // NB correspoding max. flow is two-channel: s, v1, v3, t == 23, 12, 12, 19, 23.
+        //                                           s, v2, v4, t == 23, 11, 11,  4, 23.
+        //
+        //    saturated, min. cut edges are (1 -> 3), (4 -> 3) and (4 -> sink).
+        //    implied pixel labelling: {s/0, 1, 2, 4}, {3, t/5}.
+        //
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
 
         // NB O(1) access
@@ -231,8 +237,9 @@ mod tests {
         let num_neighbors = graph.neighbors(sink).count();
         let num_edges = graph.edges(sink).count();
 
-        println!("{:?}", num_neighbors);
-        println!("{:?}", num_edges);
+        // TODO BUG 0, 0??
+        // println!("{:?}", num_neighbors);
+        // println!("{:?}", num_edges);
 
         let node_weight = graph.node_weight(sink).unwrap();
     }
@@ -248,6 +255,16 @@ mod tests {
         let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
 
         assert_eq!(exp_max_flow, max_flow);
+        assert_eq!(edge_flows.len(), graph.edge_count());
+
+        // NB edge flows is ordered as for clrs fixture, i.e. (0, 1, 16), (0, 2, 13), etc.
+        //    edge_flow[0] == (0, 1, 12), edge_flow[1] == (0, 2, 11); sum is source outflow == max_flow.
+        //
+        //    similarly, sink_inflow == max_flow.
+        assert_eq!(edge_flows[0] + edge_flows[1], max_flow);
+
+        
+
     }
 
     #[test]
