@@ -307,7 +307,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min_cut_pixel_labelling() {
+    fn test_min_cut_labelling() {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
         let (max_flow, flows_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
