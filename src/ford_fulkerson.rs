@@ -66,6 +66,8 @@ pub fn edmonds_karp(
     //
     //    save the frontier node that discovered a node on the tree as the parent, allowing for
     //    back trace.
+    //
+    //    in-place updates of the residual graph.
     let mut parent = vec![0; residual_graph.nrows()];
     let mut max_flow = 0;
 
@@ -100,7 +102,7 @@ pub fn edmonds_karp(
         max_flow += path_flow;
     }
 
-    (max_flow, residual_graph)
+    (max_flow, residual_graph.t().to_owned())
 }
 
 // TODO assumes a dense, adjaceny matrix.
@@ -241,7 +243,7 @@ mod tests {
     #[test]
     fn test_edmonds_karp() {
         let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
-        let (max_flow, residual_graph) = edmonds_karp(graph, source, sink);
+        let max_flow = edmonds_karp(graph, source, sink);
     }
 
     #[test]
@@ -265,7 +267,17 @@ mod tests {
 
         // NB exp given by-hand sum of clrs edge weights.
         assert_eq!(adj_matrix.sum(), 109);
-        
+
+        // NB in-place update of adj_matrix to residual graph.
+        let (max_flow, res_graph) = edmonds_karp(adj_matrix, 0, 5);
+
+        assert_eq!(exp_max_flow as i32, max_flow);
+
+        let (min_cut_edges, visited) = min_cut_pixel_labelling(&res_graph, 0);
+
+        println!("{:?}", min_cut_edges);
+        println!("{:?}", visited);
+
         /*
         // NB returns an iterator of all nodes with an edge starting from a, respecting direction.
         let num_neighbors = graph.neighbors(sink).count();
