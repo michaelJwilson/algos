@@ -108,7 +108,7 @@ pub fn min_cut_pixel_labelling(
     }
 
     // NB identify the minimum cut edges
-    let mut min_cut_edges = Vec::new();
+    let mut min_cut_edges = Vec::with_capacity(residual_graph.nrows());
 
     for u in 0..residual_graph.nrows() {
         for (v, &capacity) in residual_graph.row(u).indexed_iter() {
