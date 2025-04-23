@@ -40,7 +40,7 @@ impl AdjacencyList {
         self.edges
             .entry(from)
             .or_default()
-            .push(Edge { to, weight });
+            .push(Edge{ to, weight });
     }
 
     fn get_edges(&self) -> Vec<(u32, u32, u32)> {
@@ -97,6 +97,7 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
 
     // NB initialize distances: start/root node is at zero distance & to be processed first.
     dist.insert(start, 0);
+    
     heap.push(State {
         cost: 0,
         position: start,

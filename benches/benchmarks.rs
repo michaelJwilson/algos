@@ -4,6 +4,7 @@ use algos::ford_fulkerson::{edmonds_karp, get_adjacencies_fixture, get_large_gra
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
+use std::cell::RefCell;
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 
 fn fibonacci_slow(n: u64) -> u64 {
@@ -35,10 +36,19 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("fib(20)", |b| b.iter(|| fibonacci_fast(black_box(20))));
 
     c.bench_function("dijkstra", |b| {
+        let num_fail = RefCell::new(0);
+
         b.iter(|| {
             let adjs = get_adjacencies_fixture_large(100);
-            let _ = dijkstra(adjs, 0, 100).unwrap();
-        })
+            let result = dijkstra(adjs, 0, 100);
+
+            match result {
+                Some(cost) => assert!(cost > 0),
+                None => *num_fail.borrow_mut() += 1,
+            }
+        });
+
+        assert_eq!(num_fail, 0.into());
     });
 
     c.bench_function("ford_fulkerson", |b| {
