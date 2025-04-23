@@ -350,6 +350,7 @@ mod tests {
 
         let labels = min_cut_labelling(num_nodes, edge_flows, source);
 
+        // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         assert_eq!(labels, [true, true, true, false, true, false]);
     }
 
