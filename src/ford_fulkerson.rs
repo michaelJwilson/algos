@@ -6,6 +6,7 @@ use std::collections::VecDeque;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::graph::{Graph, NodeIndex, UnGraph};
+use petgraph::visit::EdgeRef;
 
 //  Ford-Fulkerson/Edmonds-Karp algorithm for max. flow on a directed graph.
 //
@@ -142,6 +143,21 @@ pub fn min_cut_pixel_labelling(
     (min_cut_edges, visited)
 }
 
+pub fn get_petgraph_adj_matrix(graph: &Graph<u8, u8>) -> Array2<i32> {
+    let num_nodes = graph.node_count();
+    let mut adj_matrix = Array2::<i32>::zeros((num_nodes, num_nodes));
+
+    for edge in graph.edge_references() {
+        let source = edge.source().index();
+        let target = edge.target().index();
+        
+        adj_matrix[[source, target]] = *edge.weight() as i32;
+    }
+
+    adj_matrix
+}
+
+// -- fixtures --
 pub fn get_adj_matrix_fixture() -> (usize, usize, usize, Array2<i32>) {
     let mut graph = Array2::<i32>::zeros((7, 7));
 
@@ -242,9 +258,15 @@ mod tests {
         let num_nodes = graph.node_count();
         let num_edges = graph.edge_count();
 
-        assert_eq!(num_nodes,  6);
+        assert_eq!(num_nodes, 6);
         assert_eq!(num_edges, 10);
 
+        let adj_matrix = get_petgraph_adj_matrix(&graph);
+
+        // NB exp given by-hand sum of clrs edge weights.
+        assert_eq!(adj_matrix.sum(), 109);
+        
+        /*
         // NB returns an iterator of all nodes with an edge starting from a, respecting direction.
         let num_neighbors = graph.neighbors(sink).count();
         let num_edges = graph.edges(sink).count();
@@ -254,6 +276,7 @@ mod tests {
         // println!("{:?}", num_edges);
 
         let node_weight = graph.node_weight(sink).unwrap();
+        */
     }
 
     #[test]
@@ -274,20 +297,17 @@ mod tests {
         //
         //    similarly, sink_inflow == max_flow.
         assert_eq!(edge_flows[0] + edge_flows[1], max_flow);
-
-        
-
     }
 
     #[test]
     fn test_min_cut_pixel_labelling() {
-       let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
-       let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
+        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
 
-       // let (min_cut_edges, visited) = min_cut_pixel_labelling(source, edge_flows);
+        // let (min_cut_edges, visited) = min_cut_pixel_labelling(source, edge_flows);
 
-       // println!("{:?}", edge_flows);
-       // println!("{:?}", min_cut_edges);
+        // println!("{:?}", edge_flows);
+        // println!("{:?}", min_cut_edges);
     }
 
     #[test]
