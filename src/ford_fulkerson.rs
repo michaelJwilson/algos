@@ -12,7 +12,9 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [isize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
     let mut visited = vec![false; residual_graph.nrows()];
-    let mut queue = VecDeque::new();
+
+    // TODO
+    let mut queue = VecDeque::with_capacity(residual_graph.nrows());
 
     visited[source] = true;
     parent[source] = -1;
@@ -39,14 +41,13 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [i
     false
 }
 
-fn edmonds_karp(graph: Array2<i32>, source: usize, sink: usize) -> i32 {
+fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize) -> i32 {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //    and the inverse flow, f_uv on the backward edges.
-    let mut residual_graph = graph.clone();
-
-    // NB save the frontier node that discovered a node on the tree as the parent, allowing for
+    //
+    //    save the frontier node that discovered a node on the tree as the parent, allowing for
     //    back trace.
-    let mut parent = vec![-1; graph.nrows()];
+    let mut parent = vec![-1; residual_graph.nrows()];
     let mut max_flow = 0;
 
     // NB while there is an 'augmenting path' by breadth-first search.
