@@ -1,12 +1,12 @@
+use algos::collatz::collatz;
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::ford_fulkerson::{edmonds_karp, get_adjacencies_fixture, get_large_graph_fixture};
-use algos::collatz::collatz;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
-use std::cell::RefCell;
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
+use std::cell::RefCell;
 
 fn fibonacci_slow(n: u64) -> u64 {
     match n {

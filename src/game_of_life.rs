@@ -112,7 +112,7 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_game_of_life_from_array -- --nocapture
+    // cargo test game_of_life -- --nocapture
     //
     // See:
     //     https://leetcode.com/problems/game-of-life/description/?envType=study-plan-v2&envId=top-interview-150

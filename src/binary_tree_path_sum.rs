@@ -48,7 +48,7 @@ impl Solution {
 #[cfg(test)]
 mod tests {
     // cargo test test_binary_tree_path_sum_large -- --nocapture
-    // 
+    //
     // See:
     //     https://leetcode.com/problems/path-sum/description/?envType=study-plan-v2&envId=top-interview-150
     //

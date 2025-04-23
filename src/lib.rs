@@ -45,6 +45,7 @@ pub mod sqrt;
 pub mod tests;
 pub mod transpose;
 pub mod valid_palindrome;
+pub mod felsenstein;
 
 // NB list of deprecated modules.
 // pub mod matrix;
