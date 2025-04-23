@@ -196,7 +196,7 @@ pub fn get_adj_matrix_fixture() -> (usize, usize, usize, Array2<i32>) {
 
 pub fn get_clrs_graph_fixture<N, E>() -> (NodeIndex, NodeIndex, E, Graph<N, E>)
 where
-    N: Default + From<u8> + Copy,
+    N: Default + Copy + From<u8>,
     E: From<u8>,
 {
     //  Example of Fig. 24.2 of Cormen, Leiserson, Rivest and Stein, pg. 673.
