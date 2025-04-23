@@ -1,3 +1,4 @@
+use std::mem;
 use ndarray::Array2;
 use rand::Rng;
 use rand_chacha::rand_core::SeedableRng;
@@ -20,7 +21,9 @@ impl GameOfLife {
         let mut rng = ChaCha8Rng::seed_from_u64(RAND_SEED);
         let lattice: Array2<i32> =
             Array2::from_shape_fn((num_rows, num_cols), |_| rng.random_range(0..2));
-        let scratch: Array2<i32> = lattice.clone();
+
+        let scratch: Array2<i32> = Array2::zeros(lattice.raw_dim());
+        // let scratch: Array2<i32> = lattice.clone();
 
         GameOfLife {
             num_rows,
@@ -32,7 +35,9 @@ impl GameOfLife {
 
     pub fn from_array(lattice: Array2<i32>) -> Self {
         let (num_rows, num_cols) = lattice.dim();
-        let scratch: Array2<i32> = lattice.clone();
+
+        let scratch: Array2<i32> = Array2::zeros(lattice.raw_dim());
+        //  let scratch: Array2<i32> = lattice.clone();
 
         GameOfLife {
             num_rows,
@@ -89,7 +94,9 @@ impl GameOfLife {
             self.scratch[(i, j)] = GameOfLife::new_cell_state(value, num_neighbors);
         }
 
-        self.lattice = self.scratch.clone();
+        self.lattice = mem::take(&mut self.scratch);
+        // self.lattice = self.scratch.clone();
+
     }
 }
 
