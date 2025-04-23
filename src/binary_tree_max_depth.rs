@@ -5,6 +5,7 @@ struct Solution;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+//  DEPRECATE Option<Rc<RefCell<TreeNode>>> for Option<Box<TreeNode>>
 //  NB Data-class like, i.e. memory allocation.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {

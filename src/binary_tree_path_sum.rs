@@ -3,6 +3,7 @@ use ::std::rc::Rc;
 
 struct Solution;
 
+// DEPRECATE Option<Rc<RefCell<TreeNode>>> for Option<Box<TreeNode>>
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {
     pub val: i32,
@@ -46,8 +47,8 @@ impl Solution {
 
 #[cfg(test)]
 mod tests {
-    // RUSTFLAGS="-Awarnings --cfg debug_statements" cargo test test_binary_tree_path_sum_large -- --nocapture
-    //
+    // cargo test test_binary_tree_path_sum_large -- --nocapture
+    // 
     // See:
     //     https://leetcode.com/problems/path-sum/description/?envType=study-plan-v2&envId=top-interview-150
     //

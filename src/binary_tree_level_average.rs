@@ -4,6 +4,7 @@ use std::rc::Rc;
 
 struct Solution;
 
+// DEPRECATE Option<Rc<RefCell<TreeNode>>> for Option<Box<TreeNode>>
 #[derive(Debug, PartialEq, Eq)]
 pub struct TreeNode {
     pub val: i32,
