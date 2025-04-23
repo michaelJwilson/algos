@@ -175,7 +175,8 @@ mod tests {
     #[test]
     fn test_petgraph_ford_fulkerson() {
         //  Example of Fig. 24.2 of Cormen, Leiserson, Rivest and Stein, pg. 673.
-        //  Contains anti-parallel edges, which necessitates addition of side-step nodes.
+        //  Contains 6 nodes and 10 edges - including anti-parallel, which necessitates addition
+        //  of "side-step" nodes.
         //
         //  NB see:
         //    https://docs.rs/petgraph/latest/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
@@ -203,15 +204,17 @@ mod tests {
         ]);
 
         // NB seems to be Edmonds-Karp; accepts anti-parallel edges.
-        let (max_flow, _) = petgraph_ford_fulkerson(&graph, source, destination);
+        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, destination);
 
         assert_eq!(23, max_flow);
+
+        println!("{:?}", edge_flows);
     }
 
     #[test]
     fn test_petgraph_ford_fulkerson_large() {
         let (source, sink, _, g) = get_large_graph_fixture(200);
-        let (max_flow, _) = petgraph_ford_fulkerson(&g, source, sink);
+        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&g, source, sink);
 
         println!(
             "Large graph fixture with {:?} edges and nodes {:?} has max. flow {:?}",
