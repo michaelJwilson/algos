@@ -158,7 +158,7 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usiz
 
 #[cfg(test)]
 mod tests {
-    // cargo test test_petgraph_ford_fulkerson_large -- --nocapture
+    // cargo test ford_fulkerson -- --nocapture
     use super::*;
 
     #[test]
@@ -167,9 +167,9 @@ mod tests {
     }
 
     #[test]
-    fn test_edmonds_karp() {
+    fn test_edmonds_karp_min_cut() {
         let (source, sink, max_flow, graph) = get_adjacencies_fixture();
-        let max_flow = edmonds_karp(graph, source, sink);
+        let (max_flow, min_cut_edges, labelling) = edmonds_karp_min_cut(graph, source, sink);
     }
 
     #[test]
