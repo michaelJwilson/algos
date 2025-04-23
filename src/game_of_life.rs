@@ -1,8 +1,8 @@
-use std::mem;
 use ndarray::Array2;
 use rand::Rng;
 use rand_chacha::rand_core::SeedableRng;
 use rand_chacha::ChaCha8Rng;
+use std::mem;
 
 const RAND_SEED: u64 = 42;
 
@@ -17,6 +17,17 @@ struct GameOfLife {
 }
 
 impl GameOfLife {
+    const NEIGHBOR_OFFSETS: [(i32, i32); 8] = [
+        (-1, -1),
+        (-1, 0),
+        (-1, 1),
+        (0, -1),
+        (0, 1),
+        (1, -1),
+        (1, 0),
+        (1, 1),
+    ];
+
     pub fn new(num_rows: usize, num_cols: usize) -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(RAND_SEED);
         let lattice: Array2<i32> =
@@ -73,6 +84,7 @@ impl GameOfLife {
             // NB calculate the number of neighbors.
             let mut num_neighbors: i32 = 0;
 
+            /*
             for ishift in 0..=2 {
                 for jshift in 0..=2 {
                     if (ishift == 1) && (jshift == 1) {
@@ -82,10 +94,19 @@ impl GameOfLife {
                     let new_row_index = (i + ishift) as i32 - 1;
                     let new_col_index = (j + jshift) as i32 - 1;
 
-                    if !self.valid_indices(new_row_index, new_col_index) {
-                        continue;
+                    if self.valid_indices(new_row_index, new_col_index) {
+                        num_neighbors +=
+                            self.lattice[(new_row_index as usize, new_col_index as usize)];
                     }
+                }
+            }
+            */
 
+            for &(di, dj) in &Self::NEIGHBOR_OFFSETS {
+                let new_row_index = i as i32 + di;
+                let new_col_index = j as i32 + dj;
+
+                if self.valid_indices(new_row_index, new_col_index) {
                     num_neighbors += self.lattice[(new_row_index as usize, new_col_index as usize)];
                 }
             }
@@ -96,7 +117,6 @@ impl GameOfLife {
 
         self.lattice = mem::take(&mut self.scratch);
         // self.lattice = self.scratch.clone();
-
     }
 }
 
