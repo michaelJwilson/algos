@@ -1,6 +1,6 @@
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
-use algos::ford_fulkerson::get_large_graph_fixture;
+use algos::ford_fulkerson::{get_large_graph_fixture, edmonds_karp, get_adjacencies_fixture};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
@@ -38,6 +38,13 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let adjs = get_adjacencies_fixture_large(100);
             let _ = dijkstra(adjs, 0, 100).unwrap();
+        })
+    });
+
+    c.bench_function("ford_fulkerson", |b| {
+        b.iter(|| {
+            let (source, sink, _, graph) = get_adjacencies_fixture();
+            edmonds_karp(graph, source, sink);
         })
     });
 

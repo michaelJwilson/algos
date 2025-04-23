@@ -12,8 +12,6 @@ use petgraph::graph::{Graph, NodeIndex, UnGraph};
 fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
     let mut visited = vec![false; residual_graph.nrows()];
-
-    // TODO
     let mut queue = VecDeque::with_capacity(residual_graph.nrows());
 
     visited[source] = true;
@@ -41,7 +39,7 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [u
     false
 }
 
-fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize) -> i32 {
+pub fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize) -> i32 {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //    and the inverse flow, f_uv on the backward edges.
     //
@@ -100,7 +98,7 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usiz
     (source, sink, 0, g)
 }
 
-fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
+pub fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
     let mut graph = Array2::<i32>::zeros((7, 7));
 
     graph[[0, 1]] = 16;
