@@ -22,8 +22,8 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [u
     // NB first-in-first-out queue.
     while let Some(u) = queue.pop_front() {
         // NB loop over all un-visited neighbours.
-        for v in 0..residual_graph.nrows() {
-            if !visited[v] && residual_graph[[u, v]] > 0 {
+        for (v, &capacity) in residual_graph.row(u).indexed_iter() {
+            if capacity > 0 && !visited[v] {
                 parent[v] = u;
                 visited[v] = true;
 
