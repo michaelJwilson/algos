@@ -39,11 +39,11 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [u
     false
 }
 
-pub fn edmonds_karp_min_cut(
+pub fn edmonds_karp(
     mut residual_graph: Array2<i32>,
     source: usize,
     sink: usize,
-) -> (i32, Vec<(usize, usize)>, Vec<bool>) {
+) -> (i32, Array2<i32>) {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //    and the inverse flow, f_uv on the backward edges.
     //
@@ -83,6 +83,13 @@ pub fn edmonds_karp_min_cut(
         max_flow += path_flow;
     }
 
+    (max_flow, residual_graph)
+}
+
+pub fn min_cut_pixel_labelling(
+    residual_graph: &Array2<i32>,
+    source: usize,
+) -> (Vec<(usize, usize)>, Vec<bool>) {
     // NB reachability check from the source
     let mut visited = vec![false; residual_graph.nrows()];
     let mut queue = VecDeque::new();
@@ -115,7 +122,7 @@ pub fn edmonds_karp_min_cut(
     }
 
     // NB return the max flow, min cut edges, and pixel labelling.
-    (max_flow, min_cut_edges, visited)
+    (min_cut_edges, visited)
 }
 
 pub fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
@@ -210,6 +217,9 @@ mod tests {
 
         println!("{:?}", edge_flows);
     }
+
+    #[test]
+    fn test_min_cut_pixel_labelling() {}
 
     #[test]
     fn test_petgraph_ford_fulkerson_large() {
