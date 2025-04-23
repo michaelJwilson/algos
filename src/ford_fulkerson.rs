@@ -39,6 +39,7 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [u
     false
 }
 
+// TODO assumes a dense, adjaceny matrix.
 pub fn edmonds_karp(
     mut residual_graph: Array2<i32>,
     source: usize,
@@ -86,6 +87,7 @@ pub fn edmonds_karp(
     (max_flow, residual_graph)
 }
 
+// TODO assumes a dense, adjaceny matrix.
 pub fn min_cut_pixel_labelling(
     residual_graph: &Array2<i32>,
     source: usize,
@@ -125,7 +127,7 @@ pub fn min_cut_pixel_labelling(
     (min_cut_edges, visited)
 }
 
-pub fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
+pub fn get_adj_matrix_fixture() -> (usize, usize, usize, Array2<i32>) {
     let mut graph = Array2::<i32>::zeros((7, 7));
 
     graph[[0, 1]] = 16;
@@ -147,8 +149,39 @@ pub fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
     (source, sink, max_flow, graph)
 }
 
+pub fn get_clrs_graph_fixture() -> (NodeIndex, NodeIndex, u8, Graph<u8, u8>) {
+    //  Example of Fig. 24.2 of Cormen, Leiserson, Rivest and Stein, pg. 673.
+    //  Contains 6 nodes and 10 edges - including anti-parallel, which necessitates addition
+    //  of "side-step" nodes.
+    //
+    let mut graph = Graph::<u8, u8>::with_capacity(6, 10);
+    let source = graph.add_node(0);
+    let _ = graph.add_node(1);
+    let _ = graph.add_node(2);
+    let _ = graph.add_node(3);
+    let _ = graph.add_node(4);
+
+    let sink = graph.add_node(5);
+
+    // NB contains 10 edges (including anti-parallel).
+    graph.extend_with_edges([
+        (0, 1, 16),
+        (0, 2, 13),
+        (1, 2, 10),
+        (1, 3, 12),
+        (2, 1, 4),
+        (2, 4, 14),
+        (3, 2, 9),
+        (3, 5, 20),
+        (4, 3, 7),
+        (4, 5, 4),
+    ]);
+
+    (source, sink, 23, graph)
+}
+
 pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usize, Graph<u8, u8>) {
-    let mut g = Graph::<u8, u8>::new();
+    let mut g = Graph::<u8, u8>::with_capacity(node_count, node_count * (node_count - 1) / 2);
     let nodes: Vec<_> = (0..node_count).map(|i| g.add_node(i as u8)).collect();
 
     let source = nodes[0];
@@ -170,56 +203,38 @@ mod tests {
 
     #[test]
     fn test_adjacencies_fixture() {
-        let (source, sink, max_flow, graph) = get_adjacencies_fixture();
+        let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
     }
 
     #[test]
-    fn test_edmonds_karp_min_cut() {
-        let (source, sink, max_flow, graph) = get_adjacencies_fixture();
-        let (max_flow, min_cut_edges, labelling) = edmonds_karp_min_cut(graph, source, sink);
+    fn test_edmonds_karp() {
+        let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
+        let (max_flow, residual_graph) = edmonds_karp(graph, source, sink);
     }
 
     #[test]
     fn test_petgraph_ford_fulkerson() {
-        //  Example of Fig. 24.2 of Cormen, Leiserson, Rivest and Stein, pg. 673.
-        //  Contains 6 nodes and 10 edges - including anti-parallel, which necessitates addition
-        //  of "side-step" nodes.
-        //
         //  NB see:
         //    https://docs.rs/petgraph/latest/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
-        let mut graph = Graph::<u8, u8>::new();
-        let source = graph.add_node(0);
-        let _ = graph.add_node(1);
-        let _ = graph.add_node(2);
-        let _ = graph.add_node(3);
-        let _ = graph.add_node(4);
-
-        let destination = graph.add_node(5);
-
-        // NB contains anti-parallel edges.
-        graph.extend_with_edges(&[
-            (0, 1, 16),
-            (0, 2, 13),
-            (1, 2, 10),
-            (1, 3, 12),
-            (2, 1, 4),
-            (2, 4, 14),
-            (3, 2, 9),
-            (3, 5, 20),
-            (4, 3, 7),
-            (4, 5, 4),
-        ]);
+        //
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
 
         // NB seems to be Edmonds-Karp; accepts anti-parallel edges.
-        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, destination);
+        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        assert_eq!(23, max_flow);
-
-        println!("{:?}", edge_flows);
+        assert_eq!(exp_max_flow, max_flow);
     }
 
     #[test]
-    fn test_min_cut_pixel_labelling() {}
+    fn test_min_cut_pixel_labelling() {
+       let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture();
+       let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
+
+       let (min_cut_edges, visited) = min_cut_pixel_labelling(source, edge_flows);
+
+       println!("{:?}", edge_flows);
+       println!("{:?}", min_cut_edges);
+    }
 
     #[test]
     fn test_petgraph_ford_fulkerson_large() {
