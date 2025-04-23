@@ -39,7 +39,11 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [u
     false
 }
 
-pub fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize) -> i32 {
+pub fn edmonds_karp_min_cut(
+    mut residual_graph: Array2<i32>,
+    source: usize,
+    sink: usize,
+) -> (i32, Vec<(usize, usize)>, Vec<bool>) {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //    and the inverse flow, f_uv on the backward edges.
     //
@@ -57,7 +61,7 @@ pub fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize)
 
         // NB minimum capacity on the augmenting path
         while v != source {
-            let u = parent[v] as usize;
+            let u = parent[v];
 
             path_flow = path_flow.min(residual_graph[[u, v]]);
 
@@ -68,7 +72,7 @@ pub fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize)
         let mut v = sink;
 
         while v != source {
-            let u = parent[v] as usize;
+            let u = parent[v];
 
             residual_graph[[u, v]] -= path_flow;
             residual_graph[[v, u]] += path_flow;
@@ -79,7 +83,39 @@ pub fn edmonds_karp(mut residual_graph: Array2<i32>, source: usize, sink: usize)
         max_flow += path_flow;
     }
 
-    max_flow
+    // NB reachability check from the source
+    let mut visited = vec![false; residual_graph.nrows()];
+    let mut queue = VecDeque::new();
+
+    queue.push_back(source);
+
+    visited[source] = true;
+
+    while let Some(u) = queue.pop_front() {
+        for (v, &capacity) in residual_graph.row(u).indexed_iter() {
+            if capacity > 0 && !visited[v] {
+                visited[v] = true;
+                queue.push_back(v);
+            }
+        }
+    }
+
+    // NB identify the minimum cut edges
+    let mut min_cut_edges = Vec::new();
+
+    for u in 0..residual_graph.nrows() {
+        for (v, &capacity) in residual_graph.row(u).indexed_iter() {
+            // NB if u is reachable from the source and v is not, this is a min-cut edge
+            if visited[u] && !visited[v] {
+                assert_eq!(capacity, 0_i32);
+
+                min_cut_edges.push((u, v));
+            }
+        }
+    }
+
+    // NB return the max flow, min cut edges, and pixel labelling.
+    (max_flow, min_cut_edges, visited)
 }
 
 pub fn get_adjacencies_fixture() -> (usize, usize, usize, Array2<i32>) {
