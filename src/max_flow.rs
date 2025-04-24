@@ -290,20 +290,20 @@ where
     (nodes, graph)
 }
 
-pub fn get_checkerboard_fixture(N: usize, sampling: usize, error_rate: f64) -> Array2<u8> {
-    let mut result = Array2::<u8>::zeros((N, N));
+pub fn get_checkerboard_fixture(N: usize, sampling: usize, error_rate: f64) -> Array2<u32> {
+    let mut result = Array2::<u32>::zeros((N, N));
 
     // TODO efficiency.
     for i in 0..N {
         for j in 0..N {
             if (i + j) % 2 == 0 {
-                result[[i, j]] = 1_u8;
+                result[[i, j]] = 1_u32;
             }
         }
     }
 
     let fine_size = N * sampling;
-    let mut fine_result = Array2::<u8>::zeros((fine_size, fine_size));
+    let mut fine_result = Array2::<u32>::zeros((fine_size, fine_size));
 
     for i in 0..N {
         for j in 0..N {
@@ -333,10 +333,10 @@ pub fn get_checkerboard_fixture(N: usize, sampling: usize, error_rate: f64) -> A
 
 #[inline]
 fn valid_indices(num_rows: usize, num_cols: usize, row: i32, col: i32) -> bool {
-    (row < num_rows as i32) && (col < num_cols as i32)
+    (row >= 0) && (row < num_rows as i32) && (col >= 0) && (col < num_cols as i32)
 }
 
-pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
+pub fn binary_image_map_graph(binary_image: Array2<u32>) -> Graph<i32, i32> {
     //
     //  See pg. 237 of Computer Vision, Prince.
     //
@@ -352,10 +352,10 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
     let num_nodes = 2 + num_pixels;
 
     let mut graph =
-        Graph::<u8, u8>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
+        Graph::<i32, i32>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
 
     let nodes: Vec<NodeIndex> = (0..num_nodes)
-        .map(|i| graph.add_node(node_weight!(u8)))
+        .map(|i| graph.add_node(node_weight!(i32)))
         .collect();
 
     let source = nodes[0];
@@ -378,6 +378,7 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
         }
 
         for (di, dj) in NEIGHBOR_OFFSETS {
+            // NB i32, not usize, required for subtraction.
             let new_row_index = row as i32 + di;
             let new_col_index = col as i32 + dj;
 
@@ -393,16 +394,14 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
                         .unwrap(),
                 );
 
-                /*
                 // TODO [pair_cost]
-                let pair_cost = (value != neighbor_value) as u8;
+                let pair_cost = (value != neighbor_value) as i32;
 
                 // NB P_ab(1,0)
                 graph.add_edge(node_idx, neighbor_idx, pair_cost);
 
                 // NB P_ab(0, 1)
                 graph.add_edge(neighbor_idx, node_idx, pair_cost);
-                */
             }
         }
     }
@@ -556,17 +555,19 @@ mod tests {
         let mut image = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
 
         for (x, y, pixel) in image.enumerate_pixels_mut() {
-            *pixel = Luma([255 * (1_u8 - checkerboard[[y as usize, x as usize]])]);
+            *pixel = Luma([255 * (1_u32 - checkerboard[[y as usize, x as usize]])]);
         }
 
         let image = image::imageops::resize(&image, 1200, 1200, FilterType::Nearest);
 
+        /*
         // NB free the written image.
         if false {
             image
                 .save("checkerboard.png")
                 .expect("Failed to save image");
         }
+        */
     }
 
     #[test]
