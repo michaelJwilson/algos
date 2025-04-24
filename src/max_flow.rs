@@ -126,7 +126,7 @@ pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32
 }
 
 // TODO assumes a dense, adjaceny matrix.
-pub fn min_cut_labelling(graph: &Graph<u8, u8>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
+pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
     //  Given forward edges flows for the max. flow, assign a pixel
     //  labelling by calculating distances from the source and assigning
     //  according to whether they are reachable.
@@ -164,7 +164,7 @@ pub fn min_cut_labelling(graph: &Graph<u8, u8>, source: NodeIndex, sink: NodeInd
     let labels: Vec<bool> = path
         .distances
         .into_iter()
-        .map(|dist| dist < u8::MAX)
+        .map(|dist| dist < u32::MAX)
         .collect();
 
     labels
@@ -212,8 +212,8 @@ pub fn get_adj_matrix_fixture() -> (usize, usize, usize, Array2<i32>) {
 
 pub fn get_clrs_graph_fixture<N, E>() -> (NodeIndex, NodeIndex, E, Graph<N, E>)
 where
-    N: Default + Copy + From<u8>,
-    E: From<u8>,
+    N: Default + Copy + From<u32>,
+    E: From<u32>,
 {
     //  Example of Fig. 24.2 of Cormen, Leiserson, Rivest and Stein, pg. 673.
     //  Contains 6 nodes and 10 edges - including anti-parallel, which necessitates addition
@@ -249,15 +249,15 @@ where
 
 pub fn get_large_graph_fixture<N, E>(node_count: usize, sparsity: f64) -> (NodeIndex, NodeIndex, E, Graph<N, E>)
 where
-    N: Default + Copy + From<u8>,
-    E: From<u8>,
+    N: Default + Copy + From<u32>,
+    E: From<u32>,
 {
     assert!(sparsity <= 1., "sparsity argument must be [0, 1].");
 
     let mut graph = Graph::<N, E>::new();
 
     // TODO no allocation.
-    let nodes: Vec<_> = (0..node_count).map(|i| graph.add_node(N::from(i as u8))).collect();
+    let nodes: Vec<_> = (0..node_count).map(|i| graph.add_node(N::from(i as u32))).collect();
 
     let source = nodes[0];
     let sink = nodes[node_count - 1];
@@ -301,7 +301,7 @@ mod tests {
         //    saturated, min. cut edges are (1 -> 3), (4 -> 3) and (4 -> sink).
         //    implied pixel labelling: {s/0, 1, 2, 4}, {3, t/5}.
         //
-        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u32, u32>();
 
         // NB O(1) access
         let num_nodes = graph.node_count();
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn test_max_flow_petgraph_map() {
-        let mut graph = Graph::<u8, u8>::new();
+        let mut graph = Graph::<u32, u32>::new();
 
         let a = graph.add_node(1);
         let b = graph.add_node(2);
@@ -370,7 +370,7 @@ mod tests {
         //  NB see:
         //    https://docs.rs/petgraph/latest/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
         //
-        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u32, u32>();
 
         // NB seems to be Edmonds-Karp; accepts anti-parallel edges.
         let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
@@ -387,7 +387,7 @@ mod tests {
 
     #[test]
     fn test_max_flow_petgraph_ford_fulkerson_large() {
-        let (source, sink, _, g) = get_large_graph_fixture::<u8, u8>(200, 0.1);
+        let (source, sink, _, g) = get_large_graph_fixture::<u32, u32>(200, 0.1);
         let (max_flow, edge_flows) = petgraph_ford_fulkerson(&g, source, sink);
 
         println!(
@@ -400,7 +400,7 @@ mod tests {
 
     #[test]
     fn test_max_flow_min_cut_labelling() {
-        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u32, u32>();
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
         let labels = min_cut_labelling(&graph, source, sink);
@@ -411,15 +411,15 @@ mod tests {
 
     #[test]
     fn test_max_flow_min_cut_labelling_large() {
-        let (source, sink, _, graph) = get_large_graph_fixture::<u8, u8>(100, 0.25);
+        let (source, sink, _, graph) = get_large_graph_fixture::<u32, u32>(100, 0.25);
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        println!("{:?}\t{:?}", max_flow, max_flow_on_edges);
+        // println!("{:?}\t{:?}", max_flow, max_flow_on_edges);
 
         let labels = min_cut_labelling(&graph, source, sink);
         let num_source_labelled = labels.len() - labels.iter().count();
 
-        // println!("{:?}\t{:?}\t{:?}", graph.node_count(), graph.edge_count(), num_source_labelled);
+        println!("{:?}\t{:?}\t{:?}", graph.node_count(), graph.edge_count(), num_source_labelled);
 
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         // assert_eq!(labels, [true, true, true, false, true, false]);
