@@ -356,14 +356,14 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
 
     let nodes: Vec<NodeIndex> = (0..num_nodes)
         .map(|i| graph.add_node(node_weight!(u8)))
-	    .collect();
+        .collect();
 
     let source = nodes[0];
     let sink = nodes[nodes.len() - 1];
 
     for (ii, ((row, col), value_ref)) in binary_image.indexed_iter().enumerate() {
         let value = *value_ref;
-        
+
         // NB zero point shift due to source node.
         let node_idx: NodeIndex = NodeIndex::new(1 + col + row * num_cols);
 
@@ -371,34 +371,38 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
         // TODO efficient?
         if value == 0 {
             graph.add_edge(source, node_idx, 0);
-            graph.add_edge(node_idx,   sink, 1);
+            graph.add_edge(node_idx, sink, 1);
         } else {
             graph.add_edge(source, node_idx, 1);
-            graph.add_edge(node_idx,   sink, 0);
+            graph.add_edge(node_idx, sink, 0);
         }
 
         for (di, dj) in NEIGHBOR_OFFSETS {
             let new_row_index = row as i32 + di;
             let new_col_index = col as i32 + dj;
-            
+
             if valid_indices(num_rows, num_cols, new_row_index, new_col_index) {
-               let neighbor_value = binary_image[[
-                   new_row_index.try_into().unwrap(),
-                   new_col_index.try_into().unwrap(),
-               ]];
+                let neighbor_value = binary_image[[
+                    new_row_index.try_into().unwrap(),
+                    new_col_index.try_into().unwrap(),
+                ]];
 
-               let neighbor_idx: NodeIndex = NodeIndex::new((1 + new_col_index + new_row_index * num_cols as i32).try_into().unwrap());
+                let neighbor_idx: NodeIndex = NodeIndex::new(
+                    (1 + new_col_index + new_row_index * num_cols as i32)
+                        .try_into()
+                        .unwrap(),
+                );
 
-               /*
-               // TODO [pair_cost]
-               let pair_cost = (value != neighbor_value) as u8;
+                /*
+                // TODO [pair_cost]
+                let pair_cost = (value != neighbor_value) as u8;
 
-               // NB P_ab(1,0)
-               graph.add_edge(node_idx, neighbor_idx, pair_cost);
+                // NB P_ab(1,0)
+                graph.add_edge(node_idx, neighbor_idx, pair_cost);
 
-               // NB P_ab(0, 1)
-               graph.add_edge(neighbor_idx, node_idx, pair_cost);
-               */
+                // NB P_ab(0, 1)
+                graph.add_edge(neighbor_idx, node_idx, pair_cost);
+                */
             }
         }
     }
@@ -573,6 +577,8 @@ mod tests {
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
 
         let map_graph = binary_image_map_graph(checkerboard);
+
+        // NB 1024 pixels.
         let exp_pixel_count = (N * sampling).pow(2);
 
         assert_eq!(1 + exp_pixel_count + 1, map_graph.node_count())
