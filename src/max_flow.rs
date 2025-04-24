@@ -47,7 +47,9 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 
     // NB  Proceessing of each node adds in all neighbors (that have not been visited), N.
     //     i.e. each queue interaction removes one node and adds on N.
-    let mut queue = VecDeque::with_capacity(adj_matrix.nrows() // 8);
+
+    let capacity = adj_matrix.nrows() // 8;
+    let mut queue = VecDeque::with_capacity(capacity);
 
     visited[source] = true;
     parent[source] = 0;
@@ -143,10 +145,15 @@ pub fn min_cut_labelling(
     //      https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
     let mut g = Graph::new();
 
+    // NB node with no weight
+    let _ = (0..node_count).map(|_| g.add_node(()));
+
+    (0..node_count).for_each(|_| { g.add_node(()); });
+    /*
     for _ in 0..node_count {
-        // NB node with no weight
         g.add_node(());
     }
+    */
 
     // NB see petgraph::graph::Edge
     for edge in edge_flows.into_iter() {
@@ -263,22 +270,22 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usiz
 
 #[cfg(test)]
 mod tests {
-    // cargo test test_clrs_graph_fixture -- --nocapture
+    //  cargo test max_flow -- --nocapture
     use super::*;
 
     #[test]
-    fn test_adjacencies_fixture() {
+    fn test_max_flow_adjacencies_fixture() {
         let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
     }
 
     #[test]
-    fn test_edmonds_karp() {
+    fn test_max_flow_edmonds_karp() {
         let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
         let max_flow = edmonds_karp(graph, source, sink);
     }
 
     #[test]
-    fn test_clrs_graph_fixture() {
+    fn test_max_flow_clrs_graph_fixture() {
         // NB correspoding max. flow is two-channel: s, v1, v3, t == 23, 12, 12, 19, 23.
         //                                           s, v2, v4, t == 23, 11, 11,  4, 23.
         //
@@ -321,7 +328,7 @@ mod tests {
     }
 
     #[test]
-    fn test_petgraph_bfs() {
+    fn test_max_flow_petgraph_bfs() {
         let mut graph = Graph::<_, ()>::new();
         let a = graph.add_node(0);
 
@@ -333,7 +340,7 @@ mod tests {
     }
 
     #[test]
-    fn test_petgraph_ford_fulkerson() {
+    fn test_max_flow_petgraph_ford_fulkerson() {
         //  NB see:
         //    https://docs.rs/petgraph/latest/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
         //
@@ -353,7 +360,7 @@ mod tests {
     }
 
     #[test]
-    fn test_petgraph_ford_fulkerson_large() {
+    fn test_max_flow_petgraph_ford_fulkerson_large() {
         let (source, sink, _, g) = get_large_graph_fixture(200);
         let (max_flow, edge_flows) = petgraph_ford_fulkerson(&g, source, sink);
 
@@ -366,7 +373,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min_cut_labelling() {
+    fn test_max_flow_min_cut_labelling() {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
         let (max_flow, flows_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
@@ -390,7 +397,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min_cut_labelling_large() {
+    fn test_max_flow_min_cut_labelling_large() {
         let (source, sink, _, g) = get_large_graph_fixture(10);
         let (max_flow, flows_on_edges) = petgraph_ford_fulkerson(&g, source, sink);
 

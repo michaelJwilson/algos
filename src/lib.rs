@@ -21,7 +21,7 @@ pub mod counter;
 pub mod dijkstra;
 pub mod dynamic_errs;
 pub mod fib;
-pub mod ford_fulkerson;
+pub mod max_flow;
 pub mod game_of_life;
 pub mod geometry;
 pub mod hmm;
