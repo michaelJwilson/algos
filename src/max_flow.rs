@@ -1,7 +1,7 @@
 use ndarray::Array2;
 use num_traits::cast::ToPrimitive;
-use rand::{rng, Rng};
 use rand::seq::IteratorRandom;
+use rand::{rng, Rng};
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 use std::iter::zip;
@@ -75,7 +75,7 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 }
 
 // TODO assumes a dense, adjaceny matrix.
-pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32, Array2<i32>) {
+pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32, Array2<i32>) {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //    and the inverse flow, f_uv on the backward edges.
     //
@@ -83,7 +83,7 @@ pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32
     //    back trace.
     //
     //    in-place updates of the residual graph.
-    let mut residual_graph = adj_matrix.clone();
+    let mut residual_graph = adj_matrix.clone().mapv(|x| x as i32);
 
     let mut parent = vec![0; residual_graph.nrows()];
     let mut max_flow = 0;
@@ -125,7 +125,6 @@ pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32
     (max_flow, residual_graph.t().to_owned())
 }
 
-// TODO assumes a dense, adjaceny matrix.
 pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
     //  Given forward edges flows for the max. flow, assign a pixel
     //  labelling by calculating distances from the source and assigning
@@ -143,10 +142,11 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
 
         // NB non-saturated (!min. cut) edges on the max. flow graph.
         if flow > 0 && flow != *weight {
-            edge_flows.push((edge.source(), edge.target(), flow));
+            edge_flows.push((edge.source(), edge.target(), flow as u32));
         }
     }
 
+    // TODO more efficient?
     let mut g = graph.clone();
     g.clear_edges();
 
@@ -170,44 +170,47 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
     labels
 }
 
-pub fn get_petgraph_adj_matrix<N, E>(graph: &Graph<N, E>) -> Array2<i32>
+pub fn get_petgraph_adj_matrix<N, E>(graph: &Graph<N, E>) -> Array2<E>
 where
-    E: ToPrimitive, // Ensure edge weights can be converted to i32
+    E: ToPrimitive + std::clone::Clone + num_traits::Zero,
 {
     let num_nodes = graph.node_count();
-    let mut adj_matrix = Array2::<i32>::zeros((num_nodes, num_nodes));
+    let mut adj_matrix = Array2::<E>::zeros((num_nodes, num_nodes));
 
     for edge in graph.edge_references() {
         let source = edge.source().index();
         let target = edge.target().index();
 
-        adj_matrix[[source, target]] = edge.weight().to_i32().unwrap();
+        adj_matrix[[source, target]] = E::from(edge.weight().clone());
     }
 
     adj_matrix
 }
 
 // -- fixtures --
-pub fn get_adj_matrix_fixture() -> (usize, usize, usize, Array2<i32>) {
-    let mut graph = Array2::<i32>::zeros((7, 7));
+pub fn get_adj_matrix_fixture<E>() -> (usize, usize, usize, Array2<E>)
+where
+    E: From<u32> + num_traits::Zero + std::clone::Clone,
+{
+    let mut adj_matrix = Array2::<E>::zeros((7, 7));
 
-    graph[[0, 1]] = 16;
-    graph[[0, 3]] = 13;
-    graph[[1, 2]] = 10;
-    graph[[1, 4]] = 12;
-    graph[[2, 3]] = 10;
-    graph[[3, 1]] = 4;
-    graph[[3, 5]] = 14;
-    graph[[4, 3]] = 9;
-    graph[[4, 6]] = 20;
-    graph[[5, 4]] = 7;
-    graph[[5, 6]] = 4;
+    adj_matrix[[0, 1]] = 16.into();
+    adj_matrix[[0, 3]] = 13.into();
+    adj_matrix[[1, 2]] = 10.into();
+    adj_matrix[[1, 4]] = 12.into();
+    adj_matrix[[2, 3]] = 10.into();
+    adj_matrix[[3, 1]] = 4.into();
+    adj_matrix[[3, 5]] = 14.into();
+    adj_matrix[[4, 3]] = 9.into();
+    adj_matrix[[4, 6]] = 20.into();
+    adj_matrix[[5, 4]] = 7.into();
+    adj_matrix[[5, 6]] = 4.into();
 
     let source = 0;
     let sink = 6;
     let max_flow = 23;
 
-    (source, sink, max_flow, graph)
+    (source, sink, max_flow, adj_matrix)
 }
 
 pub fn get_clrs_graph_fixture<N, E>() -> (NodeIndex, NodeIndex, E, Graph<N, E>)
@@ -221,7 +224,6 @@ where
     //
     let mut graph = Graph::<N, E>::with_capacity(6, 10);
 
-    // TODO define x = N::from(0)?
     let source = graph.add_node(node_weight!());
     let _ = graph.add_node(node_weight!());
     let _ = graph.add_node(node_weight!());
@@ -247,7 +249,10 @@ where
     (source, sink, 23.into(), graph)
 }
 
-pub fn get_large_graph_fixture<N, E>(node_count: usize, sparsity: f64) -> (NodeIndex, NodeIndex, E, Graph<N, E>)
+pub fn get_large_graph_fixture<N, E>(
+    node_count: usize,
+    sparsity: f64,
+) -> (NodeIndex, NodeIndex, E, Graph<N, E>)
 where
     N: Default + Copy + From<u32>,
     E: From<u32>,
@@ -257,7 +262,9 @@ where
     let mut graph = Graph::<N, E>::new();
 
     // TODO no allocation.
-    let nodes: Vec<_> = (0..node_count).map(|i| graph.add_node(N::from(i as u32))).collect();
+    let nodes: Vec<_> = (0..node_count)
+        .map(|i| graph.add_node(N::from(i as u32)))
+        .collect();
 
     let source = nodes[0];
     let sink = nodes[node_count - 1];
@@ -265,11 +272,11 @@ where
     let mut rng = rand::rng();
 
     for i in 0..node_count {
-        for j in (i+1)..node_count {
+        for j in (i + 1)..node_count {
             if rng.random::<f64>() < sparsity {
-               let edge_weight = rng.random_range(1..=32);
-               
-               graph.add_edge(nodes[i], nodes[j], E::from(edge_weight));
+                let edge_weight = rng.random_range(1..=32);
+
+                graph.add_edge(nodes[i], nodes[j], E::from(edge_weight));
             }
         }
     }
@@ -284,12 +291,12 @@ mod tests {
 
     #[test]
     fn test_max_flow_adjacencies_fixture() {
-        let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
+        let (source, sink, max_flow, graph) = get_adj_matrix_fixture::<u32>();
     }
 
     #[test]
     fn test_max_flow_edmonds_karp() {
-        let (source, sink, max_flow, graph) = get_adj_matrix_fixture();
+        let (source, sink, max_flow, graph) = get_adj_matrix_fixture::<u32>();
         let max_flow = edmonds_karp(graph, source, sink);
     }
 
@@ -314,51 +321,23 @@ mod tests {
 
         // NB exp given by-hand sum of clrs edge weights.
         assert_eq!(adj_matrix.sum(), 109);
-
-        // NB in-place update of adj_matrix to residual graph.
-        let (max_flow, res_graph) = edmonds_karp(adj_matrix, 0, 5);
-
-        assert_eq!(exp_max_flow as i32, max_flow);
-
-        // println!("{:?}", min_cut_edges);
-        // println!("{:?}", visited);
-
-        /*
-        // NB returns an iterator of all nodes with an edge starting from a, respecting direction.
-        let num_neighbors = graph.neighbors(sink).count();
-        let num_edges = graph.edges(sink).count();
-
-        // TODO BUG 0, 0??
-        // println!("{:?}", num_neighbors);
-        // println!("{:?}", num_edges);
-
-        let node_weight = graph.node_weight(sink).unwrap();
-        */
     }
 
     #[test]
     fn test_max_flow_petgraph_bfs() {
-        let mut graph = Graph::<_, ()>::new();
-        let a = graph.add_node(0);
+        let (source, sink, _, mut graph) = get_clrs_graph_fixture::<u32, u32>();
 
-        let mut bfs = Bfs::new(&graph, a);
+        let mut bfs = Bfs::new(&graph, source);
+
         while let Some(nx) = bfs.next(&graph) {
-            // we can access `graph` mutably here still
+            // NB we can mutably access 'graph'
             graph[nx] += 1;
         }
     }
 
     #[test]
     fn test_max_flow_petgraph_map() {
-        let mut graph = Graph::<u32, u32>::new();
-
-        let a = graph.add_node(1);
-        let b = graph.add_node(2);
-        let c = graph.add_node(3);
-
-        graph.add_edge(a, b, 10);
-        graph.add_edge(b, c, 20);
-
+        let (source, sink, _, graph) = get_clrs_graph_fixture::<u32, u32>();
         let new_graph = graph.map(
             |node_idx, node_weight| node_weight * 2,
             |edge_idx, edge_weight| edge_weight + 5,
@@ -373,22 +352,22 @@ mod tests {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u32, u32>();
 
         // NB seems to be Edmonds-Karp; accepts anti-parallel edges.
-        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
+        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
         assert_eq!(exp_max_flow, max_flow);
-        assert_eq!(edge_flows.len(), graph.edge_count());
+        assert_eq!(max_flow_on_edges.len(), graph.edge_count());
 
         // NB edge flows is ordered as for clrs fixture, i.e. (0, 1, 16), (0, 2, 13), etc.
         //    edge_flow[0] == (0, 1, 12), edge_flow[1] == (0, 2, 11); sum is source outflow == max_flow.
         //
         //    similarly, sink_inflow == max_flow.
-        assert_eq!(edge_flows[0] + edge_flows[1], max_flow);
+        assert_eq!(max_flow_on_edges[0] + max_flow_on_edges[1], max_flow);
     }
 
     #[test]
     fn test_max_flow_petgraph_ford_fulkerson_large() {
         let (source, sink, _, g) = get_large_graph_fixture::<u32, u32>(200, 0.1);
-        let (max_flow, edge_flows) = petgraph_ford_fulkerson(&g, source, sink);
+        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&g, source, sink);
 
         println!(
             "Large graph fixture with {:?} edges and nodes {:?} has max. flow {:?}",
@@ -401,27 +380,20 @@ mod tests {
     #[test]
     fn test_max_flow_min_cut_labelling() {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u32, u32>();
-        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
-
         let labels = min_cut_labelling(&graph, source, sink);
 
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         assert_eq!(labels, [true, true, true, false, true, false]);
     }
-
+    
     #[test]
     fn test_max_flow_min_cut_labelling_large() {
         let (source, sink, _, graph) = get_large_graph_fixture::<u32, u32>(100, 0.25);
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        // println!("{:?}\t{:?}", max_flow, max_flow_on_edges);
-
         let labels = min_cut_labelling(&graph, source, sink);
         let num_source_labelled = labels.len() - labels.iter().count();
 
         println!("{:?}\t{:?}\t{:?}", graph.node_count(), graph.edge_count(), num_source_labelled);
-
-        // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
-        // assert_eq!(labels, [true, true, true, false, true, false]);
     }
 }
