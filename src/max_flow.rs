@@ -572,12 +572,14 @@ mod tests {
 
     #[test]
     fn test_max_flow_binary_image_map_graph() {
-        let N = 2;
-        let sampling = 2;
+        let N = 3;
+        let sampling = 3;
         let error_rate = 0.25;
 
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
         let exp_pixel_count = checkerboard.len();
+
+        println!("\n{:?}\n", checkerboard);
 
         let (nodes, graph) = binary_image_map_graph(checkerboard);
         let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
@@ -588,6 +590,6 @@ mod tests {
 
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        println!("{:?}", max_flow_on_edges);
+        // println!("{:?}", max_flow_on_edges);
     }
 }
