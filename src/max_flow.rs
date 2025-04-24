@@ -127,26 +127,30 @@ pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32
 
 // TODO assumes a dense, adjaceny matrix.
 pub fn min_cut_labelling(
-    node_count: usize, 
-    edge_flows: &[(NodeIndex, NodeIndex, u8)],
+    graph: &Graph<u8, u8>,
+    max_flow_on_edges: &[u8],
     source: NodeIndex,
-) -> Vec<bool>
-{
+) -> Vec<bool> {
     //  Given forward edges flows for the max. flow, assign a pixel
     //  labelling by calculating distances from the source and assigning
     //  according to whether they are reachable.
     //
     //  NB  see:
     //      https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
+    //
+    let mut edge_flows = Vec::new();
 
-    let mut g = Graph::new();
+    for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
+        let flow = max_flow_on_edges[ii];
 
-    // NB node with no weight
-    // let _ = (0..node_count).map(|_| g.add_node(()));
+        // NB non-saturated (!min. cut) edges on the max. flow graph.
+        if flow > 0 && !(flow == *weight) {
+            edge_flows.push((edge.source(), edge.target(), flow));
+        }
+    }
 
-    (0..node_count).for_each(|_| {
-        g.add_node(());
-    });
+    let mut g = graph.clone();
+    g.clear_edges();
 
     // NB see petgraph::graph::Edge
     for edge in edge_flows.into_iter() {
@@ -387,7 +391,7 @@ mod tests {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        let num_nodes = graph.node_count();
+        /*
         let mut edge_flows = Vec::new();
 
         for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
@@ -399,8 +403,9 @@ mod tests {
                 edge_flows.push(new_edge);
             }
         }
+        */
 
-        let labels = min_cut_labelling(num_nodes, &edge_flows, source);
+        let labels = min_cut_labelling(&graph, &max_flow_on_edges, source);
 
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         assert_eq!(labels, [true, true, true, false, true, false]);
