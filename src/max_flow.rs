@@ -467,30 +467,23 @@ mod tests {
 
     #[test]
     fn test_max_flow_checkerboard_fixture() {
-        let N = 4;
-        let sampling = 3;
+        let N = 8;
+        let sampling = 4;
         let error_rate = 0.25;
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
 
-        println!("{:?}", checkerboard);
+        //  println!("{:?}", checkerboard);
 
         let mut image = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
 
         for (x, y, pixel) in image.enumerate_pixels_mut() {
             *pixel = Luma([255 * (1_u8 - checkerboard[[y as usize, x as usize]])]);
-            /*
-            if (x + y) % 2 == 0 {
-                *pixel = Luma([0u8]); // Black
-            } else {
-                *pixel = Luma([255u8]); // White
-            }
-            */
         }
 
         let image = image::imageops::resize(
             &image,
-            (N * sampling * 100) as u32,
-            (N * sampling * 100) as u32,
+            1200,
+            1200,
             FilterType::Nearest,
         );
 
