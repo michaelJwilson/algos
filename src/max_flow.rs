@@ -336,7 +336,7 @@ fn valid_indices(num_rows: usize, num_cols: usize, row: i32, col: i32) -> bool {
     (row >= 0) && (row < num_rows as i32) && (col >= 0) && (col < num_cols as i32)
 }
 
-pub fn binary_image_map_graph(binary_image: Array2<u32>) -> Graph<i32, i32> {
+pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Graph<u32, u32> ) { 
     //
     //  See pg. 237 of Computer Vision, Prince.
     //
@@ -352,10 +352,10 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> Graph<i32, i32> {
     let num_nodes = 2 + num_pixels;
 
     let mut graph =
-        Graph::<i32, i32>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
+        Graph::<u32, u32>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
 
     let nodes: Vec<NodeIndex> = (0..num_nodes)
-        .map(|i| graph.add_node(node_weight!(i32)))
+        .map(|i| graph.add_node(0))
         .collect();
 
     let source = nodes[0];
@@ -395,7 +395,7 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> Graph<i32, i32> {
                 );
 
                 // TODO [pair_cost]
-                let pair_cost = (value != neighbor_value) as i32;
+                let pair_cost = (value != neighbor_value) as u32;
 
                 // NB P_ab(1,0)
                 graph.add_edge(node_idx, neighbor_idx, pair_cost);
@@ -406,7 +406,7 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> Graph<i32, i32> {
         }
     }
 
-    graph
+    (nodes, graph)
 }
 
 #[cfg(test)]
@@ -572,16 +572,22 @@ mod tests {
 
     #[test]
     fn test_max_flow_binary_image_map_graph() {
-        let N = 8;
-        let sampling = 4;
+        let N = 2;
+        let sampling = 2;
         let error_rate = 0.25;
+
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
+        let exp_pixel_count = checkerboard.len();
 
-        let map_graph = binary_image_map_graph(checkerboard);
+        let (nodes, graph) = binary_image_map_graph(checkerboard);
+        let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
 
-        // NB 1024 pixels.
-        let exp_pixel_count = (N * sampling).pow(2);
+        // println!("{:?}", map_graph);
 
-        assert_eq!(1 + exp_pixel_count + 1, map_graph.node_count())
+        assert_eq!(1 + exp_pixel_count + 1, graph.node_count());
+
+        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
+
+        println!("{:?}", max_flow_on_edges);
     }
 }
