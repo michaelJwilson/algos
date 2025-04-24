@@ -341,7 +341,7 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Gr
     //  See pg. 237 of Computer Vision, Prince.
     //
     //  NB below, left, right, above.
-    let NEIGHBOR_OFFSETS: [(i32, i32); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
+    let offsets: [(i32, i32); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
 
     let num_pixels = binary_image.len();
 
@@ -367,17 +367,17 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Gr
         // NB zero point shift due to source node.
         let node_idx: NodeIndex = NodeIndex::new(1 + col + row * num_cols);
 
-        // NB 0 maps to source; 1 maps to sink.
+        // NB 0 maps to source with zero cost else 1 maps to sink with zero cost.
         // TODO efficient?
         if value == 0 {
-            graph.add_edge(source, node_idx, 0);
+            // graph.add_edge(source, node_idx, 0);
             graph.add_edge(node_idx, sink, 1);
         } else {
             graph.add_edge(source, node_idx, 1);
-            graph.add_edge(node_idx, sink, 0);
+            // graph.add_edge(node_idx, sink, 0);
         }
-
-        for (di, dj) in NEIGHBOR_OFFSETS {
+        
+        for (di, dj) in offsets {
             // NB i32, not usize, required for subtraction.
             let new_row_index = row as i32 + di;
             let new_col_index = col as i32 + dj;
@@ -395,13 +395,13 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Gr
                 );
 
                 // TODO [pair_cost]
-                let pair_cost = (value != neighbor_value) as u32;
+                if value != neighbor_value {
+                   // NB P_ab(1,0)
+                   graph.add_edge(node_idx, neighbor_idx, 1);
 
-                // NB P_ab(1,0)
-                graph.add_edge(node_idx, neighbor_idx, pair_cost);
-
-                // NB P_ab(0, 1)
-                graph.add_edge(neighbor_idx, node_idx, pair_cost);
+                   // NB P_ab(0, 1)
+                   graph.add_edge(neighbor_idx, node_idx, 1);
+                }
             }
         }
     }
@@ -572,8 +572,8 @@ mod tests {
 
     #[test]
     fn test_max_flow_binary_image_map_graph() {
-        let N = 3;
-        let sampling = 3;
+        let N = 2;
+        let sampling = 2;
         let error_rate = 0.25;
 
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
@@ -584,12 +584,16 @@ mod tests {
         let (nodes, graph) = binary_image_map_graph(checkerboard);
         let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
 
-        // println!("{:?}", map_graph);
-
         assert_eq!(1 + exp_pixel_count + 1, graph.node_count());
 
+        let capacity_on_edges: Vec<u32> = graph.edge_weights().map(|e| *e).collect();
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        // println!("{:?}", max_flow_on_edges);
+        for (edge, capacity, max_flow) in graph.edge_references().zip(capacity_on_edges).zip(max_flow_on_edges) {
+            println!("{:?}\t{:?}\t{:?}\t{:?}", edge.source(), edge.target(), capacity, max_flow);
+        }
+
+        // let labels = min_cut_labelling(&graph, source, sink);
+        // println!("{:?}", labels);
     }
 }
