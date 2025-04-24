@@ -128,8 +128,8 @@ pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32
 // TODO assumes a dense, adjaceny matrix.
 pub fn min_cut_labelling(
     graph: &Graph<u8, u8>,
-    max_flow_on_edges: &[u8],
     source: NodeIndex,
+    sink: NodeIndex,
 ) -> Vec<bool> {
     //  Given forward edges flows for the max. flow, assign a pixel
     //  labelling by calculating distances from the source and assigning
@@ -138,6 +138,8 @@ pub fn min_cut_labelling(
     //  NB  see:
     //      https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
     //
+    let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
+
     let mut edge_flows = Vec::new();
 
     for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
@@ -391,7 +393,7 @@ mod tests {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        let labels = min_cut_labelling(&graph, &max_flow_on_edges, source);
+        let labels = min_cut_labelling(&graph, source, sink);
 
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         assert_eq!(labels, [true, true, true, false, true, false]);
@@ -402,7 +404,7 @@ mod tests {
         let (source, sink, _, graph) = get_large_graph_fixture(10);
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        let labels = min_cut_labelling(&graph, &max_flow_on_edges, source);
+        let labels = min_cut_labelling(&graph, source, sink);
         let label_count = labels.iter().count();
 
         println!("{:?}\t{:?}", graph.node_count(), label_count);
