@@ -332,7 +332,7 @@ pub fn get_checkerboard_fixture(N: usize, sampling: usize, error_rate: f64) -> A
 }
 
 #[inline]
-fn valid_indices(num_rows: u8, num_cols: u8, row: i32, col: i32) -> bool {
+fn valid_indices(num_rows: usize, num_cols: usize, row: i32, col: i32) -> bool {
     (row < num_rows as i32) && (col < num_cols as i32)
 }
 
@@ -341,7 +341,7 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
     //  See pg. 237 of Computer Vision, Prince.
     //
     //  NB below, left, right, above.
-    let NEIGHBOR_OFFSETS: [(i8, i8); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
+    let NEIGHBOR_OFFSETS: [(i32, i32); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
 
     let num_pixels = binary_image.len();
 
@@ -367,7 +367,6 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
         // NB zero point shift due to source node.
         let node_idx: NodeIndex = NodeIndex::new(1 + col + row * num_cols);
 
-        /*
         // NB 0 maps to source; 1 maps to sink.
         // TODO efficient?
         if value == 0 {
@@ -378,25 +377,26 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
             graph.add_edge(node_idx,   sink, 0);
         }
 
-        for &(di, dj) in NEIGHBOR_OFFSETS {
-            let new_row_index = i as i32 + di;
-            let new_col_index = j as i32 + dj;
+        for (di, dj) in NEIGHBOR_OFFSETS {
+            let new_row_index = row as i32 + di;
+            let new_col_index = col as i32 + dj;
+            
+            if valid_indices(num_rows, num_cols, new_row_index, new_col_index) {
+               let neighbor_value = binary_image[[new_row_index, new_col_index]];
+               let neighbor_idx: NodeIndex = NodeIndex::new((1 + new_col_index + new_row_index * num_cols as i32).try_into().unwrap());
 
-            if valid_indices(new_row_index, new_col_index) {
-               neighbor_idx: NodeIndex = NodeIndex::new(1 + new_col_index + new_row_index * num_cols);
-               neighbor_value = binary_image[[new_row_index, new_col_index]]
-
+               /*
                // TODO [pair_cost]
-               pair_cost = (value != neighbor_value) as u8;
+               let pair_cost = (value != neighbor_value) as u8;
 
                // NB P_ab(1,0)
                graph.add_edge(node_idx, neighbor_idx, pair_cost);
 
                // NB P_ab(0, 1)
                graph.add_edge(neighbor_idx, node_idx, pair_cost);
+               */
             }
         }
-        */
     }
 
     graph
