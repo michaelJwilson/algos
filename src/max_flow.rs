@@ -47,9 +47,7 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 
     // NB  Proceessing of each node adds in all neighbors (that have not been visited), N.
     //     i.e. each queue interaction removes one node and adds on N.
-
-    let capacity = adj_matrix.nrows() // 8;
-    let mut queue = VecDeque::with_capacity(capacity);
+    let mut queue = VecDeque::with_capacity(adj_matrix.nrows());
 
     visited[source] = true;
     parent[source] = 0;
