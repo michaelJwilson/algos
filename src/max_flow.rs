@@ -126,11 +126,7 @@ pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32
 }
 
 // TODO assumes a dense, adjaceny matrix.
-pub fn min_cut_labelling(
-    graph: &Graph<u8, u8>,
-    source: NodeIndex,
-    sink: NodeIndex,
-) -> Vec<bool> {
+pub fn min_cut_labelling(graph: &Graph<u8, u8>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
     //  Given forward edges flows for the max. flow, assign a pixel
     //  labelling by calculating distances from the source and assigning
     //  according to whether they are reachable.
@@ -146,7 +142,7 @@ pub fn min_cut_labelling(
         let flow = max_flow_on_edges[ii];
 
         // NB non-saturated (!min. cut) edges on the max. flow graph.
-        if flow > 0 && !(flow == *weight) {
+        if flow > 0 && flow != *weight {
             edge_flows.push((edge.source(), edge.target(), flow));
         }
     }
