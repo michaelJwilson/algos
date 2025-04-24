@@ -267,7 +267,9 @@ where
     for i in 0..node_count {
         for j in (i+1)..node_count {
             if rng.random::<f64>() < sparsity {
-               graph.add_edge(nodes[i], nodes[j], E::from(1));
+               let edge_weight = rng.random_range(1..=32);
+               
+               graph.add_edge(nodes[i], nodes[j], E::from(edge_weight));
             }
         }
     }
@@ -412,10 +414,12 @@ mod tests {
         let (source, sink, _, graph) = get_large_graph_fixture::<u8, u8>(100, 0.25);
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
+        println!("{:?}\t{:?}", max_flow, max_flow_on_edges);
+
         let labels = min_cut_labelling(&graph, source, sink);
         let num_source_labelled = labels.len() - labels.iter().count();
 
-        println!("{:?}\t{:?}\t{:?}", graph.node_count(), graph.edge_count(), num_source_labelled);
+        // println!("{:?}\t{:?}\t{:?}", graph.node_count(), graph.edge_count(), num_source_labelled);
 
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         // assert_eq!(labels, [true, true, true, false, true, false]);
