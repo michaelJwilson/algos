@@ -1,3 +1,4 @@
+use image::imageops::FilterType;
 use image::{ImageBuffer, Luma};
 use ndarray::Array2;
 use num_traits::cast::ToPrimitive;
@@ -5,7 +6,6 @@ use rand::seq::IteratorRandom;
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
-use image::imageops::FilterType;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 use std::iter::zip;
@@ -331,6 +331,72 @@ pub fn get_checkerboard_fixture(N: usize, sampling: usize, error_rate: f64) -> A
     fine_result
 }
 
+#[inline]
+fn valid_indices(num_rows: u8, num_cols: u8, row: i32, col: i32) -> bool {
+    (row < num_rows as i32) && (col < num_cols as i32)
+}
+
+pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
+    //
+    //  See pg. 237 of Computer Vision, Prince.
+    //
+    //  NB below, left, right, above.
+    let	NEIGHBOR_OFFSETS: [(i8, i8); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
+
+    let num_pixels = binary_image.len();
+
+    let num_rows = binary_image.nrows();
+    let num_cols = binary_image.ncols();
+
+    // NB source + sink + one-per-pixel.
+    let num_nodes = 2 + num_pixels;
+    
+    let mut graph =
+        Graph::<u8, u8>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
+
+    let source = NodeIndex::new(0);
+    let sink = NodeIndex::new(num_nodes - 1);
+
+    for ((row, col), value_ref) in binary_image.indexed_iter() {
+        let value = *value_ref;
+
+        // NB zero point shift due to source node.
+        let node_idx = NodeIndex::new(1 + col + row * num_cols);
+
+        // NB 0 maps to source; 1 maps to sink.
+        // TODO efficient?
+        if value == 0 {
+            graph.add_edge(source, node_idx, 0);
+            graph.add_edge(node_idx,   sink, 1);
+        } else {
+            graph.add_edge(source, node_idx, 1);
+            graph.add_edge(node_idx,   sink, 0);
+        }
+        /*
+        for &(di, dj) in NEIGHBOR_OFFSETS {
+            let new_row_index = i as i32 + di;
+            let new_col_index = j as i32 + dj;
+
+            if valid_indices(new_row_index, new_col_index) {
+               neighbor_idx = NodeIndex::new(1 + new_col_index + new_row_index * num_cols);
+               neighbor_value = binary_image[[new_row_index, new_col_index]]
+
+               // TODO [pair_cost]
+               pair_cost = (value != neighbor_value) as u8;
+               
+               // NB P_ab(1,0)
+               graph.add_edge(node_idx, neighbor_idx, pair_cost);
+
+               // NB P_ab(0, 1)
+               graph.add_edge(neighbor_idx, node_idx, pair_cost);
+            }
+        }
+        */
+    }
+
+    graph
+}
+
 #[cfg(test)]
 mod tests {
     //  cargo test max_flow -- --nocapture
@@ -480,17 +546,25 @@ mod tests {
             *pixel = Luma([255 * (1_u8 - checkerboard[[y as usize, x as usize]])]);
         }
 
-        let image = image::imageops::resize(
-            &image,
-            1200,
-            1200,
-            FilterType::Nearest,
-        );
+        let image = image::imageops::resize(&image, 1200, 1200, FilterType::Nearest);
 
-        if true {
+        // NB free the written image.
+        if false {
             image
                 .save("checkerboard.png")
                 .expect("Failed to save image");
         }
+    }
+
+    #[test]
+    fn test_max_flow_binary_image_map_graph() {
+        let N = 8;
+        let sampling = 4;
+        let error_rate = 0.25;
+        let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
+
+        let map_graph = binary_image_map_graph(checkerboard);
+
+        println!("{:?}", map_graph);
     }
 }
