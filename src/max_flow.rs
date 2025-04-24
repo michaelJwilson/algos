@@ -75,11 +75,7 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 }
 
 // TODO assumes a dense, adjaceny matrix.
-pub fn edmonds_karp(
-    adj_matrix: Array2<i32>,
-    source: usize,
-    sink: usize,
-) -> (i32, Array2<i32>) {
+pub fn edmonds_karp(adj_matrix: Array2<i32>, source: usize, sink: usize) -> (i32, Array2<i32>) {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //    and the inverse flow, f_uv on the backward edges.
     //
@@ -103,7 +99,7 @@ pub fn edmonds_karp(
             let u = parent[v];
 
             path_flow = path_flow.min(residual_graph[[u, v]]);
-            
+
             v = u;
         }
 
@@ -121,7 +117,7 @@ pub fn edmonds_karp(
 
             v = u;
         }
-        
+
         max_flow += path_flow;
     }
 
@@ -146,7 +142,9 @@ pub fn min_cut_labelling(
     // NB node with no weight
     let _ = (0..node_count).map(|_| g.add_node(()));
 
-    (0..node_count).for_each(|_| { g.add_node(()); });
+    (0..node_count).for_each(|_| {
+        g.add_node(());
+    });
     /*
     for _ in 0..node_count {
         g.add_node(());
@@ -335,6 +333,23 @@ mod tests {
             // we can access `graph` mutably here still
             graph[nx] += 1;
         }
+    }
+
+    #[test]
+    fn test_max_flow_petgraph_map() {
+        let mut graph = Graph::<u8, u8>::new();
+
+        let a = graph.add_node(1);
+        let b = graph.add_node(2);
+        let c = graph.add_node(3);
+
+        graph.add_edge(a, b, 10);
+        graph.add_edge(b, c, 20);
+
+        let new_graph = graph.map(
+            |node_idx, node_weight| { node_weight * 2 },
+            |edge_idx, edge_weight| { edge_weight + 5 },
+        );
     }
 
     #[test]
