@@ -142,7 +142,7 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
 
         // NB non-saturated (!min. cut) edges on the max. flow graph.
         if flow > 0 && flow != *weight {
-            edge_flows.push((edge.source(), edge.target(), flow as u32));
+            edge_flows.push((edge.source(), edge.target(), flow));
         }
     }
 
@@ -181,7 +181,7 @@ where
         let source = edge.source().index();
         let target = edge.target().index();
 
-        adj_matrix[[source, target]] = E::from(edge.weight().clone());
+        adj_matrix[[source, target]] = edge.weight().clone();
     }
 
     adj_matrix
@@ -385,7 +385,7 @@ mod tests {
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         assert_eq!(labels, [true, true, true, false, true, false]);
     }
-    
+
     #[test]
     fn test_max_flow_min_cut_labelling_large() {
         let (source, sink, _, graph) = get_large_graph_fixture::<u32, u32>(100, 0.25);
@@ -394,6 +394,11 @@ mod tests {
         let labels = min_cut_labelling(&graph, source, sink);
         let num_source_labelled = labels.len() - labels.iter().count();
 
-        println!("{:?}\t{:?}\t{:?}", graph.node_count(), graph.edge_count(), num_source_labelled);
+        println!(
+            "{:?}\t{:?}\t{:?}",
+            graph.node_count(),
+            graph.edge_count(),
+            num_source_labelled
+        );
     }
 }
