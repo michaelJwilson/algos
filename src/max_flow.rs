@@ -1,18 +1,19 @@
 use ndarray::Array2;
 use num_traits::cast::ToPrimitive;
 use rand::seq::IteratorRandom;
-use rand::SeedableRng;
 use rand::Rng;
+use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 use std::iter::zip;
+use image::GrayImage;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::algo::spfa;
+use petgraph::dot::{Config, Dot};
 use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
 use petgraph::visit::{Bfs, EdgeRef};
-use petgraph::dot::{Dot, Config};
 
 macro_rules! edge_weight {
     ($value:expr) => {
@@ -272,7 +273,7 @@ where
     let mut rng = ChaCha8Rng::seed_from_u64(42);
 
     for i in 0..node_count {
-        for j in i+1..min(i+3, node_count) {
+        for j in i + 1..min(i + 3, node_count) {
             if i == j {
                 continue;
             }
@@ -286,6 +287,47 @@ where
     }
 
     (nodes, graph)
+}
+
+pub fn get_checkerboard_fixture(N: usize, sampling: usize, error_rate: f64) -> Array2<u8> {
+    let mut result = Array2::<u8>::zeros((N, N));
+
+    // TODO efficiency.
+    for i in 0..N {
+        for j in 0..N {
+            if (i + j) % 2 == 0 {
+                result[[i, j]] = 1_u8;
+            }
+        }
+    }
+
+    let fine_size = N * sampling;
+    let mut fine_result = Array2::<u8>::zeros((fine_size, fine_size));
+
+    for i in 0..N {
+        for j in 0..N {
+            let value = result[[i, j]];
+
+            for di in 0..sampling {
+                for dj in 0..sampling {
+                    fine_result[[i * sampling + di, j * sampling + dj]] = value;
+                }
+            }
+        }
+    }
+
+    let mut rng = ChaCha8Rng::seed_from_u64(42);
+    let num_pixels = fine_size * fine_size;
+    let num_noisy_pixels = (num_pixels as f64 * error_rate) as usize;
+
+    for _ in 0..num_noisy_pixels {
+        let x = rng.random_range(0..fine_size);
+        let y = rng.random_range(0..fine_size);
+
+        fine_result[[x, y]] = if rng.random_bool(0.5) { 1 } else { 0 };
+    }
+
+    fine_result
 }
 
 #[cfg(test)]
@@ -420,5 +462,22 @@ mod tests {
 
         // NB regression test.
         assert_eq!(num_source_labelled, 24);
+    }
+
+    #[test]
+    fn test_max_flow_checkerboard_fixture() {
+        let checkerboard = get_checkerboard_fixture(4, 3, 0.25);
+
+        println!("{:?}", checkerboard);
+
+        /*
+        let (height, width) = (checkerboard.nrows(), checkerboard.ncols());
+        let buffer: Vec<u8> = checkerboard.iter().map(|x| *x).collect();
+    
+        let image = GrayImage::from_raw(width as u32, height as u32, buffer)
+            .expect("Failed to create image from buffer");
+
+        image.save("checkerboard.png").expect("Failed to save image");
+        */
     }
 }
