@@ -1,7 +1,9 @@
 use ndarray::Array2;
 use num_traits::cast::ToPrimitive;
 use rand::seq::IteratorRandom;
-use rand::{rng, Rng};
+use rand::SeedableRng;
+use rand::Rng;
+use rand_chacha::ChaCha8Rng;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 use std::iter::zip;
@@ -10,6 +12,7 @@ use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::algo::spfa;
 use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
 use petgraph::visit::{Bfs, EdgeRef};
+use petgraph::dot::{Dot, Config};
 
 macro_rules! edge_weight {
     ($value:expr) => {
@@ -252,7 +255,7 @@ where
 pub fn get_large_graph_fixture<N, E>(
     node_count: usize,
     sparsity: f64,
-) -> (NodeIndex, NodeIndex, E, Graph<N, E>)
+) -> (Vec<NodeIndex>, Graph<N, E>)
 where
     N: Default + Copy + From<u32>,
     E: From<u32>,
@@ -262,17 +265,18 @@ where
     let mut graph = Graph::<N, E>::new();
 
     // TODO no allocation.
-    let nodes: Vec<_> = (0..node_count)
+    let nodes: Vec<NodeIndex> = (0..node_count)
         .map(|i| graph.add_node(N::from(i as u32)))
         .collect();
 
-    let source = nodes[0];
-    let sink = nodes[node_count - 1];
-
-    let mut rng = rand::rng();
+    let mut rng = ChaCha8Rng::seed_from_u64(42);
 
     for i in 0..node_count {
-        for j in (i + 1)..node_count {
+        for j in i+1..min(i+3, node_count) {
+            if i == j {
+                continue;
+            }
+
             if rng.random::<f64>() < sparsity {
                 let edge_weight = rng.random_range(1..=32);
 
@@ -281,7 +285,7 @@ where
         }
     }
 
-    (source, sink, 0.into(), graph)
+    (nodes, graph)
 }
 
 #[cfg(test)]
@@ -366,13 +370,15 @@ mod tests {
 
     #[test]
     fn test_max_flow_petgraph_ford_fulkerson_large() {
-        let (source, sink, _, g) = get_large_graph_fixture::<u32, u32>(200, 0.1);
-        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&g, source, sink);
+        let (nodes, graph) = get_large_graph_fixture::<u32, u32>(200, 0.1);
+
+        let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
+        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
         println!(
             "Large graph fixture with {:?} edges and nodes {:?} has max. flow {:?}",
-            g.edge_count(),
-            g.node_count(),
+            graph.edge_count(),
+            graph.node_count(),
             max_flow,
         );
     }
@@ -388,17 +394,31 @@ mod tests {
 
     #[test]
     fn test_max_flow_min_cut_labelling_large() {
-        let (source, sink, _, graph) = get_large_graph_fixture::<u32, u32>(100, 0.25);
-        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
+        let (nodes, graph) = get_large_graph_fixture::<u32, u32>(5, 1.);
+        let (source, sink) = (nodes[0], nodes[nodes.len() - 2]);
+
+        // NB max. flow saturates (0, 1), (2,3) and has zero flow on (1,2) and (2,4).
+        //    implies labelling: {0, 2} and {1, 3, 4} as reachable from source.
+        let labels = min_cut_labelling(&graph, source, sink);
+        let num_source_labelled = labels.iter().filter(|&&x| x).count() as i32;
+
+        println!("{:?}", labels);
+        println!("{:?}", num_source_labelled);
+
+        assert_eq!(labels, vec![true, false, true, false, false]);
+    }
+
+    #[test]
+    fn test_max_flow_min_cut_labelling_scale() {
+        let (nodes, graph) = get_large_graph_fixture::<u32, u32>(100, 1.);
+        let (source, sink) = (nodes[0], nodes[nodes.len() - 2]);
 
         let labels = min_cut_labelling(&graph, source, sink);
-        let num_source_labelled = labels.len() - labels.iter().count();
+        let num_source_labelled = labels.iter().filter(|&&x| x).count() as i32;
 
-        println!(
-            "{:?}\t{:?}\t{:?}",
-            graph.node_count(),
-            graph.edge_count(),
-            num_source_labelled
-        );
+        println!("{:?}", num_source_labelled);
+
+        // NB regression test.
+        assert_eq!(num_source_labelled, 24);
     }
 }
