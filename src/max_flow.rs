@@ -5,6 +5,7 @@ use rand::seq::IteratorRandom;
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
+use image::imageops::FilterType;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 use std::iter::zip;
@@ -485,6 +486,13 @@ mod tests {
             }
             */
         }
+
+        let image = image::imageops::resize(
+            &image,
+            (N * sampling * 100) as u32,
+            (N * sampling * 100) as u32,
+            FilterType::Nearest,
+        );
 
         if true {
             image
