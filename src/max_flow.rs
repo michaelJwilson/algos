@@ -336,7 +336,7 @@ fn valid_indices(num_rows: usize, num_cols: usize, row: i32, col: i32) -> bool {
     (row >= 0) && (row < num_rows as i32) && (col >= 0) && (col < num_cols as i32)
 }
 
-pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Graph<u32, u32> ) { 
+pub fn binary_image_map_graph(binary_image: Array2<u32>, pair_cost: u32) -> (Vec<NodeIndex>, Graph<u32, u32>) {
     //
     //  See pg. 237 of Computer Vision, Prince.
     //
@@ -354,9 +354,7 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Gr
     let mut graph =
         Graph::<u32, u32>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
 
-    let nodes: Vec<NodeIndex> = (0..num_nodes)
-        .map(|i| graph.add_node(0))
-        .collect();
+    let nodes: Vec<NodeIndex> = (0..num_nodes).map(|i| graph.add_node(0)).collect();
 
     let source = nodes[0];
     let sink = nodes[nodes.len() - 1];
@@ -371,12 +369,12 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Gr
         // TODO efficient?
         if value == 0 {
             // graph.add_edge(source, node_idx, 0);
-            graph.add_edge(node_idx, sink, 1);
+            graph.add_edge(node_idx, sink, pair_cost);
         } else {
-            graph.add_edge(source, node_idx, 1);
+            graph.add_edge(source, node_idx, pair_cost);
             // graph.add_edge(node_idx, sink, 0);
         }
-        
+
         for (di, dj) in offsets {
             // NB i32, not usize, required for subtraction.
             let new_row_index = row as i32 + di;
@@ -388,20 +386,18 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>) -> ( Vec<NodeIndex>, Gr
                     new_col_index.try_into().unwrap(),
                 ]];
 
+                if value == neighbor_value {
+                    continue;
+                }
+
                 let neighbor_idx: NodeIndex = NodeIndex::new(
                     (1 + new_col_index + new_row_index * num_cols as i32)
                         .try_into()
                         .unwrap(),
                 );
 
-                // TODO [pair_cost]
-                if value != neighbor_value {
-                   // NB P_ab(1,0)
-                   graph.add_edge(node_idx, neighbor_idx, 1);
-
-                   // NB P_ab(0, 1)
-                   graph.add_edge(neighbor_idx, node_idx, 1);
-                }
+                // NB P_ab(1,0)
+                graph.add_edge(node_idx, neighbor_idx, 1);
             }
         }
     }
@@ -545,43 +541,51 @@ mod tests {
 
     #[test]
     fn test_max_flow_checkerboard_fixture() {
-        let N = 8;
-        let sampling = 4;
+        let N = 8 as usize;
+        let sampling = 4 as usize;
         let error_rate = 0.25;
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
 
         //  println!("{:?}", checkerboard);
 
-        let mut image = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
+        let mut image: ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
 
         for (x, y, pixel) in image.enumerate_pixels_mut() {
-            *pixel = Luma([255 * (1_u32 - checkerboard[[y as usize, x as usize]])]);
+            *pixel = Luma([(255 * (1_u32 - checkerboard[[y as usize, x as usize]])).try_into().unwrap()]);
         }
 
         let image = image::imageops::resize(&image, 1200, 1200, FilterType::Nearest);
 
-        /*
+        
         // NB free the written image.
-        if false {
+        if true {
             image
                 .save("checkerboard.png")
                 .expect("Failed to save image");
         }
-        */
     }
 
     #[test]
     fn test_max_flow_binary_image_map_graph() {
-        let N = 2;
-        let sampling = 2;
+        // let N = 2 as usize;
+        // let sampling = 2 as usize;
+        // let error_rate = 0.25;
+
+        let N = 8 as usize;
+        let sampling = 4 as usize;
         let error_rate = 0.25;
 
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
         let exp_pixel_count = checkerboard.len();
+        let num_cols = checkerboard.ncols();
 
         println!("\n{:?}\n", checkerboard);
-
-        let (nodes, graph) = binary_image_map_graph(checkerboard);
+        /*
+        for ((row, col), val) in checkerboard.indexed_iter() {
+            println!("{:?}\t{:?}\t{:?}", row, col, val);
+        }
+        */
+        let (nodes, graph) = binary_image_map_graph(checkerboard, 8_u32);
         let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
 
         assert_eq!(1 + exp_pixel_count + 1, graph.node_count());
@@ -589,11 +593,35 @@ mod tests {
         let capacity_on_edges: Vec<u32> = graph.edge_weights().map(|e| *e).collect();
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-        for (edge, capacity, max_flow) in graph.edge_references().zip(capacity_on_edges).zip(max_flow_on_edges) {
-            println!("{:?}\t{:?}\t{:?}\t{:?}", edge.source(), edge.target(), capacity, max_flow);
+        for ((edge, capacity), max_flow) in graph
+            .edge_references()
+            .zip(capacity_on_edges)
+            .zip(max_flow_on_edges)
+        {
+            println!(
+                "{:?}\t{:?}\t{:?}\t{:?}",
+                edge.source().index(),
+                edge.target().index(),
+                capacity,
+                max_flow
+            );
         }
 
-        // let labels = min_cut_labelling(&graph, source, sink);
-        // println!("{:?}", labels);
+        let labels = min_cut_labelling(&graph, source, sink);
+        
+        let mut image: ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
+
+        for (x, y, pixel) in image.enumerate_pixels_mut() {
+            *pixel = Luma([(255 * (1_u32 - labels[y as usize * num_cols + x as usize] as u32)).try_into().unwrap()]);
+        }
+
+        let image = image::imageops::resize(&image, 1200, 1200, FilterType::Nearest);
+
+        // NB free the written image.
+        if true {
+            image
+                .save("checkerboard_inferred.png")
+                .expect("Failed to save image");
+        }
     }
 }
