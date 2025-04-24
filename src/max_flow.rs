@@ -382,7 +382,11 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
             let new_col_index = col as i32 + dj;
             
             if valid_indices(num_rows, num_cols, new_row_index, new_col_index) {
-               let neighbor_value = binary_image[[new_row_index, new_col_index]];
+               let neighbor_value = binary_image[[
+                   new_row_index.try_into().unwrap(),
+                   new_col_index.try_into().unwrap(),
+               ]];
+
                let neighbor_idx: NodeIndex = NodeIndex::new((1 + new_col_index + new_row_index * num_cols as i32).try_into().unwrap());
 
                /*
