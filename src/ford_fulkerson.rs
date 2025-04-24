@@ -9,7 +9,7 @@ use std::iter::zip;
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::algo::spfa;
 use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
-use petgraph::visit::EdgeRef;
+use petgraph::visit::{Bfs, EdgeRef};
 
 macro_rules! edge_weight {
     ($value:expr) => {
@@ -255,7 +255,7 @@ pub fn get_large_graph_fixture(node_count: usize) -> (NodeIndex, NodeIndex, usiz
 
 #[cfg(test)]
 mod tests {
-    // cargo test test_clrs_graph_fixture  -- --nocapture
+    // cargo test test_clrs_graph_fixture -- --nocapture
     use super::*;
 
     #[test]
@@ -313,11 +313,23 @@ mod tests {
     }
 
     #[test]
+    fn test_petgraph_bfs() {
+        let mut graph = Graph::<_, ()>::new();
+        let a = graph.add_node(0);
+
+        let mut bfs = Bfs::new(&graph, a);
+        while let Some(nx) = bfs.next(&graph) {
+            // we can access `graph` mutably here still
+            graph[nx] += 1;
+        }
+    }
+
+    #[test]
     fn test_petgraph_ford_fulkerson() {
         //  NB see:
         //    https://docs.rs/petgraph/latest/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
         //
-        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8,u8>();
+        let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u8, u8>();
 
         // NB seems to be Edmonds-Karp; accepts anti-parallel edges.
         let (max_flow, edge_flows) = petgraph_ford_fulkerson(&graph, source, sink);
@@ -383,7 +395,7 @@ mod tests {
             // NB non-saturated flow on edge, i.e. not on the min. cut.
             if flow > 0 && !(flow == *weight) {
                 let new_edge = (edge.source(), edge.target(), flow);
-                
+
                 edge_flows.push(new_edge);
             }
         }
