@@ -41,10 +41,13 @@ macro_rules! node_weight {
 //          https://docs.rs/petgraph/latest/src/petgraph/graph_impl/mod.rs.html#390
 //
 //  TODO assumes a dense, adjaceny matrix.
-fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize]) -> bool {
+fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
-    let mut visited = vec![false; residual_graph.nrows()];
-    let mut queue = VecDeque::with_capacity(residual_graph.nrows());
+    let mut visited = vec![false; adj_matrix.nrows()];
+
+    // NB  Proceessing of each node adds in all neighbors (that have not been visited), N.
+    //     i.e. each queue interaction removes one node and adds on N.
+    let mut queue = VecDeque::with_capacity(adj_matrix.nrows() // 8);
 
     visited[source] = true;
     parent[source] = 0;
@@ -54,7 +57,7 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [u
     // NB first-in-first-out queue.
     while let Some(u) = queue.pop_front() {
         // NB loop over all un-visited neighbours.
-        for (v, &capacity) in residual_graph.row(u).indexed_iter() {
+        for (v, &capacity) in adj_matrix.row(u).indexed_iter() {
             if capacity > 0 && !visited[v] {
                 parent[v] = u;
                 visited[v] = true;
@@ -73,7 +76,7 @@ fn bfs(residual_graph: &Array2<i32>, source: usize, sink: usize, parent: &mut [u
 
 // TODO assumes a dense, adjaceny matrix.
 pub fn edmonds_karp(
-    mut residual_graph: Array2<i32>,
+    adj_matrix: Array2<i32>,
     source: usize,
     sink: usize,
 ) -> (i32, Array2<i32>) {
@@ -84,22 +87,23 @@ pub fn edmonds_karp(
     //    back trace.
     //
     //    in-place updates of the residual graph.
+    let mut residual_graph = adj_matrix.clone();
+
     let mut parent = vec![0; residual_graph.nrows()];
     let mut max_flow = 0;
 
     // NB while there is an 'augmenting path' by breadth-first search.
     while bfs(&residual_graph, source, sink, &mut parent) {
-        let mut path_flow = i32::MAX;
-
         // NB find the minimum residual capacity in the path filled by BFS
         let mut v = sink;
+        let mut path_flow = i32::MAX;
 
         // NB minimum capacity on the augmenting path
         while v != source {
             let u = parent[v];
 
             path_flow = path_flow.min(residual_graph[[u, v]]);
-
+            
             v = u;
         }
 
@@ -109,15 +113,19 @@ pub fn edmonds_karp(
         while v != source {
             let u = parent[v];
 
+            // NB forwards edge: residual capacity on graph.
             residual_graph[[u, v]] -= path_flow;
+
+            // NB backwards edge:  -flow on forward edge.
             residual_graph[[v, u]] += path_flow;
 
             v = u;
         }
-
+        
         max_flow += path_flow;
     }
 
+    // TODO why transpose?
     (max_flow, residual_graph.t().to_owned())
 }
 
