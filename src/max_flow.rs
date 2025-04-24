@@ -23,8 +23,8 @@ macro_rules! edge_weight {
 }
 
 macro_rules! node_weight {
-    () => {
-        N::from(0)
+    ($type:ty) => {
+        <$type>::from(0)
     };
 }
 
@@ -229,13 +229,13 @@ where
     //
     let mut graph = Graph::<N, E>::with_capacity(6, 10);
 
-    let source = graph.add_node(node_weight!());
-    let _ = graph.add_node(node_weight!());
-    let _ = graph.add_node(node_weight!());
-    let _ = graph.add_node(node_weight!());
-    let _ = graph.add_node(node_weight!());
+    let source = graph.add_node(node_weight!(N));
+    let _ = graph.add_node(node_weight!(N));
+    let _ = graph.add_node(node_weight!(N));
+    let _ = graph.add_node(node_weight!(N));
+    let _ = graph.add_node(node_weight!(N));
 
-    let sink = graph.add_node(node_weight!());
+    let sink = graph.add_node(node_weight!(N));
 
     // NB contains 10 edges (including anti-parallel).
     graph.extend_with_edges([
@@ -341,7 +341,7 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
     //  See pg. 237 of Computer Vision, Prince.
     //
     //  NB below, left, right, above.
-    let	NEIGHBOR_OFFSETS: [(i8, i8); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
+    let NEIGHBOR_OFFSETS: [(i8, i8); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
 
     let num_pixels = binary_image.len();
 
@@ -350,19 +350,24 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
 
     // NB source + sink + one-per-pixel.
     let num_nodes = 2 + num_pixels;
-    
+
     let mut graph =
         Graph::<u8, u8>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
 
-    let source = NodeIndex::new(0);
-    let sink = NodeIndex::new(num_nodes - 1);
+    let nodes: Vec<NodeIndex> = (0..num_nodes)
+        .map(|i| graph.add_node(node_weight!(u8)))
+	    .collect();
 
-    for ((row, col), value_ref) in binary_image.indexed_iter() {
+    let source = nodes[0];
+    let sink = nodes[nodes.len() - 1];
+
+    for (ii, ((row, col), value_ref)) in binary_image.indexed_iter().enumerate() {
         let value = *value_ref;
-
+        
         // NB zero point shift due to source node.
-        let node_idx = NodeIndex::new(1 + col + row * num_cols);
+        let node_idx: NodeIndex = NodeIndex::new(1 + col + row * num_cols);
 
+        /*
         // NB 0 maps to source; 1 maps to sink.
         // TODO efficient?
         if value == 0 {
@@ -372,18 +377,18 @@ pub fn binary_image_map_graph(binary_image: Array2<u8>) -> Graph<u8, u8> {
             graph.add_edge(source, node_idx, 1);
             graph.add_edge(node_idx,   sink, 0);
         }
-        /*
+
         for &(di, dj) in NEIGHBOR_OFFSETS {
             let new_row_index = i as i32 + di;
             let new_col_index = j as i32 + dj;
 
             if valid_indices(new_row_index, new_col_index) {
-               neighbor_idx = NodeIndex::new(1 + new_col_index + new_row_index * num_cols);
+               neighbor_idx: NodeIndex = NodeIndex::new(1 + new_col_index + new_row_index * num_cols);
                neighbor_value = binary_image[[new_row_index, new_col_index]]
 
                // TODO [pair_cost]
                pair_cost = (value != neighbor_value) as u8;
-               
+
                // NB P_ab(1,0)
                graph.add_edge(node_idx, neighbor_idx, pair_cost);
 
@@ -564,7 +569,8 @@ mod tests {
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
 
         let map_graph = binary_image_map_graph(checkerboard);
+        let exp_pixel_count = (N * sampling).pow(2);
 
-        println!("{:?}", map_graph);
+        assert_eq!(1 + exp_pixel_count + 1, map_graph.node_count())
     }
 }
