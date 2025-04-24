@@ -1,3 +1,4 @@
+use image::{ImageBuffer, Luma};
 use ndarray::Array2;
 use num_traits::cast::ToPrimitive;
 use rand::seq::IteratorRandom;
@@ -7,7 +8,6 @@ use rand_chacha::ChaCha8Rng;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 use std::iter::zip;
-use image::GrayImage;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
 use petgraph::algo::spfa;
@@ -466,18 +466,30 @@ mod tests {
 
     #[test]
     fn test_max_flow_checkerboard_fixture() {
-        let checkerboard = get_checkerboard_fixture(4, 3, 0.25);
+        let N = 4;
+        let sampling = 3;
+        let error_rate = 0.25;
+        let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
 
         println!("{:?}", checkerboard);
 
-        /*
-        let (height, width) = (checkerboard.nrows(), checkerboard.ncols());
-        let buffer: Vec<u8> = checkerboard.iter().map(|x| *x).collect();
-    
-        let image = GrayImage::from_raw(width as u32, height as u32, buffer)
-            .expect("Failed to create image from buffer");
+        let mut image = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
 
-        image.save("checkerboard.png").expect("Failed to save image");
-        */
+        for (x, y, pixel) in image.enumerate_pixels_mut() {
+            *pixel = Luma([255 * (1_u8 - checkerboard[[y as usize, x as usize]])]);
+            /*
+            if (x + y) % 2 == 0 {
+                *pixel = Luma([0u8]); // Black
+            } else {
+                *pixel = Luma([255u8]); // White
+            }
+            */
+        }
+
+        if true {
+            image
+                .save("checkerboard.png")
+                .expect("Failed to save image");
+        }
     }
 }
