@@ -11,7 +11,7 @@ use std::collections::VecDeque;
 use std::iter::zip;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
-use petgraph::algo::spfa;
+use petgraph::algo::{spfa, dijkstra};
 use petgraph::dot::{Config, Dot};
 use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
 use petgraph::visit::{Bfs, EdgeRef};
@@ -165,7 +165,8 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
         g.add_edge(edge.0, edge.1, edge.2);
     }
 
-    // NB compute shortest paths from node source to all others.
+    /*  DEPRECATE
+    //  NB compute shortest paths from node source to all others.
     //    see:
     //        https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
     //
@@ -176,6 +177,11 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
         .into_iter()
         .map(|dist| dist < u32::MAX)
         .collect();
+    */
+    
+    // NB all nodes reachable from the source.
+    let reachable = dijkstra(&g, source, None, |edge| *edge.weight());
+    let labels: Vec<bool> = g.node_indices().map(|node_idx| reachable.contains_key(&node_idx)).collect();
 
     labels
 }
@@ -497,12 +503,14 @@ mod tests {
         let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
+        /*
         println!(
             "Large graph fixture with {:?} edges and nodes {:?} has max. flow {:?}",
             graph.edge_count(),
             graph.node_count(),
             max_flow,
         );
+        */
     }
 
     #[test]
