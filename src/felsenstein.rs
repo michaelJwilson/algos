@@ -11,6 +11,7 @@ enum Nucleotide {
 }
 
 impl Nucleotide {
+    #[inline(always)]
     fn to_index(&self) -> usize {
         match self {
             Nucleotide::A => 0,
@@ -46,6 +47,8 @@ struct Bst {
     root: Node,
 }
 
+const DEFAULT_LIKELIHOOD: [f64; 4] = [0.25, 0.25, 0.25, 0.25];
+
 fn get_transition_matrix(branch_length: f64) -> Array2<f64> {
     // NB transition probability matrix for nucleotide mutations (e.g., Jukes-Cantor model)
     let mutation_rate = 0.1;
@@ -71,11 +74,11 @@ pub fn compute_likelihood(
     node: &Node,
     transition_matrix: &Array2<f64>,
     branch_lengths: &HashMap<usize, f64>,
-) -> Vec<f64> {
+) -> [f64; 4] {
     // NB Recursive function to compute the likelihood at each node using Felsenstein's algorithm.
     if let Some(sequence) = &node.sequence {
         // NB leaf node: returns a vector with 1.0 for the observed nucleotide and 0.0 for others.
-        let mut likelihood = vec![0.0; 4];
+        let mut likelihood = [0.0; 4];
 
         likelihood[sequence.to_index()] = 1.0;
 
@@ -86,13 +89,15 @@ pub fn compute_likelihood(
     let left_likelihood = if let Some(left) = &node.left {
         compute_likelihood(left, transition_matrix, branch_lengths)
     } else {
-        vec![0.25; 4] // Default likelihood if no left child
+        // NB no left chile.
+        DEFAULT_LIKELIHOOD
     };
 
     let right_likelihood = if let Some(right) = &node.right {
         compute_likelihood(right, transition_matrix, branch_lengths)
     } else {
-        vec![0.25; 4] // Default likelihood if no right child
+        // NB no right child
+        DEFAULT_LIKELIHOOD
     };
 
     let left_branch_length = branch_lengths
@@ -103,7 +108,7 @@ pub fn compute_likelihood(
         .get(&node.right.as_ref().map_or(0, |n| n.id))
         .unwrap_or(&0.0);
 
-    let mut combined_likelihood = vec![0.0; 4];
+    let mut combined_likelihood = [0.0; 4];
 
     // TODO what are these?
     let left_exp = (-4.0 * left_branch_length).exp();
@@ -114,16 +119,6 @@ pub fn compute_likelihood(
         let mut right_sum = 0.0;
 
         for child_state in 0..4 {
-            /*
-            let left_branch_length = branch_lengths
-                .get(&node.left.as_ref().map_or(0, |n| n.id))
-                .unwrap_or(&0.0);
-
-            let right_branch_length = branch_lengths
-                .get(&node.right.as_ref().map_or(0, |n| n.id))
-                .unwrap_or(&0.0);
-            */
-
             left_sum += transition_matrix[[parent_state, child_state]]
                 * left_likelihood[child_state]
                 * left_exp;
@@ -215,7 +210,7 @@ mod tests {
             compute_likelihood(&root.left.unwrap(), &transition_matrix, &branch_lengths);
 
         // NB expect likelihood to be [1.0, 0.0, 0.0, 0.0] for 'A'
-        assert_eq!(likelihood, vec![1.0, 0.0, 0.0, 0.0]);
+        assert_eq!(likelihood, [1.0, 0.0, 0.0, 0.0]);
     }
 
     #[test]
