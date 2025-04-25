@@ -203,7 +203,7 @@ pub fn binary_image_min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex
 
     let labels: Vec<bool> = graph
         .node_indices()
-        .map(|node_idx| source_cut.contains(&node_idx))
+        .map(|node_idx| !source_cut.contains(&node_idx))
         .collect();
 
     // NB drop source/sink labels
