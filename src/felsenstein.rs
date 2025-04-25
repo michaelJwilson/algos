@@ -105,6 +105,10 @@ pub fn compute_likelihood(
 
     let mut combined_likelihood = vec![0.0; 4];
 
+    // TODO what are these?
+    let left_exp = (-4.0 * left_branch_length).exp();
+    let right_exp = (-4.0 * right_branch_length).exp();
+
     for parent_state in 0..4 {
         let mut left_sum = 0.0;
         let mut right_sum = 0.0;
@@ -122,11 +126,11 @@ pub fn compute_likelihood(
 
             left_sum += transition_matrix[[parent_state, child_state]]
                 * left_likelihood[child_state]
-                * (-4.0 * left_branch_length).exp();
+                * left_exp;
 
             right_sum += transition_matrix[[parent_state, child_state]]
                 * right_likelihood[child_state]
-                * (-4.0 * right_branch_length).exp();
+                * right_exp;
         }
 
         combined_likelihood[parent_state] = left_sum * right_sum;
