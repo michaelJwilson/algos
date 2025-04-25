@@ -113,8 +113,6 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     let num_nodes = adjs.get_nodes().len();
     let mut dist = vec![u32::MAX; num_nodes];
 
-    println!("Solving Dijkstra for {} nodes", num_nodes);
-
     //  NB maintain a priority queue (pop returns the min. distance node in queue) as a BinaryHeap.
     let mut heap = BinaryHeap::new();
 
@@ -140,11 +138,7 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
             // NB skip this node, as it has already been processed with a shorter distance.
             continue;
         }
-        /*
-        if cost > *dist.get(&position).unwrap_or(&u32::MAX) {
-            continue;
-        }
-        */
+
         // NB explore neighbors, initially of root.
         if let Some(neighbors) = adjs.edges.get(&position) {
             for edge in neighbors {
@@ -161,17 +155,6 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
                     //    defined by another path, in which case it's skipped.
                     heap.push(next);
                 }
-
-                /*
-                // NB found a new distance to the next node shorter than any previous (initialized MAX).
-                if next.cost < *dist.get(&next.position).unwrap_or(&u32::MAX) {
-                    dist.insert(next.position, next.cost);
-
-                    // NB place neighbors on the queue (i.e. frontier); next may have a shorter distance
-                    //    defined by another path, in which case it's skipped.
-                    heap.push(next);
-                }
-                */
             }
         }
     }
