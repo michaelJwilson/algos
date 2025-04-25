@@ -59,6 +59,7 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 
     queue.push_back(source);
 
+    // TODO if the node indexing is [source, sink, internals ...] than earlier exit.
     // NB first-in-first-out queue.
     while let Some(u) = queue.pop_front() {
         // NB loop over all un-visited neighbours.
@@ -82,12 +83,14 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 // TODO assumes a dense, adjaceny matrix.
 pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32, Array2<i32>) {
     // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
-    //    and the inverse flow, f_uv on the backward edges.
+    //    and flow itself, f_uv, on the backward edges; note: the residual graph does not contain
+    //    a forward edge if the flow is at capacity.
     //
     //    save the frontier node that discovered a node on the tree as the parent, allowing for
     //    back trace.
     //
     //    in-place updates of the residual graph.
+    //
     let mut residual_graph = adj_matrix.clone().mapv(|x| x as i32);
 
     let mut parent = vec![0; residual_graph.nrows()];
@@ -131,15 +134,15 @@ pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32
 }
 
 pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
-    //  Given forward edges flows for the max. flow, assign a pixel
-    //  labelling by calculating distances from the source and assigning
-    //  according to whether they are reachable.
+    //  Given max. flow on each edge of G, assign a min. cut pixel labelling according to
+    //  whether they are reachable from the source.
     //
     //  NB  see:
     //      https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
     //
     let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
+    // NB 
     let mut edge_flows = Vec::new();
 
     for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
