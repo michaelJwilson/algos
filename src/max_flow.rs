@@ -191,11 +191,11 @@ pub fn binary_image_min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex
     for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
         let flow = max_flow_on_edges[ii];
 
-        println!("{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}", edge.source(), edge.target(), weight, flow, edge.source() == source, flow == *weight);
+        //  println!("{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}", edge.source(), edge.target(), weight, flow, edge.source() == source, flow == *weight);
 
         // NB
         if (edge.source() == source) && flow == *weight {
-            println!("{:?}", edge.target());
+            //  println!("{:?}", edge.target());
 
             source_cut.insert(edge.target());
         }
@@ -653,7 +653,7 @@ mod tests {
         let num_rows = checkerboard.nrows();
         let num_cols = checkerboard.ncols();
 
-        println!("\n{:?}\n", checkerboard);
+        //  println!("\n{:?}\n", checkerboard);
         /*
         for ((row, col), val) in checkerboard.indexed_iter() {
             println!("{:?}\t{:?}\t{:?}", row, col, val);
@@ -687,7 +687,7 @@ mod tests {
         let labels_i32: Vec<i32> = labels.iter().map(|&b| b as i32).collect();
         let labels_2d = Array2::from_shape_vec((num_rows, num_cols), labels_i32.clone()).unwrap();
 
-        println!("\n{:?}\n", labels_2d);
+        //  println!("\n{:?}\n", labels_2d);
 
         let mut image: ImageBuffer<Luma<u8>, Vec<u8>> =
             ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
