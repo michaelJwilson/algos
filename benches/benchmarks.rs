@@ -39,9 +39,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("collatz(100)", |b| b.iter(|| collatz(black_box(100))));
 
     c.bench_function("dijkstra", |b| {
+       let adjs = get_adjacencies_fixture_large(100);
+
         b.iter(|| {
-            let adjs = get_adjacencies_fixture_large(100);
-            let _ = dijkstra(adjs, 0, 100);
+            let _ = dijkstra(&adjs, 0, 100);
         });
     });
 

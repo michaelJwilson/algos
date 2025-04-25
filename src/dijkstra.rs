@@ -97,7 +97,7 @@ impl PartialOrd for State {
     }
 }
 
-pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
+pub fn dijkstra(adjs: &AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     //  NB maintain current known distance between all encountered node pairs;
     //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&u32::MAX), achieves
     //     initial distances of INF for assumed u32 type.
@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn test_dijkstra() {
         let adjs = get_adjacencies_fixture();
-        let cost = dijkstra(adjs, 0, 3).unwrap();
+        let cost = dijkstra(&adjs, 0, 3).unwrap();
 
         assert_eq!(4, cost);
     }
@@ -205,7 +205,7 @@ mod tests {
     #[test]
     fn test_dijkstra_large() {
         let adjs = get_adjacencies_fixture_large(100);
-	    let cost = dijkstra(adjs, 0, 25).unwrap();
+	    let cost = dijkstra(&adjs, 0, 25).unwrap();
 
         println!("{:?}", cost);
     }
@@ -228,7 +228,7 @@ mod tests {
             *edge.weight()
         });
         
-        let exp = dijkstra(adjs, start, goal).unwrap();
+        let exp = dijkstra(&adjs, start, goal).unwrap();
         
         // NB attempt to cast u32 to u32 and unwrap the option.
         let result = node_map

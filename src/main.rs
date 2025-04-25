@@ -18,7 +18,7 @@ fn main() {
 
     let adjs = get_adjacencies_fixture_large(100);
 
-    match dijkstra(adjs, 0, 50) {
+    match dijkstra(&adjs, 0, 50) {
         Some(cost) => {
             info!("The cost is: {}", cost);
         }
