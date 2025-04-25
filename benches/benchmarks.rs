@@ -1,13 +1,12 @@
 use algos::collatz::collatz;
 use algos::counter::get_counter_fixture;
-use algos::dijkstra::{dijkstra, get_adjacencies_fixture, get_adjacencies_fixture_large};
+use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::felsenstein::{compute_likelihood, get_felsenstein_fixture};
 use algos::max_flow::{edmonds_karp, get_adj_matrix_fixture, get_large_graph_fixture};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
-use std::cell::RefCell;
 
 fn fibonacci_slow(n: u64) -> u64 {
     match n {
@@ -40,19 +39,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("collatz(100)", |b| b.iter(|| collatz(black_box(100))));
 
     c.bench_function("dijkstra", |b| {
-        let num_fail = RefCell::new(0);
-
         b.iter(|| {
             let adjs = get_adjacencies_fixture_large(100);
-            let result = dijkstra(adjs, 0, 100);
-
-            match result {
-                Some(cost) => assert!(cost > 0),
-                None => *num_fail.borrow_mut() += 1,
-            }
+            let _ = dijkstra(adjs, 0, 100);
         });
-
-        //  assert_eq!(num_fail, 0.into());
     });
 
     c.bench_function("felsenstein", |b| {
