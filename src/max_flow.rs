@@ -93,7 +93,7 @@ pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32
     //     in-place updates of the residual graph.
     //
     //
-    //  TODO forward edges only? not residuals?
+    //  NB forward edges are capacities in adj_matrix - flows; backward are flows - initially zero.
     let mut residual_graph = adj_matrix.clone().mapv(|x| x as i32);
 
     let mut parent = vec![0; residual_graph.nrows()];
@@ -120,10 +120,10 @@ pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32
         while v != source {
             let u = parent[v];
 
-            // NB forwards edge: residual capacity on graph.
+            // NB increment flow by path_flow, decrementing residual on forward edge.
             residual_graph[[u, v]] -= path_flow;
 
-            // NB backwards edge:  -flow on forward edge.
+            // NB increment flow by path_flow, incrementing flow on backward edge.
             residual_graph[[v, u]] += path_flow;
 
             v = u;
