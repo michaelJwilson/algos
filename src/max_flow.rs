@@ -82,15 +82,17 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 
 // TODO assumes a dense, adjaceny matrix.
 pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32, Array2<i32>) {
-    // NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
-    //    and flow itself, f_uv, on the backward edges; note: the residual graph does not contain
-    //    a forward edge if the flow is at capacity.
+    //  NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
+    //     and flow itself, f_uv, on the backward edges; note: the residual graph does not contain
+    //     a forward edge if the flow is at capacity.
     //
-    //    save the frontier node that discovered a node on the tree as the parent, allowing for
-    //    back trace.
+    //     save the frontier node that discovered a node on the tree as the parent, allowing for
+    //     back trace.
     //
-    //    in-place updates of the residual graph.
+    //     in-place updates of the residual graph.
     //
+    //
+    //  TODO forward edges only? not residuals?
     let mut residual_graph = adj_matrix.clone().mapv(|x| x as i32);
 
     let mut parent = vec![0; residual_graph.nrows()];
@@ -129,7 +131,7 @@ pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32
         max_flow += path_flow;
     }
 
-    // TODO why transpose?
+    //  TODO why transpose?
     (max_flow, residual_graph.t().to_owned())
 }
 
