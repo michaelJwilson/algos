@@ -144,43 +144,25 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
     //
     let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
-    // NB 
-    let mut edge_flows = Vec::new();
-
-    for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
-        let flow = max_flow_on_edges[ii];
-
-        // NB non-saturated (!min. cut) edges on the max. flow graph.
-        if flow > 0 && flow != *weight {
-            edge_flows.push((edge.source(), edge.target(), flow));
-        }
-    }
-
-    // TODO more efficient?
     let mut g = graph.clone();
     g.clear_edges();
 
-    // NB see petgraph::graph::Edge
-    for edge in edge_flows.into_iter() {
-        g.add_edge(edge.0, edge.1, edge.2);
+    // NB all edges out of the partition A* (containing source) are at capacity for a max. flow and
+    //    all edges into A* are zero.
+    for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
+        let flow = max_flow_on_edges[ii];
+
+        // NB non-saturated (!min. cut) edges on the max. flow graph; reachable does not require
+        //    max. flow value itself.
+        if flow > 0 && flow != *weight {
+            g.add_edge(edge.source(), edge.target(), 1);
+        }
     }
 
-    /*  DEPRECATE
-    //  NB compute shortest paths from node source to all others.
-    //    see:
-    //        https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
-    //
-    let path = spfa(&g, source, |edge| *edge.weight()).unwrap();
-
-    let labels: Vec<bool> = path
-        .distances
-        .into_iter()
-        .map(|dist| dist < u32::MAX)
-        .collect();
-    */
-    
     // NB all nodes reachable from the source.
     let reachable = dijkstra(&g, source, None, |edge| *edge.weight());
+
+    // NB O(1) lookup.
     let labels: Vec<bool> = g.node_indices().map(|node_idx| reachable.contains_key(&node_idx)).collect();
 
     labels
