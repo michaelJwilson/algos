@@ -44,7 +44,7 @@ impl AdjacencyList {
             .push(Edge { to, weight });
     }
 
-    pub fn get_nodes(&self) -> HashSet <u32> {
+    pub fn get_nodes(&self) -> HashSet<u32> {
         let mut nodes = HashSet::default();
 
         for (&node, neighbors) in &self.edges {
@@ -58,9 +58,9 @@ impl AdjacencyList {
         nodes
     }
 
-    fn get_edges<E>(&self) -> Vec<(E, E, u32)> 
+    fn get_edges<E>(&self) -> Vec<(E, E, u32)>
     where
-    E: From<u32>,
+        E: From<u32>,
     {
         self.edges
             .iter()
@@ -174,7 +174,7 @@ pub fn get_adjacencies_fixture_large(num_nodes: u32) -> AdjacencyList {
     // NB adjaceny list representation, with a list of edges for each node.
     let mut adjs = AdjacencyList::new();
 
-    // NB "fully connected" 
+    // NB "fully connected"
     for jj in 0..num_nodes {
         for ii in jj + 1..num_nodes {
             adjs.add_edge(jj, ii, 1);
@@ -201,15 +201,15 @@ mod tests {
 
         assert_eq!(4, cost);
     }
-    
+
     #[test]
     fn test_dijkstra_large() {
         let adjs = get_adjacencies_fixture_large(100);
-	    let cost = dijkstra(&adjs, 0, 25).unwrap();
+        let cost = dijkstra(&adjs, 0, 25).unwrap();
 
         println!("{:?}", cost);
     }
-    
+
     #[test]
     fn test_petgraph_dijkstra() {
         // NB see:
@@ -219,24 +219,24 @@ mod tests {
 
         let adjs = get_adjacencies_fixture();
         let edges = adjs.get_edges::<u32>();
-        
+
         // NB <u32, u32> specify the type of the node and edge weights.
         let graph = UnGraph::<u32, u32>::from_edges(&edges);
-        
+
         // NB find the shortest path from `0` to `3` using `1` as the cost for every edge.
         let node_map = petgraph_dijkstra(&graph, start.into(), Some(goal.into()), |edge| {
             *edge.weight()
         });
-        
+
         let exp = dijkstra(&adjs, start, goal).unwrap();
-        
+
         // NB attempt to cast u32 to u32 and unwrap the option.
         let result = node_map
             .get(&NodeIndex::new(goal.try_into().unwrap()))
             .unwrap();
 
         assert_eq!(&exp, result);
-        
+
         // NB see: https://magjac.com/graphviz-visual-editor/;
         //    also with no labels: Dot::with_config(&graph, &[Config::EdgeNoLabel])
         // println!("{:?}", Dot::new(&graph));
