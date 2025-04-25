@@ -47,16 +47,18 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("felsenstein", |b| {
+        let (root, transition_matrix, branch_lengths) = get_felsenstein_fixture();
+
         b.iter(|| {
-            let (root, transition_matrix, branch_lengths) = get_felsenstein_fixture();
             let _ = compute_likelihood(&root, &transition_matrix, &branch_lengths);
         })
     });
 
-    c.bench_function("ford_fulkerson", |b| {
+    c.bench_function("edmonds_karp", |b| {
+        let (source, sink, _, graph) = get_adj_matrix_fixture();                               
+
         b.iter(|| {
-            let (source, sink, _, graph) = get_adj_matrix_fixture();
-            edmonds_karp(graph, source, sink);
+            edmonds_karp(&graph, source, sink);
         })
     });
 

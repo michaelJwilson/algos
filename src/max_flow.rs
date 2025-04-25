@@ -82,7 +82,7 @@ fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize
 }
 
 // TODO assumes a dense, adjaceny matrix.
-pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32, Array2<i32>) {
+pub fn edmonds_karp(adj_matrix: &Array2<u32>, source: usize, sink: usize) -> (i32, Array2<i32>) {
     //  NB residual graph contains the residual capacity (c_uv - f_uv) on the forward edges,
     //     and flow itself, f_uv, on the backward edges; note: the residual graph does not contain
     //     a forward edge if the flow is at capacity.
@@ -473,7 +473,7 @@ mod tests {
     #[test]
     fn test_max_flow_edmonds_karp() {
         let (source, sink, max_flow, graph) = get_adj_matrix_fixture::<u32>();
-        let max_flow = edmonds_karp(graph, source, sink);
+        let max_flow = edmonds_karp(&graph, source, sink);
     }
 
     #[test]
