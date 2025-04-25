@@ -127,11 +127,7 @@ pub fn compute_likelihood(
     combined_likelihood
 }
 
-pub fn get_felsenstein_fixture() -> (
-    Node,
-    Array2<f64>,
-    HashMap<usize, f64>,
-) {
+pub fn get_felsenstein_fixture() -> (Node, Array2<f64>, HashMap<usize, f64>) {
     let left_leaf = Node {
         id: 2,
         left: None,
@@ -203,7 +199,8 @@ mod tests {
     fn test_felsenstein_compute_likelihood_leaf_node() {
         //  NB unwrap assumes never None.
         let (root, transition_matrix, branch_lengths) = get_felsenstein_fixture();
-        let likelihood = compute_likelihood(&root.left.unwrap(), &transition_matrix, &branch_lengths);
+        let likelihood =
+            compute_likelihood(&root.left.unwrap(), &transition_matrix, &branch_lengths);
 
         // NB expect likelihood to be [1.0, 0.0, 0.0, 0.0] for 'A'
         assert_eq!(likelihood, vec![1.0, 0.0, 0.0, 0.0]);

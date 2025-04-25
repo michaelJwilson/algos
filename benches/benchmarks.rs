@@ -1,8 +1,8 @@
 use algos::collatz::collatz;
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture, get_adjacencies_fixture_large};
-use algos::max_flow::{edmonds_karp, get_adj_matrix_fixture, get_large_graph_fixture};
 use algos::felsenstein::{compute_likelihood, get_felsenstein_fixture};
+use algos::max_flow::{edmonds_karp, get_adj_matrix_fixture, get_large_graph_fixture};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
