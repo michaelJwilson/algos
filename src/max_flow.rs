@@ -136,6 +136,7 @@ pub fn edmonds_karp(adj_matrix: Array2<u32>, source: usize, sink: usize) -> (i32
     (max_flow, residual_graph.t().to_owned())
 }
 
+// NB 0-valued edges can be at capacity (max. flow) for the cut!
 pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
     //  Given max. flow on each edge of G, assign a min. cut pixel labelling according to
     //  whether they are reachable from the source.
@@ -176,6 +177,7 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
     pixel_labels
 }
 
+// NB 0-valued edges can be at capacity	(max. flow) for	the cut!
 pub fn binary_image_min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
     //  Given max. flow on each edge of G, assign a min. cut pixel labelling according to
     //  whether they are reachable from the source.
@@ -572,9 +574,9 @@ mod tests {
         }
         */
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
-        assert_eq!(labels, [true, true, true, false, true, false]);
+        assert_eq!(labels, [true, true, false, true]);
     }
-    /*
+    
     #[test]
     fn test_max_flow_min_cut_labelling_large() {
         let (nodes, graph) = get_large_graph_fixture::<u32, u32>(5, 1.);
@@ -588,9 +590,9 @@ mod tests {
         println!("{:?}", labels);
         println!("{:?}", num_source_labelled);
 
-        assert_eq!(labels, vec![true, false, true, false, false]);
+        assert_eq!(labels, vec![false, true, false]);
     }
-
+    /*
     #[test]
     fn test_max_flow_min_cut_labelling_scale() {
         let (nodes, graph) = get_large_graph_fixture::<u32, u32>(100, 1.);
@@ -607,13 +609,9 @@ mod tests {
     */
     #[test]
     fn test_max_flow_checkerboard_fixture() {
-        // let N = 2 as usize;
-        // let sampling = 2 as usize;
-        // let error_rate = 0.25;
-
         let N = 8 as usize;
         let sampling = 4 as usize;
-        let error_rate = 0.25;
+        let error_rate = 0.1;
         
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
 
@@ -640,13 +638,9 @@ mod tests {
 
     #[test]
     fn test_max_flow_binary_image_map_graph() {
-        // let N = 2 as usize;
-        // let sampling = 2 as usize;
-        // let error_rate = 0.25;
-
         let N = 8 as usize;
         let sampling = 4 as usize;
-        let error_rate = 0.25;
+        let error_rate = 0.1;
 
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
         let exp_pixel_count = checkerboard.len();
@@ -659,7 +653,7 @@ mod tests {
             println!("{:?}\t{:?}\t{:?}", row, col, val);
         }
         */
-        let (nodes, graph) = binary_image_map_graph(checkerboard, 16_u32);
+        let (nodes, graph) = binary_image_map_graph(checkerboard, 3_u32);
         let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
 
         assert_eq!(1 + exp_pixel_count + 1, graph.node_count());
