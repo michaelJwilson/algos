@@ -89,14 +89,14 @@ pub fn compute_likelihood(
     let left_likelihood = if let Some(left) = &node.left {
         compute_likelihood(left, transition_matrix, branch_lengths)
     } else {
-        // NB no left chile.
+        // NB no left child.
         DEFAULT_LIKELIHOOD
     };
 
     let right_likelihood = if let Some(right) = &node.right {
         compute_likelihood(right, transition_matrix, branch_lengths)
     } else {
-        // NB no right child
+        // NB no right child.
         DEFAULT_LIKELIHOOD
     };
 
@@ -108,28 +108,31 @@ pub fn compute_likelihood(
         .get(&node.right.as_ref().map_or(0, |n| n.id))
         .unwrap_or(&0.0);
 
-    let mut combined_likelihood = [0.0; 4];
-
     // TODO what are these?
     let left_exp = (-4.0 * left_branch_length).exp();
     let right_exp = (-4.0 * right_branch_length).exp();
 
-    for parent_state in 0..4 {
-        let mut left_sum = 0.0;
-        let mut right_sum = 0.0;
+    let mut combined_likelihood = [0.0; 4];
 
-        for child_state in 0..4 {
-            left_sum += transition_matrix[[parent_state, child_state]]
-                * left_likelihood[child_state]
-                * left_exp;
+    combined_likelihood
+        .iter_mut()
+        .enumerate()
+        .for_each(|(parent_state, likelihood)| {
+            let mut left_sum = 0.0;
+            let mut right_sum = 0.0;
 
-            right_sum += transition_matrix[[parent_state, child_state]]
-                * right_likelihood[child_state]
-                * right_exp;
-        }
+            for child_state in 0..4 {
+                left_sum += transition_matrix[[parent_state, child_state]]
+                    * left_likelihood[child_state]
+                    * left_exp;
 
-        combined_likelihood[parent_state] = left_sum * right_sum;
-    }
+                right_sum += transition_matrix[[parent_state, child_state]]
+                    * right_likelihood[child_state]
+                    * right_exp;
+            }
+
+            *likelihood = left_sum * right_sum;
+        });
 
     combined_likelihood
 }
