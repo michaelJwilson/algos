@@ -2,13 +2,14 @@ use ndarray::Array2;
 use ndarray::Axis;
 use rustc_hash::FxHashMap as HashMap;
 
-/// Represents a node in the binary search tree.
+// NB Box: a pointer type that uniquely owns a heap allocation of type T
 #[derive(Debug)]
-struct Node {
+pub struct Node {
+    //  NB A, C, G, T for leaves
     id: usize,
     left: Option<Box<Node>>,
     right: Option<Box<Node>>,
-    sequence: Option<char>, //  NB A, C, G, T for leaves
+    sequence: Option<char>,
 }
 
 #[derive(Debug)]
@@ -47,7 +48,7 @@ fn nucleotide_to_index(nucleotide: char) -> usize {
     }
 }
 
-fn compute_likelihood(
+pub fn compute_likelihood(
     node: &Node,
     transition_matrix: &Array2<f64>,
     branch_lengths: &HashMap<usize, f64>,
@@ -104,6 +105,43 @@ fn compute_likelihood(
     combined_likelihood
 }
 
+pub fn get_felsenstein_fixture() -> (
+    Node,
+    Array2<f64>,
+    HashMap<usize, f64>,
+) {
+    let left_leaf = Node {
+        id: 2,
+        left: None,
+        right: None,
+        sequence: Some('A'),
+    };
+
+    let right_leaf = Node {
+        id: 3,
+        left: None,
+        right: None,
+        sequence: Some('C'),
+    };
+
+    let root = Node {
+        id: 1,
+        left: Some(Box::new(left_leaf)),
+        right: Some(Box::new(right_leaf)),
+        sequence: None,
+    };
+
+    let transition_matrix = get_transition_matrix(0.5);
+
+    // NB node ids represent keys.
+    let mut branch_lengths = HashMap::default();
+
+    branch_lengths.insert(2, 0.5);
+    branch_lengths.insert(3, 0.5);
+
+    (root, transition_matrix, branch_lengths)
+}
+
 #[cfg(test)]
 mod tests {
     // cargo test felsenstein -- test_felsenstein_transition_matrix --nocapture
@@ -141,17 +179,9 @@ mod tests {
 
     #[test]
     fn test_felsenstein_compute_likelihood_leaf_node() {
-        let leaf_node = Node {
-            id: 1,
-            left: None,
-            right: None,
-            sequence: Some('A'),
-        };
-
-        let transition_matrix = get_transition_matrix(0.5);
-        let branch_lengths = HashMap::default();
-
-        let likelihood = compute_likelihood(&leaf_node, &transition_matrix, &branch_lengths);
+        //  NB unwrap assumes never None.
+        let (root, transition_matrix, branch_lengths) = get_felsenstein_fixture();
+        let likelihood = compute_likelihood(&root.left.unwrap(), &transition_matrix, &branch_lengths);
 
         // NB expect likelihood to be [1.0, 0.0, 0.0, 0.0] for 'A'
         assert_eq!(likelihood, vec![1.0, 0.0, 0.0, 0.0]);
@@ -159,36 +189,7 @@ mod tests {
 
     #[test]
     fn test_felsenstein_compute_likelihood_internal_node() {
-        let left_child = Node {
-            id: 2,
-            left: None,
-            right: None,
-            sequence: Some('A'),
-        };
-
-        let right_child = Node {
-            id: 3,
-            left: None,
-            right: None,
-            sequence: Some('C'),
-        };
-
-        let root = Node {
-            id: 1,
-            left: Some(Box::new(left_child)),
-            right: Some(Box::new(right_child)),
-            sequence: None,
-        };
-
-        let transition_matrix = get_transition_matrix(0.5);
-        let mut branch_lengths = HashMap::default();
-
-        // NB branch length for left child
-        branch_lengths.insert(2, 0.5);
-
-        // NB branch length for right child
-        branch_lengths.insert(3, 0.5);
-
+        let (root, transition_matrix, branch_lengths) = get_felsenstein_fixture();
         let likelihood = compute_likelihood(&root, &transition_matrix, &branch_lengths);
 
         assert_eq!(likelihood.len(), 4);

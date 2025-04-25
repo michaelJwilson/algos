@@ -2,6 +2,7 @@ use algos::collatz::collatz;
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture, get_adjacencies_fixture_large};
 use algos::max_flow::{edmonds_karp, get_adj_matrix_fixture, get_large_graph_fixture};
+use algos::felsenstein::{compute_likelihood, get_felsenstein_fixture};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
@@ -54,6 +55,13 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         //  assert_eq!(num_fail, 0.into());
     });
 
+    c.bench_function("felsenstein", |b| {
+        b.iter(|| {
+            let (root, transition_matrix, branch_lengths) = get_felsenstein_fixture();
+            let _ = compute_likelihood(&root, &transition_matrix, &branch_lengths);
+        })
+    });
+
     c.bench_function("ford_fulkerson", |b| {
         b.iter(|| {
             let (source, sink, _, graph) = get_adj_matrix_fixture();
@@ -64,11 +72,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("petgraph_ford_fulkerson", |b| {
         b.iter(|| {
             // NB visium is 5K spots.
-            let (nodes, g) = get_large_graph_fixture::<u32,u32>(5_000, 1.);
+            let (nodes, g) = get_large_graph_fixture::<u32, u32>(5_000, 1.);
 
             let source = nodes[0];
             let sink = nodes[nodes.len() - 1];
-            
+
             let _ = petgraph_ford_fulkerson(&g, source, sink);
         })
     });
