@@ -5,22 +5,24 @@ pub fn longest_common_prefix(strs: Vec<String>) -> String {
         return String::new();
     }
 
+    // NB shortest length of any input string.
     let mut shortest_length: usize = usize::MAX;
 
     for s in &strs {
         shortest_length = shortest_length.min(s.len())
     }
 
-    // println!("{:?}", shortest_length);
-
     let mut prefix: String = String::new();
+
+    // NB converts String to Vec<char>?
     let first_string: Vec<char> = strs[0].chars().collect();
 
-    // NB yields references to the first shortest_length chars in first_string.
+    // NB iterate over first_string, stopping at shortest_length if necessary.
     for (ii, current_letter) in first_string.iter().enumerate().take(shortest_length) {
         let mut to_append = true;
 
-        // NB if only one string is provided, this will silently skip, as desired.
+        // NB check whether all other strings support this character
+        //    and edit accordingly. 
         for ss in &strs[1..] {
             if ss.chars().nth(ii) != Some(*current_letter) {
                 to_append = false;
@@ -28,7 +30,7 @@ pub fn longest_common_prefix(strs: Vec<String>) -> String {
             }
         }
 
-        // NB pre-pends, i.e. reverse order to what we would like.
+        // NB increment the prefix string.
         if to_append {
             prefix.push(*current_letter);
         } else {
