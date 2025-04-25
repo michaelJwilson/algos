@@ -18,7 +18,7 @@ pub fn longest_common_prefix(strs: Vec<String>) -> String {
     let first_string: Vec<char> = strs[0].chars().collect();
 
     // NB iterate over first_string, stopping at shortest_length if necessary.
-    for (ii, current_letter) in first_string.iter().enumerate().take(shortest_length) {
+    for (ii, current_letter) in first_string.iter().take(shortest_length).enumerate() {
         // NB check whether all other strings support this character
         //    and edit accordingly. 
         for ss in &strs[1..] {
