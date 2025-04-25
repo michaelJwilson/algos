@@ -167,8 +167,13 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
 
     // NB O(1) lookup.
     let labels: Vec<bool> = g.node_indices().map(|node_idx| source_reachable.contains_key(&node_idx)).collect();
-    
-    labels
+
+    // NB drop source/sink labels
+    let pixel_labels: Vec<bool> = labels[1..labels.len() - 1].to_vec();
+
+    assert_eq!(pixel_labels.len(), labels.len() - 2);
+
+    pixel_labels
 }
 
 pub fn binary_image_min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
@@ -186,7 +191,7 @@ pub fn binary_image_min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex
     for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
         let flow = max_flow_on_edges[ii];
 
-        println!("{:?}\t{:?}\t{:?}\t{:?}\t{:?}", edge.source(), edge.target(), weight, flow, edge.source() == source);
+        println!("{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}", edge.source(), edge.target(), weight, flow, edge.source() == source, flow == *weight);
 
         // NB
         if (edge.source() == source) && flow == *weight {
@@ -196,13 +201,17 @@ pub fn binary_image_min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex
         }
     }
 
-    //  NB
     let labels: Vec<bool> = graph
         .node_indices()
         .map(|node_idx| source_cut.contains(&node_idx))
         .collect();
 
-    labels
+    // NB drop source/sink labels
+    let pixel_labels: Vec<bool> = labels[1..labels.len() - 1].to_vec();
+
+    assert_eq!(pixel_labels.len(), labels.len() - 2);
+
+    pixel_labels
 }
 
 pub fn get_petgraph_adj_matrix<N, E>(graph: &Graph<N, E>) -> Array2<E>
@@ -408,9 +417,11 @@ pub fn binary_image_map_graph(
         //     no edges for zero cost (TBC?)
         if value == 0 {
             //  NB cost paid on the sink edge if in A*.
+            graph.add_edge(source, node_idx, 0);
             graph.add_edge(node_idx, sink, rel_cost);
         } else {
             //  NB cost paid on the source edge if in B*.
+            graph.add_edge(node_idx, sink, 0);
             graph.add_edge(source, node_idx, rel_cost);
         }
 
@@ -596,9 +607,14 @@ mod tests {
     */
     #[test]
     fn test_max_flow_checkerboard_fixture() {
+        // let N = 2 as usize;
+        // let sampling = 2 as usize;
+        // let error_rate = 0.25;
+
         let N = 8 as usize;
         let sampling = 4 as usize;
         let error_rate = 0.25;
+        
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
 
         //  println!("{:?}", checkerboard);
@@ -634,6 +650,7 @@ mod tests {
 
         let checkerboard = get_checkerboard_fixture(N, sampling, error_rate);
         let exp_pixel_count = checkerboard.len();
+        let num_rows = checkerboard.nrows();
         let num_cols = checkerboard.ncols();
 
         println!("\n{:?}\n", checkerboard);
@@ -642,7 +659,7 @@ mod tests {
             println!("{:?}\t{:?}\t{:?}", row, col, val);
         }
         */
-        let (nodes, graph) = binary_image_map_graph(checkerboard, 12_u32);
+        let (nodes, graph) = binary_image_map_graph(checkerboard, 16_u32);
         let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
 
         assert_eq!(1 + exp_pixel_count + 1, graph.node_count());
@@ -666,7 +683,11 @@ mod tests {
         }
         */
 
-        let labels = min_cut_labelling(&graph, source, sink);
+        let labels = binary_image_min_cut_labelling(&graph, source, sink);
+        let labels_i32: Vec<i32> = labels.iter().map(|&b| b as i32).collect();
+        let labels_2d = Array2::from_shape_vec((num_rows, num_cols), labels_i32.clone()).unwrap();
+
+        println!("\n{:?}\n", labels_2d);
 
         let mut image: ImageBuffer<Luma<u8>, Vec<u8>> =
             ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
