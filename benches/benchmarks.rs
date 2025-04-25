@@ -55,7 +55,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("edmonds_karp", |b| {
-        let (source, sink, _, graph) = get_adj_matrix_fixture();                               
+        let (source, sink, _, graph) = get_adj_matrix_fixture();
 
         b.iter(|| {
             edmonds_karp(&graph, source, sink);
@@ -90,7 +90,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let a = DMatrix::from_element(10_000, 10_000, 1.0);
             let b = DMatrix::<f64>::zeros(10_000, 10_000);
-            
+
             let _ = a.dot(&b);
         })
     });
