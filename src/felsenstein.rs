@@ -11,7 +11,6 @@ enum Nucleotide {
 }
 
 impl Nucleotide {
-    // Method to convert a Nucleotide to its index
     fn to_index(&self) -> usize {
         match self {
             Nucleotide::A => 0,
@@ -21,7 +20,6 @@ impl Nucleotide {
         }
     }
 
-    // Method to convert a char to a Nucleotide
     fn from_char(nucleotide: char) -> Self {
         match nucleotide {
             'A' => Nucleotide::A,
@@ -97,6 +95,14 @@ pub fn compute_likelihood(
         vec![0.25; 4] // Default likelihood if no right child
     };
 
+    let left_branch_length = branch_lengths
+        .get(&node.left.as_ref().map_or(0, |n| n.id))
+        .unwrap_or(&0.0);
+
+    let right_branch_length = branch_lengths
+        .get(&node.right.as_ref().map_or(0, |n| n.id))
+        .unwrap_or(&0.0);
+
     let mut combined_likelihood = vec![0.0; 4];
 
     for parent_state in 0..4 {
@@ -104,6 +110,7 @@ pub fn compute_likelihood(
         let mut right_sum = 0.0;
 
         for child_state in 0..4 {
+            /*
             let left_branch_length = branch_lengths
                 .get(&node.left.as_ref().map_or(0, |n| n.id))
                 .unwrap_or(&0.0);
@@ -111,6 +118,7 @@ pub fn compute_likelihood(
             let right_branch_length = branch_lengths
                 .get(&node.right.as_ref().map_or(0, |n| n.id))
                 .unwrap_or(&0.0);
+            */
 
             left_sum += transition_matrix[[parent_state, child_state]]
                 * left_likelihood[child_state]
