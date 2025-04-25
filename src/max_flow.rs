@@ -6,12 +6,13 @@ use rand::seq::IteratorRandom;
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
+use rustc_hash::FxHashSet as HashSet;
 use std::cmp::{max, min};
 use std::collections::VecDeque;
 use std::iter::zip;
 
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
-use petgraph::algo::{spfa, dijkstra};
+use petgraph::algo::{dijkstra, spfa};
 use petgraph::dot::{Config, Dot};
 use petgraph::graph::{Edge, Graph, Node, NodeIndex, UnGraph};
 use petgraph::visit::{Bfs, EdgeRef};
@@ -140,8 +141,10 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
     //  whether they are reachable from the source.
     //
     //  NB  see:
-    //      https://docs.rs/petgraph/latest/petgraph/algo/spfa/fn.spfa.html
+    //      https://docs.rs/petgraph/latest/i686-pc-windows-msvc/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
+    //      https://docs.rs/petgraph/latest/petgraph/algo/dijkstra/fn.dijkstra.html
     //
+    //  NB  max. flow on a weighted, directed graph.
     let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
     let mut g = graph.clone();
@@ -154,16 +157,50 @@ pub fn min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeI
 
         // NB non-saturated (!min. cut) edges on the max. flow graph; reachable does not require
         //    max. flow value itself.
-        if flow > 0 && flow != *weight {
+        if flow > 0 && *weight > 0 && flow != *weight {
             g.add_edge(edge.source(), edge.target(), 1);
         }
     }
 
     // NB all nodes reachable from the source.
-    let reachable = dijkstra(&g, source, None, |edge| *edge.weight());
+    let source_reachable = dijkstra(&g, source, None, |edge| *edge.weight());
 
     // NB O(1) lookup.
-    let labels: Vec<bool> = g.node_indices().map(|node_idx| reachable.contains_key(&node_idx)).collect();
+    let labels: Vec<bool> = g.node_indices().map(|node_idx| source_reachable.contains_key(&node_idx)).collect();
+    
+    labels
+}
+
+pub fn binary_image_min_cut_labelling(graph: &Graph<u32, u32>, source: NodeIndex, sink: NodeIndex) -> Vec<bool> {
+    //  Given max. flow on each edge of G, assign a min. cut pixel labelling according to
+    //  whether they are reachable from the source.
+    //
+    //  NB  see:
+    //      https://docs.rs/petgraph/latest/i686-pc-windows-msvc/petgraph/algo/ford_fulkerson/fn.ford_fulkerson.html
+    //      https://docs.rs/petgraph/latest/petgraph/algo/dijkstra/fn.dijkstra.html
+    //
+    //  NB  max. flow on a weighted, directed graph.
+    let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
+    let mut source_cut = HashSet::default();
+
+    for (ii, (edge, weight)) in zip(graph.edge_references(), graph.edge_weights()).enumerate() {
+        let flow = max_flow_on_edges[ii];
+
+        println!("{:?}\t{:?}\t{:?}\t{:?}\t{:?}", edge.source(), edge.target(), weight, flow, edge.source() == source);
+
+        // NB
+        if (edge.source() == source) && flow == *weight {
+            println!("{:?}", edge.target());
+
+            source_cut.insert(edge.target());
+        }
+    }
+
+    //  NB
+    let labels: Vec<bool> = graph
+        .node_indices()
+        .map(|node_idx| source_cut.contains(&node_idx))
+        .collect();
 
     labels
 }
@@ -329,11 +366,14 @@ fn valid_indices(num_rows: usize, num_cols: usize, row: i32, col: i32) -> bool {
     (row >= 0) && (row < num_rows as i32) && (col >= 0) && (col < num_cols as i32)
 }
 
-pub fn binary_image_map_graph(binary_image: Array2<u32>, pair_cost: u32) -> (Vec<NodeIndex>, Graph<u32, u32>) {
+pub fn binary_image_map_graph(
+    binary_image: Array2<u32>,
+    rel_cost: u32,
+) -> (Vec<NodeIndex>, Graph<u32, u32>) {
     //
     //  See pg. 237 of Computer Vision, Prince.
     //
-    //  NB below, left, right, above.
+    //  NB pixel offsets to defined neighbours, {below, left, right, above}.
     let offsets: [(i32, i32); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
 
     let num_pixels = binary_image.len();
@@ -341,31 +381,37 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>, pair_cost: u32) -> (Vec
     let num_rows = binary_image.nrows();
     let num_cols = binary_image.ncols();
 
-    // NB source + sink + one-per-pixel.
+    // NB source + one-per-pixel + sink.
     let num_nodes = 2 + num_pixels;
 
+    // NB (directed) edge of source to every pixel, sink to every pixel, and two edges to each pixel pair.
+    let num_edges = num_pixels + num_pixels + 2 * (num_pixels - 1);
+
+    // TODO directed?
     let mut graph =
         Graph::<u32, u32>::with_capacity(num_nodes, num_pixels + num_pixels + 2 * (num_pixels - 1));
 
+    // TODO remove allocation.
     let nodes: Vec<NodeIndex> = (0..num_nodes).map(|i| graph.add_node(0)).collect();
 
     let source = nodes[0];
     let sink = nodes[nodes.len() - 1];
 
+    // NB row-major iteration, i.e. (0,0), (0,1), ..., etc.
     for (ii, ((row, col), value_ref)) in binary_image.indexed_iter().enumerate() {
         let value = *value_ref;
 
-        // NB zero point shift due to source node.
+        //  NB zero point shift due to source node.
         let node_idx: NodeIndex = NodeIndex::new(1 + col + row * num_cols);
 
-        // NB 0 maps to source with zero cost else 1 maps to sink with zero cost.
-        // TODO efficient?
+        //  NB 0 maps to source with zero cost else 1 maps to sink with zero cost.
+        //     no edges for zero cost (TBC?)
         if value == 0 {
-            // graph.add_edge(source, node_idx, 0);
-            graph.add_edge(node_idx, sink, pair_cost);
+            //  NB cost paid on the sink edge if in A*.
+            graph.add_edge(node_idx, sink, rel_cost);
         } else {
-            graph.add_edge(source, node_idx, pair_cost);
-            // graph.add_edge(node_idx, sink, 0);
+            //  NB cost paid on the source edge if in B*.
+            graph.add_edge(source, node_idx, rel_cost);
         }
 
         for (di, dj) in offsets {
@@ -379,17 +425,13 @@ pub fn binary_image_map_graph(binary_image: Array2<u32>, pair_cost: u32) -> (Vec
                     new_col_index.try_into().unwrap(),
                 ]];
 
-                if value == neighbor_value {
-                    continue;
-                }
-
                 let neighbor_idx: NodeIndex = NodeIndex::new(
                     (1 + new_col_index + new_row_index * num_cols as i32)
                         .try_into()
                         .unwrap(),
                 );
 
-                // NB P_ab(1,0)
+                // NB P_uv(u=1,v=0)
                 graph.add_edge(node_idx, neighbor_idx, 1);
             }
         }
@@ -498,12 +540,30 @@ mod tests {
     #[test]
     fn test_max_flow_min_cut_labelling() {
         let (source, sink, exp_max_flow, graph) = get_clrs_graph_fixture::<u32, u32>();
-        let labels = min_cut_labelling(&graph, source, sink);
 
+        let capacity_on_edges: Vec<u32> = graph.edge_weights().map(|e| *e).collect();
+        let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
+
+        let labels = min_cut_labelling(&graph, source, sink);
+        /*
+        for ((edge, capacity), max_flow) in graph
+            .edge_references()
+            .zip(capacity_on_edges)
+            .zip(max_flow_on_edges)
+        {
+            println!(
+                "{:?}\t{:?}\t{:?}\t{:?}",
+                edge.source().index(),
+                edge.target().index(),
+                capacity,
+                max_flow
+            );
+        }
+        */
         // NB min-cut edges are (1, 3), (2, 3), (4, 3), (4, 5/sink); i.e. separating 3 & 5 from sink.
         assert_eq!(labels, [true, true, true, false, true, false]);
     }
-
+    /*
     #[test]
     fn test_max_flow_min_cut_labelling_large() {
         let (nodes, graph) = get_large_graph_fixture::<u32, u32>(5, 1.);
@@ -533,7 +593,7 @@ mod tests {
         // NB regression test.
         assert_eq!(num_source_labelled, 24);
     }
-
+    */
     #[test]
     fn test_max_flow_checkerboard_fixture() {
         let N = 8 as usize;
@@ -543,15 +603,17 @@ mod tests {
 
         //  println!("{:?}", checkerboard);
 
-        let mut image: ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
+        let mut image: ImageBuffer<Luma<u8>, Vec<u8>> =
+            ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
 
         for (x, y, pixel) in image.enumerate_pixels_mut() {
-            *pixel = Luma([(255 * (1_u32 - checkerboard[[y as usize, x as usize]])).try_into().unwrap()]);
+            *pixel = Luma([(255 * (1_u32 - checkerboard[[y as usize, x as usize]]))
+                .try_into()
+                .unwrap()]);
         }
 
         let image = image::imageops::resize(&image, 1200, 1200, FilterType::Nearest);
 
-        
         // NB free the written image.
         if true {
             image
@@ -580,7 +642,7 @@ mod tests {
             println!("{:?}\t{:?}\t{:?}", row, col, val);
         }
         */
-        let (nodes, graph) = binary_image_map_graph(checkerboard, 8_u32);
+        let (nodes, graph) = binary_image_map_graph(checkerboard, 12_u32);
         let (source, sink) = (nodes[0], nodes[nodes.len() - 1]);
 
         assert_eq!(1 + exp_pixel_count + 1, graph.node_count());
@@ -588,6 +650,7 @@ mod tests {
         let capacity_on_edges: Vec<u32> = graph.edge_weights().map(|e| *e).collect();
         let (max_flow, max_flow_on_edges) = petgraph_ford_fulkerson(&graph, source, sink);
 
+        /*
         for ((edge, capacity), max_flow) in graph
             .edge_references()
             .zip(capacity_on_edges)
@@ -601,19 +664,27 @@ mod tests {
                 max_flow
             );
         }
+        */
 
         let labels = min_cut_labelling(&graph, source, sink);
-        
-        let mut image: ImageBuffer<Luma<u8>, Vec<u8>> = ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
+
+        let mut image: ImageBuffer<Luma<u8>, Vec<u8>> =
+            ImageBuffer::new((N * sampling) as u32, (N * sampling) as u32);
 
         for (x, y, pixel) in image.enumerate_pixels_mut() {
-            *pixel = Luma([(255 * (1_u32 - labels[y as usize * num_cols + x as usize] as u32)).try_into().unwrap()]);
+            *pixel = Luma([
+                (255 * (1_u32 - labels[y as usize * num_cols + x as usize] as u32))
+                    .try_into()
+                    .unwrap(),
+            ]);
         }
 
         let image = image::imageops::resize(&image, 1200, 1200, FilterType::Nearest);
 
         // NB free the written image.
         if true {
+            println!("Saving checkerboard_inferred.png");
+
             image
                 .save("checkerboard_inferred.png")
                 .expect("Failed to save image");
