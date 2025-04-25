@@ -49,11 +49,13 @@ macro_rules! node_weight {
 //  TODO assumes a dense, adjaceny matrix.
 fn bfs(adj_matrix: &Array2<i32>, source: usize, sink: usize, parent: &mut [usize]) -> bool {
     // NB  Shortest augmenting path [number of edges] by breadth-first search, i.e. shorter time to return.
+    //     - heap allocated as unknown size at compilation.
     let mut visited = vec![false; adj_matrix.nrows()];
 
     // NB  Proceessing of each node adds in all neighbors (that have not been visited), N.
     //     i.e. each queue interaction removes one node and adds on N.
-    let mut queue = VecDeque::with_capacity(adj_matrix.nrows());
+    // let mut queue = VecDeque::with_capacity(adj_matrix.nrows());
+    let mut queue = VecDeque::new();
 
     visited[source] = true;
     parent[source] = 0;
@@ -108,9 +110,7 @@ pub fn edmonds_karp(adj_matrix: &Array2<u32>, source: usize, sink: usize) -> (i3
         // NB minimum capacity on the augmenting path
         while v != source {
             let u = parent[v];
-
             path_flow = path_flow.min(residual_graph[[u, v]]);
-
             v = u;
         }
 

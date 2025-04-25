@@ -63,12 +63,18 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("petgraph_ford_fulkerson", |b| {
+        // NB visium is 5K spots.
+        let (nodes, g) = get_large_graph_fixture::<u32, u32>(5_000, 1.);
+
+        let source = nodes[0];
+        let sink = nodes[nodes.len() - 1];
+
         b.iter(|| {
             // NB visium is 5K spots.
-            let (nodes, g) = get_large_graph_fixture::<u32, u32>(5_000, 1.);
+            // let (nodes, g) = get_large_graph_fixture::<u32, u32>(5_000, 1.);
 
-            let source = nodes[0];
-            let sink = nodes[nodes.len() - 1];
+            // let source = nodes[0];
+            // let sink = nodes[nodes.len() - 1];
 
             let _ = petgraph_ford_fulkerson(&g, source, sink);
         })
@@ -84,7 +90,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let a = DMatrix::from_element(10_000, 10_000, 1.0);
             let b = DMatrix::<f64>::zeros(10_000, 10_000);
-
+            
             let _ = a.dot(&b);
         })
     });
@@ -136,6 +142,7 @@ fn bench_fibonacci(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, criterion_benchmark);
+criterion_group!(benches, criterion_benchmark, bench_fibonacci);
 // criterion_group!(benches, bench_fibonacci);
+
 criterion_main!(benches);
