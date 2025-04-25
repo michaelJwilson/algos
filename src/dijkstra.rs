@@ -71,13 +71,6 @@ impl AdjacencyList {
             })
             .collect()
     }
-
-    fn get_endpoints(&self) -> Vec<(u32, u32)> {
-        self.edges
-            .iter()
-            .flat_map(|(&from, neighbors)| neighbors.iter().map(move |edge| (from, edge.to)))
-            .collect()
-    }
 }
 
 // NB define a state for the priority queue, which will return the min. distance node
@@ -111,6 +104,8 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     //  let mut dist: HashMap<u32, u32> = HashMap::default();
 
     let num_nodes = adjs.get_nodes().len();
+
+    //  TODO if goal is defined, HashMap is better than a full allocation of all nodes.
     let mut dist = vec![u32::MAX; num_nodes];
 
     //  NB maintain a priority queue (pop returns the min. distance node in queue) as a BinaryHeap.
