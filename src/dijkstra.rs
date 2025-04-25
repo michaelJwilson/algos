@@ -101,8 +101,6 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     //  NB maintain current known distance between all encountered node pairs;
     //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&u32::MAX), achieves
     //     initial distances of INF for assumed u32 type.
-    //  let mut dist: HashMap<u32, u32> = HashMap::default();
-
     let num_nodes = adjs.get_nodes().len();
 
     //  TODO if goal is defined, HashMap is better than a full allocation of all nodes.
@@ -112,7 +110,6 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     let mut heap = BinaryHeap::new();
 
     // NB initialize distances: start/root node is at zero distance & to be processed first.
-    // dist.insert(start, 0);
     dist[start as usize] = 0;
 
     // NB popping the heap will return the to-be-processed node with least cost/distance.
@@ -123,26 +120,28 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
 
     // NB returns the min. distance state in the queue, starting with the root.
     while let Some(State { cost, position }) = heap.pop() {
-        // NB If we reach the goal node, return the distance/cost.
-        if position == goal {
-            return Some(cost);
-        }
-
         // NB node on the queue has an outdated distance;
         if cost > dist[position as usize] {
             // NB skip this node, as it has already been processed with a shorter distance.
             continue;
         }
 
+        // NB If we reach the goal node, return the distance/cost.
+        if position == goal {
+            return Some(cost);
+        }
+
         // NB explore neighbors, initially of root.
         if let Some(neighbors) = adjs.edges.get(&position) {
             for edge in neighbors {
-                let next = State {
-                    cost: cost + edge.weight,
-                    position: edge.to,
-                };
+                let new_cost = cost + edge.weight;
 
-                if next.cost < dist[next.position as usize] {
+                if new_cost < dist[edge.to as usize] {
+                    let next = State {
+                        cost: new_cost,
+                        position: edge.to,
+                    };
+
                     // NB update the distance to the next node.
                     dist[next.position as usize] = next.cost;
 
