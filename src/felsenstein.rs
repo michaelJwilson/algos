@@ -2,6 +2,37 @@ use ndarray::Array2;
 use ndarray::Axis;
 use rustc_hash::FxHashMap as HashMap;
 
+#[derive(Debug)]
+enum Nucleotide {
+    A,
+    C,
+    G,
+    T,
+}
+
+impl Nucleotide {
+    // Method to convert a Nucleotide to its index
+    fn to_index(&self) -> usize {
+        match self {
+            Nucleotide::A => 0,
+            Nucleotide::C => 1,
+            Nucleotide::G => 2,
+            Nucleotide::T => 3,
+        }
+    }
+
+    // Method to convert a char to a Nucleotide
+    fn from_char(nucleotide: char) -> Self {
+        match nucleotide {
+            'A' => Nucleotide::A,
+            'C' => Nucleotide::C,
+            'G' => Nucleotide::G,
+            'T' => Nucleotide::T,
+            _ => panic!("Invalid nucleotide: {}", nucleotide),
+        }
+    }
+}
+
 // NB Box: a pointer type that uniquely owns a heap allocation of type T
 #[derive(Debug)]
 pub struct Node {
@@ -9,7 +40,7 @@ pub struct Node {
     id: usize,
     left: Option<Box<Node>>,
     right: Option<Box<Node>>,
-    sequence: Option<char>,
+    sequence: Option<Nucleotide>,
 }
 
 #[derive(Debug)]
@@ -38,31 +69,22 @@ fn get_transition_matrix(branch_length: f64) -> Array2<f64> {
     .unwrap()
 }
 
-fn nucleotide_to_index(nucleotide: char) -> usize {
-    match nucleotide {
-        'A' => 0,
-        'C' => 1,
-        'G' => 2,
-        'T' => 3,
-        _ => panic!("Invalid nucleotide: {}", nucleotide),
-    }
-}
-
 pub fn compute_likelihood(
     node: &Node,
     transition_matrix: &Array2<f64>,
     branch_lengths: &HashMap<usize, f64>,
 ) -> Vec<f64> {
     // NB Recursive function to compute the likelihood at each node using Felsenstein's algorithm.
-    if let Some(sequence) = node.sequence {
+    if let Some(sequence) = &node.sequence {
         // NB leaf node: returns a vector with 1.0 for the observed nucleotide and 0.0 for others.
         let mut likelihood = vec![0.0; 4];
 
-        likelihood[nucleotide_to_index(sequence)] = 1.0;
+        likelihood[sequence.to_index()] = 1.0;
 
         return likelihood;
     }
 
+    // NB internal node.
     let left_likelihood = if let Some(left) = &node.left {
         compute_likelihood(left, transition_matrix, branch_lengths)
     } else {
@@ -114,14 +136,14 @@ pub fn get_felsenstein_fixture() -> (
         id: 2,
         left: None,
         right: None,
-        sequence: Some('A'),
+        sequence: Some(Nucleotide::from_char('A')),
     };
 
     let right_leaf = Node {
         id: 3,
         left: None,
         right: None,
-        sequence: Some('C'),
+        sequence: Some(Nucleotide::from_char('C')),
     };
 
     let root = Node {
@@ -167,12 +189,12 @@ mod tests {
 
     #[test]
     fn test_felsenstein_nucleotide_to_index() {
-        assert_eq!(nucleotide_to_index('A'), 0);
-        assert_eq!(nucleotide_to_index('C'), 1);
-        assert_eq!(nucleotide_to_index('G'), 2);
-        assert_eq!(nucleotide_to_index('T'), 3);
+        assert_eq!(Nucleotide::from_char('A').to_index(), 0);
+        assert_eq!(Nucleotide::from_char('C').to_index(), 1);
+        assert_eq!(Nucleotide::from_char('G').to_index(), 2);
+        assert_eq!(Nucleotide::from_char('T').to_index(), 3);
 
-        let result = std::panic::catch_unwind(|| nucleotide_to_index('X'));
+        let result = std::panic::catch_unwind(|| Nucleotide::from_char('X').to_index());
 
         assert!(result.is_err(), "Expected panic for invalid nucleotide");
     }
