@@ -1,4 +1,5 @@
 use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::FxHashSet as HashSet;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
@@ -43,13 +44,30 @@ impl AdjacencyList {
             .push(Edge { to, weight });
     }
 
-    fn get_edges(&self) -> Vec<(u32, u32, u32)> {
+    pub fn get_nodes(&self) -> HashSet <u32> {
+        let mut nodes = HashSet::default();
+
+        for (&node, neighbors) in &self.edges {
+            nodes.insert(node);
+
+            for neighbor in neighbors {
+                nodes.insert(neighbor.to);
+            }
+        }
+
+        nodes
+    }
+
+    fn get_edges<E>(&self) -> Vec<(E, E, u32)> 
+    where
+    E: From<u32>,
+    {
         self.edges
             .iter()
             .flat_map(|(&from, neighbors)| {
                 neighbors
                     .iter()
-                    .map(move |edge| (from, edge.to, edge.weight))
+                    .map(move |edge| (E::from(from), E::from(edge.to), edge.weight))
             })
             .collect()
     }
@@ -90,14 +108,21 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
     //  NB maintain current known distance between all encountered node pairs;
     //     queried correctly, i.e. *dist.get(&next.position).unwrap_or(&u32::MAX), achieves
     //     initial distances of INF for assumed u32 type.
-    let mut dist: HashMap<u32, u32> = HashMap::default();
+    //  let mut dist: HashMap<u32, u32> = HashMap::default();
+
+    let num_nodes = adjs.get_nodes().len();
+    let mut dist = vec![u32::MAX; num_nodes];
+
+    println!("Solving Dijkstra for {} nodes", num_nodes);
 
     //  NB maintain a priority queue (pop returns the min. distance node in queue) as a BinaryHeap.
     let mut heap = BinaryHeap::new();
 
     // NB initialize distances: start/root node is at zero distance & to be processed first.
-    dist.insert(start, 0);
+    // dist.insert(start, 0);
+    dist[start as usize] = 0;
 
+    // NB popping the heap will return the to-be-processed node with least cost/distance.
     heap.push(State {
         cost: 0,
         position: start,
@@ -111,10 +136,15 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
         }
 
         // NB node on the queue has an outdated distance;
+        if cost > dist[position as usize] {
+            // NB skip this node, as it has already been processed with a shorter distance.
+            continue;
+        }
+        /*
         if cost > *dist.get(&position).unwrap_or(&u32::MAX) {
             continue;
         }
-
+        */
         // NB explore neighbors, initially of root.
         if let Some(neighbors) = adjs.edges.get(&position) {
             for edge in neighbors {
@@ -123,7 +153,17 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
                     position: edge.to,
                 };
 
-                // NB here, unwrap_or achieves the new node distance initialized as MAX uint on system.
+                if next.cost < dist[next.position as usize] {
+                    // NB update the distance to the next node.
+                    dist[next.position as usize] = next.cost;
+
+                    // NB place neighbors on the queue (i.e. frontier); next may have a shorter distance
+                    //    defined by another path, in which case it's skipped.
+                    heap.push(next);
+                }
+
+                /*
+                // NB found a new distance to the next node shorter than any previous (initialized MAX).
                 if next.cost < *dist.get(&next.position).unwrap_or(&u32::MAX) {
                     dist.insert(next.position, next.cost);
 
@@ -131,6 +171,7 @@ pub fn dijkstra(adjs: AdjacencyList, start: u32, goal: u32) -> Option<u32> {
                     //    defined by another path, in which case it's skipped.
                     heap.push(next);
                 }
+                */
             }
         }
     }
@@ -152,13 +193,14 @@ pub fn get_adjacencies_fixture() -> AdjacencyList {
     adjs
 }
 
-pub fn get_adjacencies_fixture_large(num_nodes: usize) -> AdjacencyList {
+pub fn get_adjacencies_fixture_large(num_nodes: u32) -> AdjacencyList {
     // NB adjaceny list representation, with a list of edges for each node.
     let mut adjs = AdjacencyList::new();
 
+    // NB "fully connected" 
     for jj in 0..num_nodes {
         for ii in jj + 1..num_nodes {
-            adjs.add_edge(jj as u32, ii as u32, 1);
+            adjs.add_edge(jj, ii, 1);
         }
     }
 
@@ -182,7 +224,15 @@ mod tests {
 
         assert_eq!(4, cost);
     }
+    
+    #[test]
+    fn test_dijkstra_large() {
+        let adjs = get_adjacencies_fixture_large(100);
+	    let cost = dijkstra(adjs, 0, 25).unwrap();
 
+        println!("{:?}", cost);
+    }
+    
     #[test]
     fn test_petgraph_dijkstra() {
         // NB see:
@@ -191,26 +241,27 @@ mod tests {
         let goal = 3;
 
         let adjs = get_adjacencies_fixture();
-        let edges = adjs.get_edges();
-
+        let edges = adjs.get_edges::<u32>();
+        
         // NB <u32, u32> specify the type of the node and edge weights.
         let graph = UnGraph::<u32, u32>::from_edges(&edges);
-
+        
         // NB find the shortest path from `0` to `3` using `1` as the cost for every edge.
         let node_map = petgraph_dijkstra(&graph, start.into(), Some(goal.into()), |edge| {
             *edge.weight()
         });
+        
         let exp = dijkstra(adjs, start, goal).unwrap();
-
-        // NB attempt to cast usize to u32 and unwrap the option.
+        
+        // NB attempt to cast u32 to u32 and unwrap the option.
         let result = node_map
             .get(&NodeIndex::new(goal.try_into().unwrap()))
             .unwrap();
 
         assert_eq!(&exp, result);
-
+        
         // NB see: https://magjac.com/graphviz-visual-editor/;
         //    also with no labels: Dot::with_config(&graph, &[Config::EdgeNoLabel])
-        println!("{:?}", Dot::new(&graph));
+        // println!("{:?}", Dot::new(&graph));
     }
 }
