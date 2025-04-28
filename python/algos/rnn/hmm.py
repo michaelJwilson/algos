@@ -11,7 +11,7 @@ from algos.rnn.utils import get_device, logmatexp
 
 logger = logging.getLogger(__name__)
 
-
+# @torch.compile
 class HMM(torch.nn.Module):
     def __init__(self, batch_size, sequence_length, num_states):
         super(HMM, self).__init__()
