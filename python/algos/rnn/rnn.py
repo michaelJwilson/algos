@@ -125,7 +125,7 @@ class RNN(nn.Module):
         for t in range(seq_len):
             # NB expand single token to a length 1 sequence.
             input_t = x[:, t, :].unsqueeze(1)
-
+            
             # NB observed features -> Gaussian emission embedding, result is -lnP per state.
             input_t = self.layers[0].forward(input_t).squeeze(1)
             """

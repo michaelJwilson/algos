@@ -7,7 +7,7 @@ from torch import optim
 from torchinfo import summary
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN, GaussianEmbedding
-from algos.rnn.utils import set_seed
+from algos.rnn.utils import set_seed, get_device
 from algos.rnn.config import Config
 from torch.utils.data import DataLoader
 from operator import itemgetter
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 def main():
     set_seed(42)
 
-    config = Config()
+    config = Config()    
     dataset = HMMDataset(
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
@@ -36,12 +36,12 @@ def main():
     dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=False)
 
     obvs, states = next(iter(dataloader))
-
+    
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size([config.batch_size, config.sequence_length, 1])
 
     logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
-
+    """
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding().forward(obvs)
 
@@ -52,20 +52,20 @@ def main():
     emission = torch.exp(-embedding[0, :, :])
 
     logger.info(f"Realized Gaussian emission embedding=\n{emission}")
-
+    """
     model = RNN()
     
     logger.info(f"RNN model summary:\n{model}")
-
+    
     summary(
-        model, input_size=(config.batch_size, config.sequence_length, config.num_states)
+        model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
-
+    
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
-    """
+
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
 
@@ -115,7 +115,7 @@ def main():
 
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
-    """
+
     logger.info(f"\n\nDone.\n\n")
 
 

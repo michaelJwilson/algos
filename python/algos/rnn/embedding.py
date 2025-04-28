@@ -39,7 +39,7 @@ class GaussianEmbedding(nn.Module):
         # NB expand x to match the number of states: (batch_size, sequence_length, num_states)
         #    a view of original memory; -1 signifies no change;
         x_broadcast = x.expand(-1, -1, self.num_states)
-
+        
         # NB log of normalization constant
         norm = 0.5 * torch.log(2. * torch.pi * variances_broadcast)
 
