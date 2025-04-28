@@ -41,3 +41,9 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+def logmatexp(transfer, ln_probs):
+    max_ln_probs = torch.max(ln_probs)
+
+    return max_ln_probs + torch.log(torch.exp(ln_probs - max_ln_probs) @ transfer)
