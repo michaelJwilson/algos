@@ -1,1 +1,10 @@
-test: blah
+# HMM dataset definition.
+num_states: 2
+num_sequences: 256
+sequence_length: 2_000
+
+# Training
+batch_size: 256
+num_layers: 1
+learning_rate: 5.0e-2
+num_epochs: 250

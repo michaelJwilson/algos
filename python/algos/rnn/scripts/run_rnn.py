@@ -8,7 +8,9 @@ from torchinfo import summary
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN, GaussianEmbedding
 from algos.rnn.utils import get_device, set_seed
+from algos.rnn.config import load_config
 from torch.utils.data import DataLoader
+from operator import itemgetter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,22 +22,36 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    set_seed(42)
+
+    config = load_config()
+
     # NB should be mps on mac.
     device = get_device()
 
-    set_seed(42)
+    (
+        num_states,
+        num_sequences,
+        sequence_length,
+        batch_size,
+        num_layers,
+        learning_rate,
+        num_epochs,
+    ) = itemgetter(
+        "num_states",
+        "num_sequences",
+        "sequence_length",
+        "batch_size",
+        "num_layers",
+        "learning_rate",
+        "num_epochs",
+    )(
+        config
+    )
 
-    num_states = 2
-    num_sequences = 256
-    sequence_length = 2_000
-    batch_size = 256
-    num_layers = 1
-    learning_rate = 5.0e-2
-    num_epochs = 250
-    
     # NB defines true parameters.
     jump_rate = 0.3
-    trans = np.array([[1. - jump_rate, jump_rate], [jump_rate, 1. - jump_rate]])
+    trans = np.array([[1.0 - jump_rate, jump_rate], [jump_rate, 1.0 - jump_rate]])
 
     means = [5.0, 10.0]
     stds = [1.0, 1.0]
@@ -52,9 +68,9 @@ def main():
 
     dataloader_iter = iter(dataloader)
     observations, states = next(dataloader_iter)
-    
+
     logger.info(f"Realized HMM simulation:\n{states[0,:]}\n{observations[0,:,:]}")
-    
+
     # NB [batch_size, seq_length, single feature].
     assert observations.shape == torch.Size([batch_size, sequence_length, 1])
 
@@ -70,14 +86,14 @@ def main():
     model = RNN(num_states, num_layers, device=device)
 
     logger.info(f"RNN model summary:\n{model}")
-    
+
     # summary(model, input_size=(batch_size, sequence_length, num_states))
 
-    # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                                                                                             
+    # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(observations)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
-        
+
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
 
@@ -94,7 +110,7 @@ def main():
     # logger.info(f"\n{loss}")
 
     # exit(0)
-    
+
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     # NB an epoch is a complete pass through the data (in batches).
@@ -139,6 +155,7 @@ def main():
                 logger.info(f"Name: {name}, Value: {param.data}")
 
     logger.info(f"\n\nDone.\n\n")
-                
+
+
 if __name__ == "__main__":
     main()
