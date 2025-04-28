@@ -11,6 +11,9 @@ uv usage:
     - source .venv/bin/activate
     - 
 
+ruff usage:
+    - ruff check --select F401 --fix
+
 log usage:
     - RUST_LOG=info ./target/release/algos 
 

@@ -1,7 +1,6 @@
 import logging
 import time
 
-import pytest
 import torch
 import torch.nn as nn
 from algos.rnn.transfer import DiagonalMatrixModel
