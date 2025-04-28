@@ -1,19 +1,11 @@
 import os
 import yaml
-
+from types import SimpleNamespace
 
 class Config:
-    def __init__(self, config_path):
-        """
-        Initialize the Config class by loading parameters from a YAML file.
+    def __init__(self, config_path=None):
+        config = self.load_config(config_path)
 
-        Args:
-            config_path (str): Path to the configuration YAML file.
-        """
-        with open(config_path, "r") as file:
-            config = yaml.safe_load(file)
-
-        # Partition the configuration into namespaces
         self.dataset = SimpleNamespace(
             **{
                 "num_states": config.get("num_states"),
@@ -34,13 +26,13 @@ class Config:
     def __repr__(self):
         return f"Config(dataset={self.dataset}, training={self.training})"
 
-    def get_config_path():
+    def get_config_path(self):
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
         return os.path.join(script_dir, "config.yaml")
 
-    def load_config(fpath=None):
-        fpath = get_config_path() if fpath is None else fpath
+    def load_config(self, fpath=None):
+        fpath = self.get_config_path() if fpath is None else fpath
 
         with open(fpath, "r") as file:
             config = yaml.safe_load(file)
