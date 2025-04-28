@@ -21,7 +21,7 @@ class Config:
             result[block] = pformat(vars(getattr(self, block)), indent=4)
 
         return (
-            f"\nConfig(\n" + "\n".join(f"{k}:\n{v}\n" for k, v in result.items()) + ")\n"
+            "\nConfig(\n" + "\n".join(f"{k}:\n{v}\n" for k, v in result.items()) + ")\n"
         )
 
     def __getattr__(self, name):

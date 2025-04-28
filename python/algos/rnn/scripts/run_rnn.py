@@ -107,7 +107,7 @@ def main():
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
 
-    logger.info(f"\n\nDone.\n\n")
+    logger.info("\n\nDone.\n\n")
 
 
 if __name__ == "__main__":
