@@ -8,9 +8,8 @@ from algos.rnn.config import Config
 @pytest.fixture
 def gaussian_embedding():
     # NB default to device defined in config.yaml,
-    #    e.g. native.
-    num_states = Config().dataset.num_states
-    return GaussianEmbedding(num_states)
+    #    e.g. native.    
+    return GaussianEmbedding()
 
 
 def test_initialization(gaussian_embedding):
@@ -44,7 +43,7 @@ def test_forward_pass(gaussian_embedding):
 def test_device_compatibility(gaussian_embedding):
     assert (
         gaussian_embedding.means.device == gaussian_embedding.device
-    ), "Means are not on the correct device"
+    ), f"Inconsistent means device for GaussianEmbedding {gaussian_embedding.means.device} and {gaussian_embedding.device}"
 
     assert (
         gaussian_embedding.log_vars.device == gaussian_embedding.device

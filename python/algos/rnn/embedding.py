@@ -33,7 +33,6 @@ class GaussianEmbedding(nn.Module):
 
     def forward(self, x):
         batch_size, sequence_length, _ = x.shape
-
         variances = torch.exp(self.log_vars)
 
         # NB expand means and variances to match the sequence: (batch_size, 1, num_states); i.e. batch_size and sequence of 1.
@@ -45,7 +44,7 @@ class GaussianEmbedding(nn.Module):
         x_broadcast = x.expand(-1, -1, self.num_states)
 
         # NB log of normalization constant
-        norm = 0.5 * torch.log(2 * torch.pi * variances_broadcast)
+        norm = 0.5 * torch.log(2. * torch.pi * variances_broadcast)
 
         # TODO BUG device issue: self.means on cpu, not mps??
         # NB compute negative log-probabilities for each state and each value in the sequence

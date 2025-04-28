@@ -9,7 +9,7 @@ from algos.rnn.config import Config
 logger = logging.getLogger(__name__)
 
 
-def get_device(device=None):
+def get_device(device=None, index=0):
     """
     Returns a torch device according to the priority:
       - keyword argument
@@ -20,15 +20,15 @@ def get_device(device=None):
         if (device := Config().device) == "native":
             if torch.backends.mps.is_available():
                 # TODO HACK
-                device = "mps:0"
+                device = "mps"
             elif torch.cuda.is_available():
                 device = torch.cuda.current_device()
             else:
                 device = "cpu"
                 
-    logger.info("Utilizing the {device} device.")
+    logger.info(f"Utilizing the {device} device.")
 
-    return torch.device(device)
+    return torch.device(f"{device}:{index}")
 
 
 def set_seed(seed):
