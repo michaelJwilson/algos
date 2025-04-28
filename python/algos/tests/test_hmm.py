@@ -22,13 +22,10 @@ def test_hmm_autodiff():
 
     log_gamma = model(observations)
 
-    print(log_gamma)
-    
-    """
     loss = log_gamma.sum()
 
     loss.backward()
-
+    
     for name, param in model.named_parameters():
         assert (
             param.grad is not None
@@ -37,4 +34,4 @@ def test_hmm_autodiff():
         print(f"Parameter '{name}' has valid gradient.")
 
     print("Autograd is valid for all parameters.")
-    """
+    
