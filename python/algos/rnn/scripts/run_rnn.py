@@ -48,7 +48,9 @@ def main():
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding(config.num_states, device=device).forward(obvs)
 
-    assert embedding.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
+    assert embedding.shape == torch.Size(
+        [config.batch_size, config.sequence_length, config.num_states]
+    )
 
     emission = torch.exp(-embedding[0, :, :])
 
@@ -57,9 +59,11 @@ def main():
     model = RNN(config.num_states, config.num_layers, device=device)
 
     logger.info(f"RNN model summary:\n{model}")
-    """
-    # summary(model, input_size=(batch_size, sequence_length, num_states))
 
+    summary(
+        model, input_size=(config.batch_size, config.sequence_length, config.num_states)
+    )
+    """
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 
