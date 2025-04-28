@@ -63,27 +63,28 @@ def main():
     summary(
         model, input_size=(config.batch_size, config.sequence_length, config.num_states)
     )
-    """
+
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
-
+    
     # NB [batch_size, seq_length, -lnP for _ in num_states].
-    assert estimate.shape == torch.Size([batch_size, sequence_length, num_states])
+    assert estimate.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
 
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
+    """
     loss = criterion(estimate.view(-1, estimate.size(-1)), states.view(-1))
 
     log_probs = estimate.gather(2, states.unsqueeze(-1)).squeeze(-1)
     result = torch.sum(log_probs) / log_probs.numel()
-
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    """
+    optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
     # NB an epoch is a complete pass through the data (in batches).
-    for epoch in range(num_epochs):
+    for epoch in range(config.num_epochs):
         model.train()
         total_loss = 0.0
 
@@ -115,14 +116,14 @@ def main():
 
         if epoch % 10 == 0:
             logger.info(
-                f"----  Epoch [{epoch + 1}/{num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"
+                f"----  Epoch [{epoch + 1}/{config.num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"
             )
 
             params = model.parameters()
 
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
-    """
+
     logger.info(f"\n\nDone.\n\n")
 
 
