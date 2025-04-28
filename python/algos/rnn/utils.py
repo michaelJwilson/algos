@@ -25,7 +25,7 @@ def get_device(device=None):
                 device = torch.cuda.current_device()
             else:
                 device = "cpu"
-
+                
     logger.info("Utilizing the {device} device.")
 
     return torch.device(device)

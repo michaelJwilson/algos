@@ -28,7 +28,7 @@ class GaussianEmbedding(nn.Module):
         self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
 
         logger.info(
-            f"Initialized Gaussian embedding with mean={self.means} (grad? {self.means.requires_grad}) and log vars={self.log_vars} (grad? {self.log_vars.requires_grad})"
+            f"Initialized Gaussian embedding on device {self.device} with mean={self.means} (grad? {self.means.requires_grad}) and log vars={self.log_vars} (grad? {self.log_vars.requires_grad})"
         )
 
     def forward(self, x):
