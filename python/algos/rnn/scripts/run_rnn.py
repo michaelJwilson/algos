@@ -25,6 +25,9 @@ def main():
     set_seed(42)
 
     config = Config()
+
+    batch_size=config.batch_size
+    sequence_length=config.sequence_length
     
     device = get_device()
 
@@ -36,21 +39,16 @@ def main():
         stds=config.stds,
     )
 
-    batch_size=config.batch_size
-    sequence_length=config.sequence_length
-
     obvs, states = dataset[0]
+
+    # NB [batch_size, seq_length, single feature].                                                                                                                                                                    
+    assert obvs.shape == torch.Size([sequence_length, 1])
     
+    logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
+        
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-    # dataloader_iter = iter(dataloader)
-    # obvs, states = next(dataloader_iter)
-
-    logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
     """
-    # NB [batch_size, seq_length, single feature].
-    assert obvs.shape == torch.Size([batch_size, sequence_length, 1])
-
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding(num_states, device=device).forward(obvs)
 
@@ -59,7 +57,7 @@ def main():
     emission = torch.exp(-embedding[0, :, :])
 
     logger.info(f"Realized Gaussian emission embedding=\n{emission}")
-
+    """
     model = RNN(num_states, num_layers, device=device)
 
     logger.info(f"RNN model summary:\n{model}")
