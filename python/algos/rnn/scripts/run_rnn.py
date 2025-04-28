@@ -29,24 +29,25 @@ def main():
     device = get_device()
 
     dataset = HMMDataset(
-        num_sequences=config.dataset.num_sequences,
-        sequence_length=config.dataset.sequence_length,
-        jump_rate=config.dataset.jump_rate
-        means=config.dataset.means,
-        stds=config.dataset.stds,
+        num_sequences=config.num_sequences,
+        sequence_length=config.sequence_length,
+        jump_rate=config.jump_rate,
+        means=config.means,
+        stds=config.stds,
     )
 
-    batch_size=config.training.batch_size
-    sequence_length=config.training.sequence_length
+    batch_size=config.batch_size
+    sequence_length=config.sequence_length
+
+    obvs, states = dataset[0]
     
-    # TODO
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-    dataloader_iter = iter(dataloader)
-    obvs, states = next(dataloader_iter)
+    # dataloader_iter = iter(dataloader)
+    # obvs, states = next(dataloader_iter)
 
-    logger.info(f"Realized HMM simulation:\n{states[0,:]}\n{obvs[0,:,:]}")
-
+    logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
+    """
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size([batch_size, sequence_length, 1])
 
@@ -129,7 +130,7 @@ def main():
 
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
-
+    """
     logger.info(f"\n\nDone.\n\n")
 
 

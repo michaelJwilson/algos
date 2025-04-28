@@ -3,7 +3,7 @@ import logging
 import torch.nn.functional as F
 from torch import nn
 from algos.rnn.utils import get_device
-from algos.rnn.config import load_config
+from algos.rnn.config import Config
 
 logger = logging.getLogger(__name__)
 
