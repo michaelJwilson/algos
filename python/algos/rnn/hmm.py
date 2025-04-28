@@ -15,63 +15,53 @@ class HMM(torch.nn.Module):
     def __init__(self, num_states, sequence_length):
         super(HMM, self).__init__()
 
+        self.device = get_device()
         self.num_states = num_states
         self.sequence_length = sequence_length
 
         # NB torch.randn samples the standard normal (per state).
         self.log_initial_probs = torch.nn.Parameter(
-            torch.randn(num_states, dtype=torch.float32)
+            torch.randn(num_states, dtype=torch.float32, device=self.device)
         )
 
         self.log_transition_matrix = torch.nn.Parameter(
-            torch.randn(num_states, num_states, dtype=torch.float32)
+            torch.randn(num_states, num_states, dtype=torch.float32, device=self.device)
         )
 
-        self.log_emission_probs = torch.nn.Parameter(
-            torch.randn(num_states, dtype=torch.float32)
-        )
+        self.embedding = GaussianEmbedding()
 
     def forward(self, obvs):
-        batch_size, sequence_length = obvs.shape
+        batch_size, sequence_length, _ = obvs.unsqueeze(-1).shape
 
-        one_hot_obvs = F.one_hot(obvs, num_classes=self.num_states).float()
-        
         alpha = torch.zeros(
             batch_size,
             self.sequence_length,
             self.num_states,
-            device=obvs.device,
+            device=self.device,
         )
 
         beta = torch.zeros(
             batch_size,
             self.sequence_length,
             self.num_states,
-            device=obvs.device,
-	)
-
-        emission_probs = one_hot_obvs @ self.log_emission_probs
-
-        alpha[:, 0, :] = self.log_initial_probs + emission_probs[:, 0, :]
-        """
-        # NB initial PI prior + emission of first character in obvs.
-        alpha[:, 0, :] = (
-            self.log_initial_probs + self.log_emission_probs.gather(0, obvs[:, 0].unsqueeze(1)).squeeze(1)
+            device=self.device,
         )
-        """
+
+        # NB [batch_size, sequence_length, num_states]
+        emission_probs = self.embedding.forward(obvs.unsqueeze(-1))
+        
+        alpha[:, 0, :] = emission_probs[:, 0, :] + self.log_initial_probs
+
         for t in range(1, self.sequence_length):
-            alpha[:, t, :] = (
-                torch.logsumexp(
-                    alpha[:, t - 1, :].unsqueeze(2) + self.log_transition_matrix, dim=1
-                )
-                + self.log_emission_probs.gather(0, obvs[:, t].unsqueeze(1)).squeeze(1)
-            )
+            alpha[:, t, :] = torch.logsumexp(
+                alpha[:, t - 1, :].unsqueeze(-1) + self.log_transition_matrix, dim=1
+            ) + emission_probs[:, t, :]
 
         for t in range(self.sequence_length - 2, -1, -1):
             beta[:, t, :] = torch.logsumexp(
                 beta[:, t + 1, :].unsqueeze(1)
                 + self.log_transition_matrix
-                + self.log_emission_probs[obvs[:, t + 1]].unsqueeze(1),
+                + emission_probs[:, t+1, :],
                 dim=2,
             )
 

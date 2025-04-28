@@ -1,13 +1,19 @@
 import torch
 from algos.rnn.hmm import HMM
+from algos.rnn.utils import get_device
+from algos.rnn.config import Config
 
 
 def test_hmm_autodiff():
-    num_states = 3
-    sequence_length = 5
-    batch_size = 2
+    config = Config()
+    
+    num_states = config.num_states
+    batch_size = config.batch_size
+    sequence_length = config.sequence_length
 
-    observations = torch.randint(0, num_states, (batch_size, sequence_length))
+    device = get_device()
+    
+    observations = torch.randint(0, num_states, (batch_size, sequence_length), device=device)
 
     print(f"\n{observations}")
     
