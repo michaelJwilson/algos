@@ -25,37 +25,33 @@ def main():
     set_seed(42)
 
     config = Config()
-
-    # NB should be mps on mac.
+    
     device = get_device()
 
-    # NB defines true parameters.
-    jump_rate = 0.3
-    trans = np.array([[1.0 - jump_rate, jump_rate], [jump_rate, 1.0 - jump_rate]])
-
-    means = [5.0, 10.0]
-    stds = [1.0, 1.0]
-
     dataset = HMMDataset(
-        num_sequences=num_sequences,
-        sequence_length=sequence_length,
-        trans=trans,
-        means=means,
-        stds=stds,
+        num_sequences=config.dataset.num_sequences,
+        sequence_length=config.dataset.sequence_length,
+        jump_rate=config.dataset.jump_rate
+        means=config.dataset.means,
+        stds=config.dataset.stds,
     )
 
+    batch_size=config.training.batch_size
+    sequence_length=config.training.sequence_length
+    
+    # TODO
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
     dataloader_iter = iter(dataloader)
-    observations, states = next(dataloader_iter)
+    obvs, states = next(dataloader_iter)
 
-    logger.info(f"Realized HMM simulation:\n{states[0,:]}\n{observations[0,:,:]}")
+    logger.info(f"Realized HMM simulation:\n{states[0,:]}\n{obvs[0,:,:]}")
 
     # NB [batch_size, seq_length, single feature].
-    assert observations.shape == torch.Size([batch_size, sequence_length, 1])
+    assert obvs.shape == torch.Size([batch_size, sequence_length, 1])
 
     # NB embedding is -lnP per-state for Gaussian emission.
-    embedding = GaussianEmbedding(num_states, device=device).forward(observations)
+    embedding = GaussianEmbedding(num_states, device=device).forward(obvs)
 
     assert embedding.shape == torch.Size([batch_size, sequence_length, num_states])
 
@@ -70,7 +66,7 @@ def main():
     # summary(model, input_size=(batch_size, sequence_length, num_states))
 
     # NB forward model is lnP to match CrossEntropyLoss()
-    estimate = model.forward(observations)
+    estimate = model.forward(obvs)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
 
@@ -99,10 +95,10 @@ def main():
         total_loss = 0.0
 
         # NB cycles through all sequences.
-        for batch_idx, (observations, states) in enumerate(dataloader):
+        for batch_idx, (obvs, states) in enumerate(dataloader):
             ## >>>>
             outputs = model(
-                observations
+                obvs
             )  # Shape: (batch_size, sequence_length, num_states)
 
             # NB conserves last dim. axis and collapses remaining dims. to 1D.

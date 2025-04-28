@@ -39,7 +39,9 @@ def populate_obs(obs, states, means, stds, sequence_length):
 
 
 class HMMDataset(Dataset):
-    def __init__(self, num_sequences, sequence_length, trans, means, stds, device=None):
+    def __init__(
+        self, num_sequences, sequence_length, jump_rate, means, stds, device=None
+    ):
         """
         Args:
             num_sequences (int): Number of sequences in the dataset.
@@ -51,13 +53,16 @@ class HMMDataset(Dataset):
         self.device = get_device() if device is None else device
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
-        self.trans = trans
+        self.jump_rate = jump_rate
+        self.trans = np.array(
+            [[1.0 - jump_rate, jump_rate], [jump_rate, 1.0 - jump_rate]]
+        )
 
         # NB assumes Gaussian.
         self.means = means
         self.stds = stds
         self.num_states = len(self.means)
-        
+
         self.states = np.zeros(self.sequence_length, dtype=int)
         self.obvs = np.zeros(self.sequence_length, dtype=float)
 
@@ -86,9 +91,9 @@ class HMMDataset(Dataset):
         )
 
         states = torch.tensor(self.states, dtype=torch.long, device=self.device)
-        obvs = torch.tensor(
-            self.obvs, dtype=torch.float, device=self.device
-        ).unsqueeze(-1)
+        obvs = torch.tensor(self.obvs, dtype=torch.float, device=self.device).unsqueeze(
+            -1
+        )
 
         logger.debug(f"{states}")
         logger.debug(f"Realized HMM simulation:\n{obvs}")
