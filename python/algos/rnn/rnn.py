@@ -6,6 +6,7 @@ import torch.nn.functional as F
 
 from algos.rnn.utils import get_device
 from algos.rnn.embedding import GaussianEmbedding
+from algos.rnn.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +22,16 @@ class RNNUnit(nn.Module):
     See:
        https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
     """
-
     # NB emb_dim is == num_states in a HMM; where the values == -ln probs.
-    def __init__(self, emb_dim, device=None, requires_grad=False):
+    def __init__(self, device=None, requires_grad=False):
         super(RNNUnit, self).__init__()
 
-        self.device = get_device() if device is None else device
-                        
+        self.device = get_device(device)
+        self.emb_dim = emb_dim = Config().num_states
+                         
         if not requires_grad:
-            self.Uh = torch.zeros(emb_dim, emb_dim).to(self.device)
-            self.Wh = torch.eye(emb_dim, m=emb_dim).to(self.device)
+            self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
+            self.Wh = torch.eye(emb_dim, device=self.device)
 
             # NB assume no non-linearities.
             self.phi = nn.Identity
@@ -38,12 +39,12 @@ class RNNUnit(nn.Module):
         else:
             # NB equivalent to a transfer matrix: contributes h . U
             # self.Uh = torch.randn(emb_dim, emb_dim).to(self.device)
-            self.Uh = torch.eye(emb_dim, m=emb_dim).to(self.device)
+            self.Uh = torch.eye(emb_dim, device=self.device)
             
             # NB novel: equivalent to a linear 'distortion' of the
             #    state probs. under the assumed emission model.
             # self.Wh = torch.randn(emb_dim, emb_dim).to(self.device)
-            self.Wh = torch.eye(emb_dim, m=emb_dim).to(self.device)
+            self.Wh = torch.eye(emb_dim, self.device)
             
             # -- normalization --
             # NB relatively novel: would equate to the norm of log probs.
@@ -82,25 +83,27 @@ class RNN(nn.Module):
     W is a distortion of the embedding (equivalent to a cumulative
     ln P mapping?).
     """
-    def __init__(self, emb_dim, num_rnn_layers, device=None):
+    def __init__(self, device=None):
         super(RNN, self).__init__()
 
-        self.device = get_device() if device is None else device
-
+        config = Config()
+        
+        self.device = get_device(device)
+        
         # NB embedding dimension == assumed number of states.
-        self.emb_dim = emb_dim
+        self.emb_dim = config.num_states
 
         # NB first layer is embedding; RNN patches outliers by
         #    emitting a corrected state_emission per layer.
-        self.num_layers = 1 + num_rnn_layers
+        self.num_layers = 1 + config.num_layers
 
         self.layers = nn.ModuleList(
-            [GaussianEmbedding(emb_dim, device=self.device)]
-            + [RNNUnit(emb_dim, device=self.device) for _ in range(num_rnn_layers)]
+            [GaussianEmbedding()]
+            + [RNNUnit() for _ in range(config.num_layers)]
         )
 
         # TODO why is this necessary?
-        self.to(device)
+        # self.to(device)
 
     def forward(self, x):
         """

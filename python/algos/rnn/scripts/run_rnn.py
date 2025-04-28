@@ -7,7 +7,7 @@ from torch import optim
 from torchinfo import summary
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN, GaussianEmbedding
-from algos.rnn.utils import get_device, set_seed
+from algos.rnn.utils import set_seed
 from algos.rnn.config import Config
 from torch.utils.data import DataLoader
 from operator import itemgetter
@@ -25,9 +25,6 @@ def main():
     set_seed(42)
 
     config = Config()
-
-    device = get_device()
-
     dataset = HMMDataset(
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
@@ -46,7 +43,7 @@ def main():
     logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
 
     # NB embedding is -lnP per-state for Gaussian emission.
-    embedding = GaussianEmbedding(config.num_states, device=device).forward(obvs)
+    embedding = GaussianEmbedding().forward(obvs)
 
     assert embedding.shape == torch.Size(
         [config.batch_size, config.sequence_length, config.num_states]
@@ -56,8 +53,8 @@ def main():
 
     logger.info(f"Realized Gaussian emission embedding=\n{emission}")
 
-    model = RNN(config.num_states, config.num_layers, device=device)
-
+    model = RNN()
+    """
     logger.info(f"RNN model summary:\n{model}")
 
     summary(
@@ -75,12 +72,7 @@ def main():
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
-    """
-    loss = criterion(estimate.view(-1, estimate.size(-1)), states.view(-1))
 
-    log_probs = estimate.gather(2, states.unsqueeze(-1)).squeeze(-1)
-    result = torch.sum(log_probs) / log_probs.numel()
-    """
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
     # NB an epoch is a complete pass through the data (in batches).
@@ -123,7 +115,7 @@ def main():
 
             for name, param in model.named_parameters():
                 logger.info(f"Name: {name}, Value: {param.data}")
-
+    """
     logger.info(f"\n\nDone.\n\n")
 
 
