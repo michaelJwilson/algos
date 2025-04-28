@@ -1,7 +1,8 @@
 import os
-import yaml
-from types import SimpleNamespace
 from pprint import pformat
+from types import SimpleNamespace
+
+import yaml
 
 
 class Config:

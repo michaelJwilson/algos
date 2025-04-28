@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.optim import Adam
 
+
 @torch.compile
 class DiagonalMatrixModel(nn.Module):
     def __init__(self, size):

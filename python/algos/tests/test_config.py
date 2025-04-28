@@ -1,5 +1,6 @@
 from algos.rnn.config import Config
 
+
 def test_load_config():
     config = Config()
 

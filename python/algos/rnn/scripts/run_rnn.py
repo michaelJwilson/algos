@@ -1,16 +1,15 @@
 import logging
+from operator import itemgetter
 
 import numpy as np
 import torch
-from torch import nn
-from torch import optim
-from torchinfo import summary
+from algos.rnn.config import Config
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN, GaussianEmbedding
-from algos.rnn.utils import set_seed, get_device
-from algos.rnn.config import Config
+from algos.rnn.utils import get_device, set_seed
+from torch import nn, optim
 from torch.utils.data import DataLoader
-from operator import itemgetter
+from torchinfo import summary
 
 logging.basicConfig(
     level=logging.INFO,

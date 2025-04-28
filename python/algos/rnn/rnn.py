@@ -1,12 +1,12 @@
 import logging
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
-from algos.rnn.utils import get_device
-from algos.rnn.embedding import GaussianEmbedding
 from algos.rnn.config import Config
+from algos.rnn.embedding import GaussianEmbedding
+from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,11 @@
-import torch
 import logging
+
+import torch
 import torch.nn.functional as F
 from torch import nn
-from algos.rnn.utils import get_device
+
 from algos.rnn.config import Config
+from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
 

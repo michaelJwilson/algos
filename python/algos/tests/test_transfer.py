@@ -1,12 +1,12 @@
-import time
-import torch
-import pytest
 import logging
-import torch.nn as nn
+import time
 
-from torch.optim import Adam
+import pytest
+import torch
+import torch.nn as nn
 from algos.rnn.transfer import DiagonalMatrixModel
 from algos.rnn.utils import set_seed
+from torch.optim import Adam
 
 logger = logging.getLogger(__name__)
 

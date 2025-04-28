@@ -1,8 +1,7 @@
 import pytest
 import torch
-
-from algos.rnn.embedding import GaussianEmbedding
 from algos.rnn.config import Config
+from algos.rnn.embedding import GaussianEmbedding
 
 
 @pytest.fixture
