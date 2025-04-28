@@ -9,11 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 class GaussianEmbedding(nn.Module):
-    def __init__(self, num_states, device=None):
+    def __init__(self, device=None):
         super(GaussianEmbedding, self).__init__()
 
         self.device = get_device(device)
-
         self.num_states = Config().num_states
 
         # NB Trainable parameters: mean and log(variance) for each state
@@ -23,7 +22,7 @@ class GaussianEmbedding(nn.Module):
         self.means = torch.tensor([3.0, 8.0], dtype=torch.float32).to(self.device)
 
         # NB fixed, unit variances.
-        self.log_vars = torch.zeros(num_states, dtype=torch.float32).to(self.device)
+        self.log_vars = torch.zeros(self.num_states, dtype=torch.float32).to(self.device)
 
         self.means = nn.Parameter(self.means, requires_grad=True)
         self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
@@ -33,14 +32,6 @@ class GaussianEmbedding(nn.Module):
         )
 
     def forward(self, x):
-        """
-        Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, sequence_length, num_features), representing the sequence of features.
-
-        Returns:
-            torch.Tensor: Negative log-probabilities for each state and each value in the sequence,
-                          shape (batch_size, sequence_length, num_states).
-        """
         batch_size, sequence_length, _ = x.shape
 
         variances = torch.exp(self.log_vars)
