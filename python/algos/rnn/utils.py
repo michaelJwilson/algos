@@ -26,7 +26,7 @@ def get_device(device=None, index=0):
             else:
                 device = "cpu"
                 
-    logger.debug(f"Utilizing the {device} device.")
+    logger.debug(f"Utilizing {device}:{index} device.")
 
     return torch.device(f"{device}:{index}")
 

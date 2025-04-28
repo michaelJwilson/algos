@@ -8,11 +8,11 @@ from algos.rnn.hmm_dataset import HMMDataset
 def hmm_dataset():
     num_sequences = 10
     sequence_length = 5
-    trans = np.array([[0.5, 0.5], [0.5, 0.5]])
+    jump_rate = 0.5
     means = [0.0, 1.0]
     stds = [1.0, 1.0]
     
-    return HMMDataset(num_sequences, sequence_length, trans, means, stds)
+    return HMMDataset(num_sequences, sequence_length, jump_rate, means, stds)
 
 
 def test_hmm_dataset_item_shape(hmm_dataset):
