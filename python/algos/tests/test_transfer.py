@@ -5,23 +5,32 @@ import torch.nn as nn
 
 from torch.optim import Adam
 from algos.rnn.transfer import DiagonalMatrixModel
+from algos.rnn.utils import set_seed
 
 logger = logging.getLogger(__name__)
+
+set_seed(42)
 
 def test_transfer():
     size = 4
     model = DiagonalMatrixModel(size)
 
-    x = torch.randn(2, size)
-    target = torch.randn(2, size)
+    pi = torch.randn(2, size)
+    T = torch.diag(torch.randn(size))
+
+    print(f"\n\nExpectation for Transfer=\n{T}\n")
+
+    target = pi @ T
 
     criterion = nn.MSELoss()
-    optimizer = Adam(model.parameters(), lr=1.e-2)
+    optimizer = Adam(model.parameters(), lr=1.0e-2)
 
-    for epoch in range(100):
+    print(f"\n\nInitialization for Transfer=\n{model.diag}\n")
+    
+    for epoch in range(1_000):
         optimizer.zero_grad()
 
-        output = model(x)
+        output = model(pi)
 
         loss = criterion(output, target)
 
@@ -29,9 +38,10 @@ def test_transfer():
 
         optimizer.step()
 
-        if epoch % 10 == 0:
-            print(f"\nEpoch {epoch}, Loss: {loss.item()}")
+        if epoch % 100 == 0:
+            print(f"Epoch {epoch:3d}, Loss: {loss.item()}")
 
-
-    print("\n\nTrained diagonal elements:", model.diagonal.data)
+    assert torch.allclose(T, torch.diag(model.diag), atol=1e-16), "Tensors are not nearly equal!"
+            
+    print("\n\nTrained diagonal elements:\n", torch.diag(model.diag.data))
     print("\n\nDone.\n\n")
