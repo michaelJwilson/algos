@@ -73,7 +73,7 @@ class RNNUnit(nn.Module):
         # HACK BUG apply activation?
         return result
 
-
+    
 class RNN(nn.Module):
     """
     Evaluates an auto-regressive ('next token') multi-layer RNN
