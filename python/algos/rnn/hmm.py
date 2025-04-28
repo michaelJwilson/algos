@@ -34,6 +34,8 @@ class HMM(torch.nn.Module):
     def forward(self, obvs):
         batch_size, sequence_length = obvs.shape
 
+        one_hot_obvs = F.one_hot(obvs, num_classes=self.num_states).float()
+        
         alpha = torch.zeros(
             batch_size,
             self.sequence_length,
@@ -48,11 +50,15 @@ class HMM(torch.nn.Module):
             device=obvs.device,
 	)
 
+        emission_probs = one_hot_obvs @ self.log_emission_probs
+
+        alpha[:, 0, :] = self.log_initial_probs + emission_probs[:, 0, :]
+        """
         # NB initial PI prior + emission of first character in obvs.
         alpha[:, 0, :] = (
             self.log_initial_probs + self.log_emission_probs.gather(0, obvs[:, 0].unsqueeze(1)).squeeze(1)
         )
-
+        """
         for t in range(1, self.sequence_length):
             alpha[:, t, :] = (
                 torch.logsumexp(
