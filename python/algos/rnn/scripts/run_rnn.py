@@ -54,7 +54,7 @@ def main():
     logger.info(f"Realized Gaussian emission embedding=\n{emission}")
 
     model = RNN()
-    """
+    
     logger.info(f"RNN model summary:\n{model}")
 
     summary(
@@ -65,7 +65,7 @@ def main():
     estimate = model.forward(obvs)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
-    
+    """
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
 

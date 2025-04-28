@@ -50,7 +50,7 @@ class HMMDataset(Dataset):
             means (list): List of means for Gaussian emissions for each state.
             stds (list): List of standard deviations for Gaussian emissions for each state.
         """
-        self.device = get_device() if device is None else device
+        self.device = get_device(device)
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
         self.jump_rate = jump_rate
