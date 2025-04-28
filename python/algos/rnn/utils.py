@@ -19,9 +19,10 @@ def get_device(device=None):
     if device is None:
         if (device := Config().device) == "native":
             if torch.backends.mps.is_available():
-                device = "mps"
+                # TODO HACK
+                device = "mps:0"
             elif torch.cuda.is_available():
-                device = "cuda"
+                device = torch.cuda.current_device()
             else:
                 device = "cpu"
 
