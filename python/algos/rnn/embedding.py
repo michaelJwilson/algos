@@ -7,7 +7,7 @@ from algos.rnn.config import Config
 
 logger = logging.getLogger(__name__)
 
-@torch.compile
+
 class GaussianEmbedding(nn.Module):
     def __init__(self):
         super(GaussianEmbedding, self).__init__()

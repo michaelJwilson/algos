@@ -7,7 +7,7 @@ dataset:
     sequence_length: 2_000
 
 training:
-    device: "cpu"
+    device: "native"
     batch_size: 256
     num_layers: 1
     learning_rate: 5.0e-2

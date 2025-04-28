@@ -34,7 +34,7 @@ def main():
     )
 
     dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=False)
-
+    """
     obvs, states = next(iter(dataloader))
     
     # NB [batch_size, seq_length, single feature].
@@ -48,11 +48,11 @@ def main():
     assert embedding.shape == torch.Size(
         [config.batch_size, config.sequence_length, config.num_states]
     )
-
+    """
     model = RNN()
     
     logger.info(f"RNN model summary:\n{model}")
-    
+    """
     summary(
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
@@ -64,7 +64,7 @@ def main():
 
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
-
+    """
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
