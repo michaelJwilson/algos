@@ -7,14 +7,25 @@ from numba import njit
 
 from algos.rnn.utils import get_device
 
+"""
+HMM simultation assuming Gaussian emission.
+"""
+
 logger = logging.getLogger(__name__)
 
 
 @njit
 def populate_states(states, num_states, transfer):
+    """
+    Populate HMM states according to Categorical
+    transfer.
+    """
     for t in range(1, len(states)):
         ps = transfer[states[t - 1]]
         sum_ps = np.cumsum(ps)
+
+        # NB equivalent to Categorical sampling
+        #    by ps, under njit.
         sample = np.random.rand()
         states[t] = np.searchsorted(sum_ps, sample)
 
@@ -41,12 +52,14 @@ class HMMDataset(Dataset):
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
         self.trans = trans
+
+        # NB assumes Gaussian.
         self.means = means
         self.stds = stds
         self.num_states = len(self.means)
-
+        
         self.states = np.zeros(self.sequence_length, dtype=int)
-        self.observations = np.zeros(self.sequence_length, dtype=float)
+        self.obvs = np.zeros(self.sequence_length, dtype=float)
 
         logger.info(
             f"Generating HMMDataset on {self.device} with true parameters:\nM={self.means}\nT=\n{self.trans}"
@@ -61,7 +74,7 @@ class HMMDataset(Dataset):
         """
         # TODO necessary?
         self.states[:] = 0
-        self.observations[:] = 0.0
+        self.obvs[:] = 0.0
 
         # NB uniform categorical prior on starting state.
         self.states[0] = np.random.choice(self.num_states)
@@ -69,19 +82,19 @@ class HMMDataset(Dataset):
         populate_states(self.states, self.num_states, self.trans)
 
         populate_obs(
-            self.observations, self.states, self.means, self.stds, self.sequence_length
+            self.obvs, self.states, self.means, self.stds, self.sequence_length
         )
 
         states = torch.tensor(self.states, dtype=torch.long, device=self.device)
-        observations = torch.tensor(
-            self.observations, dtype=torch.float, device=self.device
+        obvs = torch.tensor(
+            self.obvs, dtype=torch.float, device=self.device
         ).unsqueeze(-1)
 
         logger.debug(f"{states}")
-        logger.debug(f"Realized HMM simulation:\n{observations}")
+        logger.debug(f"Realized HMM simulation:\n{obvs}")
 
         # NB when called as a batch, will have shape [batch_size, seq_length, 1].
-        return observations, states
+        return obvs, states
 
 
 if __name__ == "__main__":
