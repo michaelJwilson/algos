@@ -10,10 +10,6 @@ logger = logging.getLogger(__name__)
 
 class GaussianEmbedding(nn.Module):
     def __init__(self, num_states, device=None):
-        """
-        Args:
-            num_states (int): Number of Gaussian-distributed states.
-        """
         super(GaussianEmbedding, self).__init__()
 
         self.device = get_device() if device is None else device

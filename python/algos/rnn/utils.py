@@ -4,21 +4,22 @@ import logging
 import numpy as np
 import torch
 
+from algos.rnn.config import Config
+
 logger = logging.getLogger(__name__)
 
 def get_device():
-    # TODO HACK
-    device = "cpu"
-
-    """
-    if torch.backends.mps.is_available():
-        device = torch.device("mps")
-    else:
-        device = torch.device("cpu")
-    """
+    if device := Config().device == "native":
+        if torch.backends.mps.is_available():
+            device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"            
+        else:
+            device = "cpu"
+            
     logger.info("Utilizing the {device} device.")
         
-    return device
+    return torch.device(device)
 
 
 def set_seed(seed):
