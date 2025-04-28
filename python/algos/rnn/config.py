@@ -7,7 +7,7 @@ from pprint import pformat
 class Config:
     def __init__(self, config_path=None):
         config = self.load_config(config_path)
-
+        
         self.blocks = config.keys()
 
         for name in self.blocks:
@@ -20,7 +20,7 @@ class Config:
             result[block] = pformat(vars(getattr(self, block)), indent=4)
 
         return (
-            f"Config(\n" + "\t".join(f"{k}:\n{v}" for k, v in result.items()) + "\n)\n"
+            f"\nConfig(\n" + "\n".join(f"{k}:\n{v}\n" for k, v in result.items()) + ")\n"
         )
 
     def __getattr__(self, name):
