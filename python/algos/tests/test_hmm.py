@@ -13,9 +13,12 @@ def test_hmm_autodiff():
     
     model = HMM(num_states, sequence_length)
     model.zero_grad()
-    """
+
     log_gamma = model(observations)
+
+    print(log_gamma)
     
+    """
     loss = log_gamma.sum()
 
     loss.backward()
