@@ -7,8 +7,6 @@ from algos.rnn.config import Config
 
 @pytest.fixture
 def gaussian_embedding():
-    # NB default to device defined in config.yaml,
-    #    e.g. native.    
     return GaussianEmbedding()
 
 
