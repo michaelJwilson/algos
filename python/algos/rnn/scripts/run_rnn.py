@@ -8,7 +8,7 @@ from torchinfo import summary
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN, GaussianEmbedding
 from algos.rnn.utils import get_device, set_seed
-from algos.rnn.config import load_config
+from algos.rnn.config import Config
 from torch.utils.data import DataLoader
 from operator import itemgetter
 
@@ -24,30 +24,10 @@ logger = logging.getLogger(__name__)
 def main():
     set_seed(42)
 
-    config = load_config()
+    config = Config()
 
     # NB should be mps on mac.
     device = get_device()
-
-    (
-        num_states,
-        num_sequences,
-        sequence_length,
-        batch_size,
-        num_layers,
-        learning_rate,
-        num_epochs,
-    ) = itemgetter(
-        "num_states",
-        "num_sequences",
-        "sequence_length",
-        "batch_size",
-        "num_layers",
-        "learning_rate",
-        "num_epochs",
-    )(
-        config
-    )
 
     # NB defines true parameters.
     jump_rate = 0.3

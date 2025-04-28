@@ -1,4 +1,7 @@
 # HMM dataset definition.
+jump_rate: 0.3    
+means: [5.0, 10.0]
+stds: [1.0, 1.0]
 num_states: 2
 num_sequences: 256
 sequence_length: 2_000
