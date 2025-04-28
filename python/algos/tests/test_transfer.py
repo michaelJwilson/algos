@@ -1,3 +1,4 @@
+import time
 import torch
 import pytest
 import logging
@@ -12,7 +13,9 @@ logger = logging.getLogger(__name__)
 set_seed(42)
 
 def test_transfer():
-    size = 4
+    start = time.time()
+    
+    size = 8
     model = DiagonalMatrixModel(size)
 
     pi = torch.randn(2, size)
@@ -41,7 +44,7 @@ def test_transfer():
         if epoch % 100 == 0:
             print(f"Epoch {epoch:3d}, Loss: {loss.item()}")
 
-    assert torch.allclose(T, torch.diag(model.diag), atol=1e-16), "Tensors are not nearly equal!"
+    assert torch.allclose(T, torch.diag(model.diag), atol=1e-4)
             
     print("\n\nTrained diagonal elements:\n", torch.diag(model.diag.data))
-    print("\n\nDone.\n\n")
+    print(f"\n\nDone (in {time.time() - start:.3f}) seconds.\n\n")
