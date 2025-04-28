@@ -6,6 +6,7 @@ class Config:
     def __init__(self, config_path=None):
         config = self.load_config(config_path)
 
+        """
         self.dataset = SimpleNamespace(
             **{
                 "num_states": config.get("num_states"),
@@ -22,6 +23,10 @@ class Config:
                 "num_epochs": config.get("num_epochs"),
             }
         )
+        """
+
+        self.dataset = SimpleNamespace(**config.get("dataset", {}))
+        self.training = SimpleNamespace(**config.get("training", {}))
 
     def __repr__(self):
         return f"Config(dataset={self.dataset}, training={self.training})"
