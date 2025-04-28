@@ -41,7 +41,7 @@ def main():
     assert obvs.shape == torch.Size([config.batch_size, config.sequence_length, 1])
 
     logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
-    """
+
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding().forward(obvs)
 
@@ -49,10 +49,6 @@ def main():
         [config.batch_size, config.sequence_length, config.num_states]
     )
 
-    emission = torch.exp(-embedding[0, :, :])
-
-    logger.info(f"Realized Gaussian emission embedding=\n{emission}")
-    """
     model = RNN()
     
     logger.info(f"RNN model summary:\n{model}")
