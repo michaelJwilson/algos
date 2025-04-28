@@ -21,6 +21,8 @@ class GaussianEmbedding(nn.Module):
 
         # NB Trainable parameters: mean and log(variance) for each state
         # self.means = torch.randn(num_states, dtype=torch.float32).to(self.device)
+
+        # NB fixed means.
         self.means = torch.tensor([3.0, 8.0], dtype=torch.float32).to(self.device)
 
         # NB fixed, unit variances.
