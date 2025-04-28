@@ -1,18 +1,23 @@
 import random
+import logging
 
 import numpy as np
 import torch
 
+logger = logging.getLogger(__name__)
 
 def get_device():
     # TODO HACK
-    return "cpu"
-    
+    device = "cpu"
+
+    """
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     else:
         device = torch.device("cpu")
-
+    """
+    logger.info("Utilizing the {device} device.")
+        
     return device
 
 
