@@ -17,7 +17,7 @@ def test_hmm_autodiff():
 
     print(f"\n{observations}")
     
-    model = HMM(num_states, sequence_length)
+    model = HMM(batch_size, sequence_length, num_states)
     model.zero_grad()
 
     log_gamma = model(observations)
