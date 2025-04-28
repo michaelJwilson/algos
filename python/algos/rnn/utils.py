@@ -8,17 +8,25 @@ from algos.rnn.config import Config
 
 logger = logging.getLogger(__name__)
 
-def get_device():
-    if device := Config().device == "native":
-        if torch.backends.mps.is_available():
-            device = "mps"
-        elif torch.cuda.is_available():
-            device = "cuda"            
-        else:
-            device = "cpu"
-            
+
+def get_device(device=None):
+    """
+    Returns a torch device according to the priority:
+      - keyword argument
+      - config definition, one of "native" or named,
+        e.g. cpu.
+    """
+    if device is None:
+        if (device := Config().device) == "native":
+            if torch.backends.mps.is_available():
+                device = "mps"
+            elif torch.cuda.is_available():
+                device = "cuda"
+            else:
+                device = "cpu"
+
     logger.info("Utilizing the {device} device.")
-        
+
     return torch.device(device)
 
 
