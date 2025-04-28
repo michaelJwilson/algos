@@ -26,9 +26,6 @@ def main():
 
     config = Config()
 
-    batch_size=config.batch_size
-    sequence_length=config.sequence_length
-    
     device = get_device()
 
     dataset = HMMDataset(
@@ -39,29 +36,28 @@ def main():
         stds=config.stds,
     )
 
-    obvs, states = dataset[0]
+    dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=False)
 
-    # NB [batch_size, seq_length, single feature].                                                                                                                                                                    
-    assert obvs.shape == torch.Size([sequence_length, 1])
-    
+    obvs, states = next(iter(dataloader))
+
+    # NB [batch_size, seq_length, single feature].
+    assert obvs.shape == torch.Size([config.batch_size, config.sequence_length, 1])
+
     logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
-        
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-    """
     # NB embedding is -lnP per-state for Gaussian emission.
-    embedding = GaussianEmbedding(num_states, device=device).forward(obvs)
+    embedding = GaussianEmbedding(config.num_states, device=device).forward(obvs)
 
-    assert embedding.shape == torch.Size([batch_size, sequence_length, num_states])
+    assert embedding.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
 
     emission = torch.exp(-embedding[0, :, :])
 
     logger.info(f"Realized Gaussian emission embedding=\n{emission}")
-    """
-    model = RNN(num_states, num_layers, device=device)
+
+    model = RNN(config.num_states, config.num_layers, device=device)
 
     logger.info(f"RNN model summary:\n{model}")
-
+    """
     # summary(model, input_size=(batch_size, sequence_length, num_states))
 
     # NB forward model is lnP to match CrossEntropyLoss()
@@ -79,12 +75,6 @@ def main():
 
     log_probs = estimate.gather(2, states.unsqueeze(-1)).squeeze(-1)
     result = torch.sum(log_probs) / log_probs.numel()
-
-    # logger.info(f"\n{log_probs}")
-    # logger.info(f"\n{result}")
-    # logger.info(f"\n{loss}")
-
-    # exit(0)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
