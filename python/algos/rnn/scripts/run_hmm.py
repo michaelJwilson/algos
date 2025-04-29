@@ -8,6 +8,7 @@ from algos.rnn.hmm import HMM
 from algos.rnn.utils import set_seed, set_precision
 from torch import nn, optim
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 logging.basicConfig(
     level=logging.INFO,
@@ -88,6 +89,11 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
+    # optimizer = optim.AdamW(model.parameters(), lr=config.learning_rate, weight_decay=1.e-4)
+    
+    # NB reduce learning rate by 10x every 50 epochs.
+    # scheduler = ReduceLROnPlateau(optimizer, step_size=50, gamma=0.1)
+    # scheduler = StepLR(optimizer, step_size=50, gamma=0.1)
     
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(config.num_epochs):
@@ -117,11 +123,16 @@ def main():
             # NB compute gradient with backprop.
             loss.backward()
 
+            # NB gradient clipping
+            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
             # NB stochastic gradient descent.
             optimizer.step()
 
             total_loss += loss.item()
 
+        # scheduler.step()
+            
         if epoch % 50 == 0:
             logger.info(
                 f"----  Epoch [{epoch + 1}/{config.num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"

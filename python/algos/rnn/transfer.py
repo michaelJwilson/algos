@@ -27,7 +27,7 @@ class CategoricalPrior(nn.Module):
         )
 
     def forward(self, x):
-        return x + torch.log(F.softmax(self.ln_pi))
+        return x + torch.log(F.softmax(self.ln_pi, dim=0))
 
 
 # @torch.compile
