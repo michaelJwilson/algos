@@ -23,8 +23,6 @@ set_precision()
 def main():
     config = Config()
     device = get_device()
-
-    print(config)
     
     dataset = HMMDataset(
         num_sequences=config.num_sequences,
@@ -33,23 +31,17 @@ def main():
         means=config.means,
         stds=config.stds,
     )
-
-    print(config.sequence_length)
     
     dataloader = DataLoader(
         dataset,
         batch_size=config.batch_size,
         shuffle=False,
-        pin_memory=True,
+        pin_memory=False,
         num_workers=config.num_workers,
     )
-
-    print(config.sequence_length)
     
     """
     obvs, states = next(iter(dataloader))
-
-    print(config.sequence_length)
     
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size(
@@ -90,7 +82,6 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
-    # optimizer = optim.AdamW(model.parameters(), lr=config.learning_rate, weight_decay=1.e-4)
     
     # NB reduce learning rate by 10x every 50 epochs.
     # scheduler = ReduceLROnPlateau(optimizer, step_size=50, gamma=0.1)
@@ -101,19 +92,16 @@ def main():
         model.train()
         total_loss = 0.0
 
-        # NB cycles through all sequences.
-        for batch_idx, (obvs, states) in enumerate(dataloader):
+        for idx, (obvs, states) in enumerate(dataloader):
+            # NB creates copies
             obvs = obvs.to(device)
             states = states.to(device)
             
             ## >>>>
             """
-            outputs = model(obvs)  # Shape: (batch_size, sequence_length, num_states)
+            outputs = model(obvs)
             
-            # NB conserves last dim. axis and collapses remaining dims. to 1D.
             outputs = outputs.view(-1, outputs.size(-1))
-
-            # NB flattens states to 1D
             states = states.view(-1)
 
             # NB equivalent to -ln P_s under the model for known state s.

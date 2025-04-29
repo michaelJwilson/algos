@@ -1,9 +1,10 @@
+import logging
+
 from pathlib import Path
 from pprint import pformat
 from types import SimpleNamespace
 
-import yaml
-
+logger = logging.getLogger(__name__)
 
 class Config:
     def __init__(self, config_path=None):
@@ -14,6 +15,8 @@ class Config:
         for name in self.blocks:
             setattr(self, name, SimpleNamespace(**config.get(name, {})))
 
+        logger.info(f"{self}")
+            
     def __repr__(self):
         result = {}
 

@@ -3,7 +3,7 @@ dataset:
     means: [5.0, 10.0]
     stds: [1.0, 1.0]
     num_states: 2
-    num_sequences: 4
+    num_sequences: 256
     sequence_length: 64
 
 training:
@@ -11,7 +11,7 @@ training:
     num_workers: 1
     num_layers: 1    
     batch_size: 256
-    learning_rate: 1.0e-3
+    learning_rate: 1.0e-2
     num_epochs: 500
     init_jump_rate : 0.1
     init_means: [3.0, 8.0]
