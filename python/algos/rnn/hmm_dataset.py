@@ -59,8 +59,8 @@ class HMMDataset(Dataset):
         )
 
         # NB assumes Gaussian.
-        self.means = means
-        self.stds = stds
+        self.means = np.array(means)
+        self.stds = np.array(stds)
         self.num_states = len(self.means)
 
         self.states = np.zeros(self.sequence_length, dtype=int)
@@ -113,8 +113,8 @@ if __name__ == "__main__":
     # NB defines true parameters.
     trans = np.array([[1.0, 0.0], [0.0, 1.0]])
 
-    means = [5.0, 10.0]
-    stds = [1.0, 1.0]
+    means = np.array([5.0, 10.0])
+    stds = np.array([1.0, 1.0])
 
     dataset = HMMDataset(
         num_sequences=num_sequences,

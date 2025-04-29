@@ -12,9 +12,7 @@ class DiagonalTransfer(nn.Module):
             device = get_device(device)
 
         self.num_states = num_states
-        self.diag = torch.tensor(
-            torch.ones(num_states), device=device
-        )
+        self.diag = torch.ones(num_states, device=device)
         self.diag = nn.Parameter(self.diag)
 
     def __repr__(self):
