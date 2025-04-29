@@ -36,4 +36,7 @@ def test_hmm(hmm_dataset):
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
     estimate = model.forward(obvs)
 
-    print(estimate)
+    # print(estimate._is_view())
+    # print(estimate.is_contiguous())
+    
+    print(estimate[0])

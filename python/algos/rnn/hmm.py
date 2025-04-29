@@ -71,29 +71,30 @@ class HMM(torch.nn.Module):
 
         ln_fs = torch.stack(ln_fs, dim=1)
 
+        assert ln_fs.shape == ln_emission_probs.shape
+        
         # TODO Prince suggested no emission? confirm.
-        rev_ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, -1, :]))]
+        
+        # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html
+        ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, 0, :]))]
 
         for ii in range(self.sequence_length - 2, -1, -1):
-            rev_ln_bs.append(
-                interim := +self.layers[2].forward(
+            ln_bs.append(
+                interim := self.layers[2].forward(
                     interim + ln_emission_probs[:, ii + 1, :]
                 )
             )
 
-        rev_ln_bs = torch.stack(rev_ln_bs, dim=1)
+        ln_bs.reverse()
+            
+        # NB https://pytorch.org/docs/stable/generated/torch.stack.html
+        ln_bs = torch.stack(ln_bs, dim=1)
 
-        # NB generates a copy.
-        # ln_bs = torch.flip(rev_ln_bs, dims=[1])
+        assert ln_bs.shape == ln_emission_probs.shape
+                
+        ln_gamma = ln_fs + ln_bs
         
-        """
-        log_gamma = ln_fs + ln_bs
-        result = log_gamma - torch.logsumexp(log_gamma, dim=2, keepdim=True)
-        """
-        # result = self.layers[0].forward(obvs)
-        # result = self.layers[1].forward(result)
-        # result = self.layers[2].forward(result)
-        
-        # TODO HACK
-        return rev_ln_bs
+        # ln_gamma = ln_gamma - torch.logsumexp(ln_gamma, dim=2, keepdim=True)
+
+        return ln_gamma
 
