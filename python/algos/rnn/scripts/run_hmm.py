@@ -35,11 +35,12 @@ def main():
 
     print(config.sequence_length)
     
-    # num_workers=1 implies cpu
     dataloader = DataLoader(
         dataset,
         batch_size=config.batch_size,
         shuffle=False,
+        pin_memory=True,
+        num_workers=1,
     )
 
     print(config.sequence_length)

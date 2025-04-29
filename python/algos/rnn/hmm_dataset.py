@@ -93,15 +93,13 @@ class HMMDataset(Dataset):
         )
 
         if self.transform:
-            obvs = self.transform(obvs)
+            self.obvs = self.transform(self.obvs)
             
         if self.target_transform:
-            states = self.target_transform(states)
+            self.states = self.target_transform(self.states)
         
         states = torch.tensor(self.states, dtype=torch.long, device=self.device)
-        obvs = torch.tensor(self.obvs, dtype=torch.float, device=self.device).unsqueeze(
-            -1
-        )
+        obvs = torch.tensor(self.obvs, device=self.device).unsqueeze(-1)
 
         logger.debug(f"{states}")
         logger.debug(f"Realized HMM simulation:\n{obvs}")
