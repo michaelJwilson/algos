@@ -39,6 +39,8 @@ def get_device(device=None, index=0):
             device = "mps"
         elif torch.cuda.is_available():
             device = torch.cuda.current_device()
+        elif torch.xpu.is_available():
+            device = "xpu"
         else:
             device = "cpu"
 
