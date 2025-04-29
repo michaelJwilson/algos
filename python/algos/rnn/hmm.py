@@ -8,7 +8,7 @@ from torch import nn
 from algos.rnn.config import Config
 from algos.rnn.embedding import GaussianEmbedding
 from algos.rnn.utils import get_device, logmatexp
-from algos.rnn.transfer import DiagonalTransfer
+from algos.rnn.transfer import DiagonalTransfer, LeakyTransfer
 
 logger = logging.getLogger(__name__)
 
@@ -50,11 +50,12 @@ class HMM(torch.nn.Module):
         self.batch_size = batch_size
         self.sequence_length = sequence_length
 
+        # TODO HACK HARDCODE jump_rate
         self.layers = nn.ModuleList(
             [
                 GaussianEmbedding(),
                 CategoricalPrior(self.num_states),
-                DiagonalTransfer(self.num_states),
+                LeakyTransfer(self.num_states, 0.1),
             ]
         )
 
@@ -94,7 +95,7 @@ class HMM(torch.nn.Module):
                 
         ln_gamma = ln_fs + ln_bs
         
-        # ln_gamma = ln_gamma - torch.logsumexp(ln_gamma, dim=2, keepdim=True)
-
-        return ln_gamma
+        result = ln_gamma - torch.logsumexp(ln_gamma, dim=2, keepdim=True)
+        
+        return result
 

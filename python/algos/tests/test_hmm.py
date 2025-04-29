@@ -3,13 +3,14 @@ import pytest
 import logging
 
 from algos.rnn.hmm import HMM
-from algos.rnn.utils import get_device, set_seed
+from algos.rnn.utils import get_device, set_seed, set_precision
 from algos.rnn.config import Config
 from algos.rnn.hmm_dataset import HMMDataset
 from torch.utils.data import DataLoader
 
 # TODO
 set_seed(42)
+set_precision()
 
 config = Config()
 
@@ -36,7 +37,6 @@ def test_hmm(hmm_dataset):
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
     estimate = model.forward(obvs)
 
-    # print(estimate._is_view())
-    # print(estimate.is_contiguous())
-    
     print(estimate[0])
+    
+
