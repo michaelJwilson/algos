@@ -37,9 +37,7 @@ class HMM(torch.nn.Module):
             )
         )
         """
-        self.transfer = DiagonalMatrixModel()
-        
-        logmatexp(self.transfer, interim)
+        self.transfer = DiagonalMatrixModel(self.num_states)
         
         self.embedding = GaussianEmbedding()
 
@@ -52,7 +50,7 @@ class HMM(torch.nn.Module):
         for ii in range(1, self.sequence_length):
             ln_fs.append(
                 interim := ln_emission_probs[:, ii, :]
-                + logmatexp(self.transfer, interim)
+                + self.transfer.forward(interim)
             )
 
         ln_fs = torch.stack(ln_fs, dim=1)
@@ -62,10 +60,7 @@ class HMM(torch.nn.Module):
 
         for ii in range(self.sequence_length - 2, -1, -1):
             ln_bs.append(
-                interim := logmatexp(
-                    self.transfer,
-                    interim + ln_emission_probs[:, ii + 1, :],
-                )
+                interim := + self.transfer.forward(interim + ln_emission_probs[:, ii + 1, :])
             )
 
         ln_bs = torch.stack(ln_bs, dim=1)
