@@ -122,7 +122,7 @@ def main():
 
             total_loss += loss.item()
 
-        if epoch % 10 == 0:
+        if epoch % 50 == 0:
             logger.info(
                 f"----  Epoch [{epoch + 1}/{config.num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"
             )
