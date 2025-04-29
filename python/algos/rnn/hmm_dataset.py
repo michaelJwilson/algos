@@ -25,6 +25,7 @@ def populate_states(states, transfer):
         sample = np.random.rand()
         states[t] = np.searchsorted(sum_ps, sample)
 
+
 @njit
 def populate_obs(obs, states, means, stds, sequence_length):
     for t in range(sequence_length):
@@ -33,7 +34,15 @@ def populate_obs(obs, states, means, stds, sequence_length):
 
 class HMMDataset(Dataset):
     def __init__(
-        self, num_sequences, sequence_length, jump_rate, means, stds, device=None
+        self,
+        num_sequences,
+        sequence_length,
+        jump_rate,
+        means,
+        stds,
+        device=None,
+        transform=None,
+        target_transform=None,
     ):
         """
         Args:
@@ -83,6 +92,12 @@ class HMMDataset(Dataset):
             self.obvs, self.states, self.means, self.stds, self.sequence_length
         )
 
+        if self.transform:
+            obvs = self.transform(obvs)
+            
+        if self.target_transform:
+            states = self.target_transform(states)
+        
         states = torch.tensor(self.states, dtype=torch.long, device=self.device)
         obvs = torch.tensor(self.obvs, dtype=torch.float, device=self.device).unsqueeze(
             -1
