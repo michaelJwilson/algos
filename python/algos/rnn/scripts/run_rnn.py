@@ -4,7 +4,6 @@ import torch
 from algos.rnn.config import Config
 from algos.rnn.hmm import HMM
 from algos.rnn.hmm_dataset import HMMDataset
-from algos.rnn.rnn import RNN
 from algos.rnn.utils import set_precision, set_seed
 from torch import nn, optim
 from torch.utils.data import DataLoader
