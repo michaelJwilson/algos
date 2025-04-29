@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @njit
-def populate_states(states, num_states, transfer):
+def populate_states(states, transfer):
     """
     Populate HMM states according to Categorical
     transfer.
@@ -28,9 +28,6 @@ def populate_states(states, num_states, transfer):
         #    by ps, under njit.
         sample = np.random.rand()
         states[t] = np.searchsorted(sum_ps, sample)
-
-    return
-
 
 @njit
 def populate_obs(obs, states, means, stds, sequence_length):
@@ -84,7 +81,7 @@ class HMMDataset(Dataset):
         # NB uniform categorical prior on starting state.
         self.states[0] = np.random.choice(self.num_states)
 
-        populate_states(self.states, self.num_states, self.trans)
+        populate_states(self.states, self.trans)
 
         populate_obs(
             self.obvs, self.states, self.means, self.stds, self.sequence_length
