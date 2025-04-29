@@ -44,24 +44,10 @@ class GaussianEmbedding(nn.Module):
         batch_size, sequence_length, _ = x.shape
         variances = torch.exp(self.log_vars)
 
-        # NB broadcast [num_states] to match: (batch_size, 1, num_states)
-        # means_broadcast = self.means.view(1, 1, self.num_states)
-        # variances_broadcast = variances.view(1, 1, self.num_states)
-
-        # NB expand x to match the number of states: (batch_size, sequence_length, num_states)
-        #    a view of original memory; -1 signifies no change;
-        # x_broadcast = x.expand(-1, -1, self.num_states)
-
-        # NB no-copy view.
+        # NB no-copy view; expands singleton last dimension to num_states size.
         x = x.expand(-1, -1, self.num_states)
         
-        # NB log of normalization constant
         norm = 0.5 * torch.log(2.0 * torch.pi * variances)
 
-        # NB compute negative log-probabilities for each state and each value in the sequence
-        neg_log_probs = (
-            norm + ((x - self.means) ** 2) / norm
-        )
-
         # NB shape = (batch_size, sequence_length, num_states)
-        return neg_log_probs
+        return norm + ((x - self.means) ** 2) / norm
