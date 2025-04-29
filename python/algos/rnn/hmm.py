@@ -8,8 +8,10 @@ from torch import nn
 from algos.rnn.config import Config
 from algos.rnn.embedding import GaussianEmbedding
 from algos.rnn.utils import get_device, logmatexp
+from algos.rnn.transfer import DiagonalMatrixModel
 
 logger = logging.getLogger(__name__)
+
 
 # @torch.compile
 class HMM(torch.nn.Module):
@@ -22,10 +24,10 @@ class HMM(torch.nn.Module):
         self.sequence_length = sequence_length
 
         # NB torch.randn samples the standard normal (per state).
-        self.log_initial_probs = torch.nn.Parameter(
+        self.pi = torch.nn.Parameter(
             torch.randn(num_states, dtype=torch.float32, device=self.device)
         )
-
+        """
         # TODO replace with transfer layer.
         self.transfer = torch.nn.Parameter(
             torch.exp(
@@ -34,14 +36,18 @@ class HMM(torch.nn.Module):
                 )
             )
         )
-
+        """
+        self.transfer = DiagonalMatrixModel()
+        
+        logmatexp(self.transfer, interim)
+        
         self.embedding = GaussianEmbedding()
 
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
-        ln_emission_probs = self.embedding.forward(obvs.unsqueeze(-1))
+        ln_emission_probs = self.embedding.forward(obvs)
 
-        ln_fs = [interim := ln_emission_probs[:, 0, :] + self.log_initial_probs]
+        ln_fs = [interim := ln_emission_probs[:, 0, :] + self.pi]
 
         for ii in range(1, self.sequence_length):
             ln_fs.append(
@@ -52,7 +58,7 @@ class HMM(torch.nn.Module):
         ln_fs = torch.stack(ln_fs, dim=1)
 
         # TODO Prince suggested no emission; confirm why.
-        ln_bs = [interim := ln_emission_probs[:, -1, :] + self.log_initial_probs]
+        ln_bs = [interim := ln_emission_probs[:, -1, :] + self.pi]
 
         for ii in range(self.sequence_length - 2, -1, -1):
             ln_bs.append(

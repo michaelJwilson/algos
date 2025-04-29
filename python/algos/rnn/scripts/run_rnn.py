@@ -1,8 +1,10 @@
+import torch
 import logging
 
 from algos.rnn.config import Config
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN
+from algos.rnn.hmm import HMM
 from algos.rnn.utils import set_seed
 from torch import nn, optim
 from torch.utils.data import DataLoader
@@ -29,14 +31,14 @@ def main():
     )
 
     dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=False)
-    """
+
     obvs, states = next(iter(dataloader))
     
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size([config.batch_size, config.sequence_length, 1])
 
     logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
-
+    """
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding().forward(obvs)
 
@@ -44,22 +46,26 @@ def main():
         [config.batch_size, config.sequence_length, config.num_states]
     )
     """
-    model = RNN()
+    # model = RNN()
+    model = HMM(config.batch_size, config.sequence_length, config.num_states)
     
     logger.info(f"RNN model summary:\n{model}")
     """
     summary(
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
+    """
     
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
 
+    exit(0)
+    
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
-    """
+    
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
