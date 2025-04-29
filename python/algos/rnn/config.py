@@ -1,3 +1,4 @@
+import yaml
 import logging
 
 from pathlib import Path
@@ -15,7 +16,6 @@ class Config:
         for name in self.blocks:
             setattr(self, name, SimpleNamespace(**config.get(name, {})))
 
-        logger.info(f"{self}")
             
     def __repr__(self):
         result = {}
