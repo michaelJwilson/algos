@@ -37,4 +37,4 @@ def test_hmm(hmm_dataset):
     estimate = model.forward(obvs)
 
     print(estimate)
-
+    print(estimate.shape)
