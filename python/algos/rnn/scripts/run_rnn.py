@@ -22,6 +22,9 @@ def main():
     set_seed(42)
 
     config = Config()
+
+    print(config)
+    
     dataset = HMMDataset(
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
@@ -30,14 +33,25 @@ def main():
         stds=config.stds,
     )
 
+    print(config.sequence_length)
+    
+    # num_workers=1 implies cpu
     dataloader = DataLoader(
-        dataset, batch_size=config.batch_size, shuffle=False, num_workers=1
+        dataset,
+        batch_size=config.batch_size,
+        shuffle=False,
     )
 
+    print(config.sequence_length)
+    
     obvs, states = next(iter(dataloader))
 
+    print(config.sequence_length)
+    
     # NB [batch_size, seq_length, single feature].
-    assert obvs.shape == torch.Size([config.batch_size, config.sequence_length, 1])
+    assert obvs.shape == torch.Size(
+        [min(config.batch_size, config.num_sequences), config.sequence_length, 1]
+    ), f"obvs.shape={obvs.shape} failed to match expectation={[config.batch_size, config.sequence_length, 1]}"
 
     logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
     """
@@ -63,11 +77,9 @@ def main():
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
 
-    exit(0)
-
     # NB [batch_size, seq_length, -lnP for _ in num_states].
     assert estimate.shape == torch.Size(
-        [config.batch_size, config.sequence_length, config.num_states]
+        [min(config.batch_size, config.num_sequences), config.sequence_length, config.num_states]
     )
 
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
@@ -76,6 +88,8 @@ def main():
 
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
 
+    exit(0)
+    
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(config.num_epochs):
         model.train()
