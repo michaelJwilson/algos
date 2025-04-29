@@ -25,7 +25,7 @@ class CategoricalPrior(nn.Module):
         self.num_states = num_states
         self.ln_pi = torch.nn.Parameter(
             torch.log(
-                torch.ones(num_states, dtype=torch.float32, device=device) / num_states
+                torch.ones(num_states, device=device) / num_states
             )
         )
 

@@ -25,7 +25,7 @@ def get_device(device=None, index=0):
                 device = torch.cuda.current_device()
             else:
                 device = "cpu"
-                
+
     logger.debug(f"Utilizing {device}:{index} device.")
 
     return torch.device(f"{device}:{index}")
@@ -41,6 +41,10 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+def set_precision():
+    torch.set_default_dtype(torch.float64)
 
 
 def logmatexp(transfer, ln_probs):
