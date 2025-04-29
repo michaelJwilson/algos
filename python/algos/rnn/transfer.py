@@ -4,15 +4,17 @@ from algos.rnn.utils import get_device, logmatexp
 
 
 # @torch.compile
-class DiagonalMatrixModel(nn.Module):
+class DiagonalTransfer(nn.Module):
     def __init__(self, num_states, device=None):
-        super(DiagonalMatrixModel, self).__init__()
+        super(DiagonalTransfer, self).__init__()
 
         if device == None:
             device = get_device(device)
 
         self.num_states = num_states
-        self.diag = torch.tensor(torch.ones(num_states), dtype=torch.float32, device=device)
+        self.diag = torch.tensor(
+            torch.ones(num_states), dtype=torch.float32, device=device
+        )
         self.diag = nn.Parameter(self.diag)
 
     def __repr__(self):
@@ -21,6 +23,6 @@ class DiagonalMatrixModel(nn.Module):
             f"  # states: {self.num_states}\n"
             f"  # parameters: {list(self.diag.shape)}\n"
         )
-        
+
     def forward(self, x):
         return logmatexp(torch.diag(self.diag), x)

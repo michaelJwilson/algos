@@ -8,7 +8,7 @@ from torch import nn
 from algos.rnn.config import Config
 from algos.rnn.embedding import GaussianEmbedding
 from algos.rnn.utils import get_device, logmatexp
-from algos.rnn.transfer import DiagonalMatrixModel
+from algos.rnn.transfer import DiagonalTransfer
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +22,18 @@ class CategoricalPrior(nn.Module):
             device = get_device(device)
 
         # NB torch.randn samples the standard normal (per state).
+        self.num_states = num_states
         self.ln_pi = torch.nn.Parameter(
             torch.log(
                 torch.ones(num_states, dtype=torch.float32, device=device) / num_states
             )
+        )
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"  # states: {self.num_states}\n"
+            f"  # parameters: {sum(p.numel() for p in self.parameters())}\n"
         )
 
     def forward(self, x):
@@ -46,7 +54,7 @@ class HMM(torch.nn.Module):
             [
                 GaussianEmbedding(),
                 CategoricalPrior(self.num_states),
-                DiagonalMatrixModel(self.num_states),
+                DiagonalTransfer(self.num_states),
             ]
         )
 

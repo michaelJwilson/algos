@@ -29,6 +29,13 @@ class GaussianEmbedding(nn.Module):
             f"Initialized Gaussian embedding on device {self.device} with mean={self.means} (grad? {self.means.requires_grad}) and log vars={self.log_vars} (grad? {self.log_vars.requires_grad})"
         )
 
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"  # states: {self.num_states}\n"
+            f"  # parameters: {sum(p.numel() for p in self.parameters())}\n"
+        )
+
     def forward(self, x):
         batch_size, sequence_length, _ = x.shape
         variances = torch.exp(self.log_vars)
