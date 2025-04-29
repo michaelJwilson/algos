@@ -88,8 +88,6 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
-
-    exit(0)
     
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(config.num_epochs):
