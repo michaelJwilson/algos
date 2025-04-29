@@ -72,27 +72,28 @@ class HMM(torch.nn.Module):
         ln_fs = torch.stack(ln_fs, dim=1)
 
         # TODO Prince suggested no emission? confirm.
-        ln_bs = [interim := self.layers[1].forward(ln_emission_probs[:, -1, :])]
+        rev_ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, -1, :]))]
 
         for ii in range(self.sequence_length - 2, -1, -1):
-            ln_bs.append(
+            rev_ln_bs.append(
                 interim := +self.layers[2].forward(
                     interim + ln_emission_probs[:, ii + 1, :]
                 )
             )
 
-        ln_bs = torch.stack(ln_bs, dim=1)
+        rev_ln_bs = torch.stack(rev_ln_bs, dim=1)
 
         # NB generates a copy.
-        ln_bs = torch.flip(ln_bs, dims=(1,))
-
+        # ln_bs = torch.flip(rev_ln_bs, dims=[1])
+        
+        """
         log_gamma = ln_fs + ln_bs
         result = log_gamma - torch.logsumexp(log_gamma, dim=2, keepdim=True)
-        
-        result = self.layers[0].forward(obvs)
-        result = self.layers[1].forward(result)
-        result = self.layers[2].forward(result)
+        """
+        # result = self.layers[0].forward(obvs)
+        # result = self.layers[1].forward(result)
+        # result = self.layers[2].forward(result)
         
         # TODO HACK
-        return result
+        return rev_ln_bs
 
