@@ -44,25 +44,27 @@ class HMM(torch.nn.Module):
         self.latent_prior = MarkovModel(self.num_states)
         self.transfer = DiagonalMatrixModel(self.num_states)
 
+        self.layers = nn.ModuleList([self.embedding, self.latent_prior, self.transfer])
+
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
-        ln_emission_probs = self.embedding.forward(obvs)
+        ln_emission_probs = self.layers[0].forward(obvs)
 
-        ln_fs = [interim := self.latent_prior.forward(ln_emission_probs[:, 0, :])]
+        ln_fs = [interim := self.layers[1].forward(ln_emission_probs[:, 0, :])]
 
         for ii in range(1, self.sequence_length):
             ln_fs.append(
-                interim := ln_emission_probs[:, ii, :] + self.transfer.forward(interim)
+                interim := ln_emission_probs[:, ii, :] + self.layers[2].forward(interim)
             )
 
         ln_fs = torch.stack(ln_fs, dim=1)
 
         # TODO Prince suggested no emission? confirm.
-        ln_bs = [interim := self.latent_prior.forward(ln_emission_probs[:, -1, :])]
+        ln_bs = [interim := self.layers[1].forward(ln_emission_probs[:, -1, :])]
 
         for ii in range(self.sequence_length - 2, -1, -1):
             ln_bs.append(
-                interim := +self.transfer.forward(
+                interim := +self.layers[2].forward(
                     interim + ln_emission_probs[:, ii + 1, :]
                 )
             )
