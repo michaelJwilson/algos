@@ -22,7 +22,7 @@ class MarkovModel(nn.Module):
 
         # NB torch.randn samples the standard normal (per state).                                                                                                                          
         self.ln_pi = torch.nn.Parameter(
-            torch.randn(num_states, dtype=torch.float32, device=device)
+            torch.ones(num_states, dtype=torch.float32, device=device) / num_states
         )
 
     def forward(self, x):
@@ -39,14 +39,14 @@ class HMM(torch.nn.Module):
         self.sequence_length = sequence_length
 
         self.embedding = GaussianEmbedding()
-        self.prior = MarkovModel()
+        self.latent_prior = MarkovModel(self.num_states)
         self.transfer = DiagonalMatrixModel(self.num_states)
 
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = self.embedding.forward(obvs)
 
-        ln_fs = [interim := ln_emission_probs[:, 0, :] + self.ln_pi]
+        ln_fs = [interim := self.latent_prior.forward(ln_emission_probs[:, 0, :])]
 
         for ii in range(1, self.sequence_length):
             ln_fs.append(
@@ -56,8 +56,8 @@ class HMM(torch.nn.Module):
 
         ln_fs = torch.stack(ln_fs, dim=1)
 
-        # TODO Prince suggested no emission; confirm why.
-        ln_bs = [interim := ln_emission_probs[:, -1, :] + self.ln_pi]
+        # TODO Prince suggested no emission? confirm.
+        ln_bs = [interim := self.latent_prior.forward(ln_emission_probs[:, -1, :])]
 
         for ii in range(self.sequence_length - 2, -1, -1):
             ln_bs.append(
