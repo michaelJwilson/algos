@@ -37,8 +37,7 @@ class HMM(torch.nn.Module):
             )
         )
         """
-        self.transfer = DiagonalMatrixModel(self.num_states)
-        
+        self.transfer = DiagonalMatrixModel(self.num_states)        
         self.embedding = GaussianEmbedding()
 
     def forward(self, obvs):

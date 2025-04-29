@@ -10,8 +10,9 @@ class DiagonalMatrixModel(nn.Module):
 
         if device == None:
             device = get_device(device)
-        
-        self.diag = nn.Parameter(torch.randn(size, dtype=torch.float32, device=device))
+
+        self.diag = torch.tensor(torch.ones(size), dtype=torch.float32, device=device)
+        self.diag = nn.Parameter(self.diag)
 
     def forward(self, x):
         return logmatexp(torch.diag(self.diag), x)
