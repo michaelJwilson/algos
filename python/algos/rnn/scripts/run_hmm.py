@@ -1,14 +1,14 @@
-import torch
 import logging
 
+import torch
 from algos.rnn.config import Config
+from algos.rnn.hmm import HMM
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN
-from algos.rnn.hmm import HMM
-from algos.rnn.utils import set_seed, set_precision, get_device
+from algos.rnn.utils import get_device, set_precision, set_seed
 from torch import nn, optim
+from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 logging.basicConfig(
     level=logging.INFO,

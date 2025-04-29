@@ -1,14 +1,14 @@
 import logging
+from collections import deque
 
 import torch
 import torch.nn.functional as F
-from collections import deque
 from torch import nn
 
 from algos.rnn.config import Config
 from algos.rnn.embedding import GaussianEmbedding
+from algos.rnn.transfer import CategoricalPrior, DiagonalTransfer, LeakyTransfer
 from algos.rnn.utils import get_device, logmatexp
-from algos.rnn.transfer import DiagonalTransfer, LeakyTransfer, CategoricalPrior
 
 logger = logging.getLogger(__name__)
 
