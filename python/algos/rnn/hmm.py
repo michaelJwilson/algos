@@ -59,6 +59,7 @@ class HMM(torch.nn.Module):
             ]
         )
 
+    # TODO return likelihood by forward only.
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = -self.layers[0].forward(obvs)
