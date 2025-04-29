@@ -44,6 +44,7 @@ def set_seed(seed):
 
 
 def set_precision():
+    # TODO config defined.
     torch.set_default_dtype(torch.float64)
 
 
