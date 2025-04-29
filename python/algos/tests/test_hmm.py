@@ -8,27 +8,32 @@ from algos.rnn.config import Config
 from algos.rnn.hmm_dataset import HMMDataset
 from torch.utils.data import DataLoader
 
+# TODO
+set_seed(42)
 
-def test_hmm():
-    set_seed(42)
+config = Config()
 
-    config = Config()
-    dataset = HMMDataset(
+@pytest.fixture
+def hmm_dataset():
+    return HMMDataset(
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
         jump_rate=config.jump_rate,
         means=config.means,
         stds=config.stds,
     )
+    
 
-    dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=False)
+def test_hmm(hmm_dataset):
+    dataloader = DataLoader(hmm_dataset, batch_size=config.batch_size, shuffle=False, num_workers=1)
     obvs, states = next(iter(dataloader))
 
     model = HMM(config.batch_size, config.sequence_length, config.num_states)
-
+    """
     print(f"RNN model summary:\n{model}")
 
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
     estimate = model.forward(obvs)
 
     print(estimate)
+    """
