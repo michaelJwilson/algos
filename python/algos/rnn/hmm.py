@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 # @torch.compile
 class HMM(torch.nn.Module):
-    def __init__(self, batch_size, sequence_length, num_states):
+    def __init__(self, batch_size, sequence_length, num_states, device):
         super(HMM, self).__init__()
 
-        self.device = get_device()
+        self.device = device
         self.num_states = num_states
         self.batch_size = batch_size
         self.sequence_length = sequence_length
@@ -35,7 +35,7 @@ class HMM(torch.nn.Module):
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = -self.layers[0].forward(obvs)
-        
+
         ln_fs = [interim := self.layers[1].forward(ln_emission_probs[:, 0, :])]
 
         for ii in range(1, self.sequence_length):
@@ -47,9 +47,17 @@ class HMM(torch.nn.Module):
 
         assert ln_fs.shape == ln_emission_probs.shape
 
+        """
+        interim = self.layers[1].forward(ln_emission_probs[:, 0, :])
+
+        for ii in range(1, self.sequence_length):
+            interim += ln_emission_probs[:, ii, :] + self.layers[2].forward(interim)
+
+        return torch.sum(torch.logsumexp(interim, dim=-1))
+        """
         # TODO P(x)
         return torch.sum(torch.logsumexp(ln_fs[:,-1,:], dim=-1))
-        
+        """
         # TODO Prince suggested no emission? confirm.
         # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html
         ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, 0, :]))]
@@ -74,4 +82,4 @@ class HMM(torch.nn.Module):
 
         # NB -log marginal MAP on state.
         return -result
-
+        """

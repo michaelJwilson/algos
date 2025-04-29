@@ -5,7 +5,7 @@ from algos.rnn.config import Config
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN
 from algos.rnn.hmm import HMM
-from algos.rnn.utils import set_seed, set_precision
+from algos.rnn.utils import set_seed, set_precision, get_device
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
@@ -65,7 +65,7 @@ def main():
     )
     """
     # model = RNN()
-    model = HMM(config.batch_size, config.sequence_length, config.num_states)
+    model = HMM(config.batch_size, config.sequence_length, config.num_states, get_device())
 
     logger.info(f"RNN model summary:\n{model}")
     """
