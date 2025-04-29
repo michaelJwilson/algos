@@ -12,6 +12,21 @@ from algos.rnn.transfer import DiagonalMatrixModel
 
 logger = logging.getLogger(__name__)
 
+# @torch.compile                                                                                                                                                                           
+class MarkovModel(nn.Module):
+    def __init__(self, num_states, device=None):
+        super(MarkovModel, self).__init__()
+
+        if device == None:
+            device = get_device(device)
+
+        # NB torch.randn samples the standard normal (per state).                                                                                                                          
+        self.ln_pi = torch.nn.Parameter(
+            torch.randn(num_states, dtype=torch.float32, device=device)
+        )
+
+    def forward(self, x):
+        return x + self.ln_pi
 
 # @torch.compile
 class HMM(torch.nn.Module):
@@ -23,28 +38,15 @@ class HMM(torch.nn.Module):
         self.batch_size = batch_size
         self.sequence_length = sequence_length
 
-        # NB torch.randn samples the standard normal (per state).
-        self.pi = torch.nn.Parameter(
-            torch.randn(num_states, dtype=torch.float32, device=self.device)
-        )
-        """
-        # TODO replace with transfer layer.
-        self.transfer = torch.nn.Parameter(
-            torch.exp(
-                torch.randn(
-                    num_states, num_states, dtype=torch.float32, device=self.device
-                )
-            )
-        )
-        """
-        self.transfer = DiagonalMatrixModel(self.num_states)        
         self.embedding = GaussianEmbedding()
+        self.prior = MarkovModel()
+        self.transfer = DiagonalMatrixModel(self.num_states)
 
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = self.embedding.forward(obvs)
 
-        ln_fs = [interim := ln_emission_probs[:, 0, :] + self.pi]
+        ln_fs = [interim := ln_emission_probs[:, 0, :] + self.ln_pi]
 
         for ii in range(1, self.sequence_length):
             ln_fs.append(
@@ -55,7 +57,7 @@ class HMM(torch.nn.Module):
         ln_fs = torch.stack(ln_fs, dim=1)
 
         # TODO Prince suggested no emission; confirm why.
-        ln_bs = [interim := ln_emission_probs[:, -1, :] + self.pi]
+        ln_bs = [interim := ln_emission_probs[:, -1, :] + self.ln_pi]
 
         for ii in range(self.sequence_length - 2, -1, -1):
             ln_bs.append(
