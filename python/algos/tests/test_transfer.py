@@ -14,16 +14,21 @@ set_seed(42)
 def test_transfer():
     start = time.time()
     
-    size = 8
+    size = 4
     device = get_device()
     model = DiagonalMatrixModel(size)
 
-    pi = torch.randn(2, size, device=device)
-    T = torch.diag(torch.randn(size, device=device))
+    pi = torch.rand(size, device=device)
+    pi /= torch.sum(pi)
+    
+    T = torch.diag(torch.rand(size, device=device))
 
-    print(f"\n\nExpectation for Transfer=\n{T}\n")
+    print(f"\n\nInput Pi=\n{pi}")
+    print(f"\nExpectation for Transfer=\n{T}\n")
 
-    target = pi @ T
+    target = torch.log(pi @ T)
+
+    print(f"\nTarget=\n{target}\n")
 
     criterion = nn.MSELoss()
     optimizer = Adam(model.parameters(), lr=1.0e-2)
@@ -43,8 +48,10 @@ def test_transfer():
 
         if epoch % 100 == 0:
             print(f"Epoch {epoch:3d}, Loss: {loss.item()}")
-
-    assert torch.allclose(T, torch.diag(model.diag), atol=1e-4)
+            
+    assert torch.allclose(T, torch.diag(model.diag.data), atol=1e-6)
             
     print("\n\nTrained diagonal elements:\n", torch.diag(model.diag.data))
+    print(f"\n\nwith expected target:\n{model.forward(torch.log(pi))}")
+    
     print(f"\n\nDone (in {time.time() - start:.3f}) seconds.\n\n")
