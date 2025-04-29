@@ -87,11 +87,12 @@ class HMM(torch.nn.Module):
         ln_bs = torch.flip(ln_bs, dims=(1,))
 
         log_gamma = ln_fs + ln_bs
-        log_gamma = log_gamma - torch.logsumexp(log_gamma, dim=2, keepdim=True)
+        result = log_gamma - torch.logsumexp(log_gamma, dim=2, keepdim=True)
         
-        # result = self.layers[0].forward(obvs)
-        # result = self.layers[1].forward(result)
-        # result = self.layers[2].forward(result)
+        result = self.layers[0].forward(obvs)
+        result = self.layers[1].forward(result)
+        result = self.layers[2].forward(result)
         
         # TODO HACK
-        return log_gamma
+        return result
+

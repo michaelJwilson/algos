@@ -17,7 +17,7 @@ class GaussianEmbedding(nn.Module):
         self.num_states = Config().num_states
 
         # NB fixed mean initialization.
-        self.means = torch.tensor([3.0, 8.0], dtype=device=self.device)
+        self.means = torch.tensor([3.0, 8.0], device=self.device)
 
         # TODO HACK
         # NB fixed, unit variances.

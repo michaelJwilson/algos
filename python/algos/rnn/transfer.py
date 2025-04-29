@@ -24,5 +24,5 @@ class DiagonalTransfer(nn.Module):
             f"  # parameters: {list(self.diag.shape)}\n"
         )
 
-    def forward(self, x):
-        return logmatexp(torch.diag(self.diag), x)
+    def forward(self, xx):
+        return logmatexp(torch.diag(self.diag), xx)
