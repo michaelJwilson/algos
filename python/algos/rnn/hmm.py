@@ -23,7 +23,9 @@ class CategoricalPrior(nn.Module):
 
         # NB torch.randn samples the standard normal (per state).
         self.ln_pi = torch.nn.Parameter(
-            torch.ones(num_states, dtype=torch.float32, device=device) / num_states
+            torch.log(
+                torch.ones(num_states, dtype=torch.float32, device=device) / num_states
+            )
         )
 
     def forward(self, x):
@@ -51,7 +53,7 @@ class HMM(torch.nn.Module):
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = self.layers[0].forward(obvs)
-
+        """
         ln_fs = [interim := self.layers[1].forward(ln_emission_probs[:, 0, :])]
 
         for ii in range(1, self.sequence_length):
@@ -78,5 +80,11 @@ class HMM(torch.nn.Module):
 
         log_gamma = ln_fs + ln_bs
         log_gamma = log_gamma - torch.logsumexp(log_gamma, dim=2, keepdim=True)
+        """
 
-        return log_gamma
+        result = self.layers[0].forward(obvs)
+        result = self.layers[1].forward(result)
+        # result = self.layers[2].forward(result)
+        
+        # TODO HACK
+        return result

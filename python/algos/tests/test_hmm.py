@@ -31,7 +31,7 @@ def test_hmm(hmm_dataset):
 
     model = HMM(config.batch_size, config.sequence_length, config.num_states)
 
-    print(f"RNN model summary:\n{model}")
+    print(f"HMM model summary:\n{model}")
 
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
     estimate = model.forward(obvs)
