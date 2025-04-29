@@ -8,6 +8,7 @@ from algos.rnn.transfer import CategoricalPrior, LeakyTransfer
 
 logger = logging.getLogger(__name__)
 
+
 # @torch.compile
 class HMM(torch.nn.Module):
     def __init__(self, batch_size, sequence_length, num_states, device):
@@ -38,7 +39,7 @@ class HMM(torch.nn.Module):
             ln_fs.append(
                 interim := ln_emission_probs[:, ii, :] + self.layers[2].forward(interim)
             )
-            
+
         ln_fs = torch.stack(ln_fs, dim=1)
 
         assert ln_fs.shape == ln_emission_probs.shape
@@ -52,7 +53,7 @@ class HMM(torch.nn.Module):
         return torch.sum(torch.logsumexp(interim, dim=-1))
         """
         # TODO P(x)
-        return torch.sum(torch.logsumexp(ln_fs[:,-1,:], dim=-1))
+        return torch.sum(torch.logsumexp(ln_fs[:, -1, :], dim=-1))
         """
         # TODO Prince suggested no emission? confirm.
         # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html

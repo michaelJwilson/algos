@@ -8,6 +8,7 @@ from algos.rnn.utils import get_device
 
 logger = logging.getLogger(__name__)
 
+
 @torch.compile
 class GaussianEmbedding(nn.Module):
     def __init__(self):
@@ -48,9 +49,9 @@ class GaussianEmbedding(nn.Module):
         # NB expand x to match the number of states: (batch_size, sequence_length, num_states)
         #    a view of original memory; -1 signifies no change;
         x_broadcast = x.expand(-1, -1, self.num_states)
-        
+
         # NB log of normalization constant
-        norm = 0.5 * torch.log(2. * torch.pi * variances_broadcast)
+        norm = 0.5 * torch.log(2.0 * torch.pi * variances_broadcast)
 
         # NB compute negative log-probabilities for each state and each value in the sequence
         neg_log_probs = (

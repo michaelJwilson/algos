@@ -22,13 +22,14 @@ class RNNUnit(nn.Module):
     See:
        https://pytorch.org/docs/stable/generated/torch.nn.GRUCell.html
     """
+
     # NB emb_dim is == num_states in a HMM; where the values == -ln probs.
     def __init__(self, device=None, requires_grad=False):
         super(RNNUnit, self).__init__()
 
         self.device = get_device(device)
         self.emb_dim = emb_dim = Config().num_states
-                         
+
         if not requires_grad:
             self.Uh = torch.zeros(emb_dim, emb_dim, device=self.device)
             self.Wh = torch.eye(emb_dim, device=self.device)
@@ -40,12 +41,12 @@ class RNNUnit(nn.Module):
             # NB equivalent to a transfer matrix: contributes h . U
             # self.Uh = torch.randn(emb_dim, emb_dim).to(self.device)
             self.Uh = torch.eye(emb_dim, device=self.device)
-            
+
             # NB novel: equivalent to a linear 'distortion' of the
             #    state probs. under the assumed emission model.
             # self.Wh = torch.randn(emb_dim, emb_dim).to(self.device)
             self.Wh = torch.eye(emb_dim, self.device)
-            
+
             # -- normalization --
             # NB relatively novel: would equate to the norm of log probs.
             #    instead we introduce softmax for actual normalization.
@@ -55,7 +56,7 @@ class RNNUnit(nn.Module):
             # NB tanh == ~RELU bounded (-1, 1), lower limit bias shifted.
             # self.phi = torch.tanh
             self.phi = nn.Identity
-            
+
         self.Uh = nn.Parameter(self.Uh, requires_grad=requires_grad)
         self.Wh = nn.Parameter(self.Wh, requires_grad=False)
         # self.b = nn.Parameter(self.b, requires_grad=requires_grad)
@@ -73,7 +74,7 @@ class RNNUnit(nn.Module):
         # HACK BUG apply activation?
         return result
 
-    
+
 class RNN(nn.Module):
     """
     Evaluates an auto-regressive ('next token') multi-layer RNN
@@ -83,13 +84,14 @@ class RNN(nn.Module):
     W is a distortion of the embedding (equivalent to a cumulative
     ln P mapping?).
     """
+
     def __init__(self, device=None):
         super(RNN, self).__init__()
 
         config = Config()
-        
+
         self.device = get_device(device)
-        
+
         # NB embedding dimension == assumed number of states.
         self.emb_dim = config.num_states
 
@@ -98,8 +100,7 @@ class RNN(nn.Module):
         self.num_layers = 1 + config.num_layers
 
         self.layers = nn.ModuleList(
-            [GaussianEmbedding()]
-            + [RNNUnit() for _ in range(config.num_layers)]
+            [GaussianEmbedding()] + [RNNUnit() for _ in range(config.num_layers)]
         )
 
         # TODO why is this necessary?
@@ -125,7 +126,7 @@ class RNN(nn.Module):
         for t in range(seq_len):
             # NB expand single token to a length 1 sequence.
             input_t = x[:, t, :].unsqueeze(1)
-            
+
             # NB observed features -> Gaussian emission embedding, result is -lnP per state.
             input_t = self.layers[0].forward(input_t).squeeze(1)
             """
