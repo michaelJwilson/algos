@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from pprint import pformat
 from types import SimpleNamespace
 
@@ -8,7 +8,7 @@ import yaml
 class Config:
     def __init__(self, config_path=None):
         config = self.load_config(config_path)
-        
+
         self.blocks = config.keys()
 
         for name in self.blocks:
@@ -29,17 +29,15 @@ class Config:
             if hasattr(getattr(self, block), name):
                 return getattr(getattr(self, block), name)
 
-        raise AttributeError(f"'Config' object has no attribute '{name}'")
-    
-    def get_config_path(self):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        msg = f"'Config' object has no attribute '{name}'"
 
-        return os.path.join(script_dir, "config.yaml")
+        raise AttributeError(msg)
+
+    def get_config_path(self):
+        return Path(__file__).resolve().parent / "config.yaml"
 
     def load_config(self, fpath=None):
         fpath = self.get_config_path() if fpath is None else fpath
 
-        with open(fpath, "r") as file:
-            config = yaml.safe_load(file)
-
-        return config
+        with Path.open(fpath) as file:
+            return yaml.safe_load(file)
