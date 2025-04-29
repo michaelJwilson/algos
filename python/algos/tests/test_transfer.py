@@ -4,7 +4,7 @@ import time
 import torch
 import torch.nn as nn
 from algos.rnn.transfer import DiagonalMatrixModel
-from algos.rnn.utils import set_seed
+from algos.rnn.utils import set_seed, get_device
 from torch.optim import Adam
 
 logger = logging.getLogger(__name__)
@@ -15,10 +15,11 @@ def test_transfer():
     start = time.time()
     
     size = 8
+    device = get_device()
     model = DiagonalMatrixModel(size)
 
-    pi = torch.randn(2, size)
-    T = torch.diag(torch.randn(size))
+    pi = torch.randn(2, size, device=device)
+    T = torch.diag(torch.randn(size, device=device))
 
     print(f"\n\nExpectation for Transfer=\n{T}\n")
 
@@ -32,7 +33,7 @@ def test_transfer():
     for epoch in range(1_000):
         optimizer.zero_grad()
 
-        output = model(pi)
+        output = model(torch.log(pi))
 
         loss = criterion(output, target)
 
