@@ -75,6 +75,9 @@ class HMM(torch.nn.Module):
 
         assert ln_fs.shape == ln_emission_probs.shape
 
+        # TODO P(x)
+        return torch.sum(torch.logsumexp(ln_fs[:,-1,:], dim=-1))
+        
         # TODO Prince suggested no emission? confirm.
         # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html
         ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, 0, :]))]

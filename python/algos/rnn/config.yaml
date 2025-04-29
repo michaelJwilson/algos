@@ -4,11 +4,11 @@ dataset:
     stds: [1.0, 1.0]
     num_states: 2
     num_sequences: 4
-    sequence_length: 64
+    sequence_length: 128
 
 training:
     device: "native"
     batch_size: 256
     num_layers: 1
     learning_rate: 5.0e-2
-    num_epochs: 50
+    num_epochs: 100
