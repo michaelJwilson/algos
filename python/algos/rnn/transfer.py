@@ -14,7 +14,7 @@ class DiagonalTransfer(nn.Module):
         self.num_states = num_states
         self.diag = torch.ones(num_states, device=device)
         self.diag = nn.Parameter(self.diag)
-
+        
     def __repr__(self):
         return (
             f"{self.__class__.__name__}(\n"
