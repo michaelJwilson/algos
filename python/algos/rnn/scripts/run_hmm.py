@@ -16,12 +16,12 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+set_seed(42)
+set_precision()
 
 def main():
-    set_seed(42)
-    set_precision()
-    
     config = Config()
+    device = get_device()
 
     print(config)
     
@@ -40,11 +40,12 @@ def main():
         batch_size=config.batch_size,
         shuffle=False,
         pin_memory=True,
-        num_workers=1,
+        num_workers=config.num_workers,
     )
 
     print(config.sequence_length)
     
+    """
     obvs, states = next(iter(dataloader))
 
     print(config.sequence_length)
@@ -55,7 +56,7 @@ def main():
     ), f"obvs.shape={obvs.shape} failed to match expectation={[config.batch_size, config.sequence_length, 1]}"
 
     logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
-    """
+
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding().forward(obvs)
 
@@ -72,10 +73,10 @@ def main():
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
     """
-
+    """
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
-    """
+    
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
 
     # NB [batch_size, seq_length, -lnP for _ in num_states].
@@ -101,6 +102,9 @@ def main():
 
         # NB cycles through all sequences.
         for batch_idx, (obvs, states) in enumerate(dataloader):
+            obvs = obvs.to(device)
+            states = states.to(device)
+            
             ## >>>>
             """
             outputs = model(obvs)  # Shape: (batch_size, sequence_length, num_states)

@@ -8,9 +8,10 @@ dataset:
 
 training:
     device: "native"
+    num_workers: 1
     num_layers: 1    
     batch_size: 256
-    learning_rate: 1.0e-2
+    learning_rate: 1.0e-3
     num_epochs: 500
     init_jump_rate : 0.1
     init_means: [3.0, 8.0]

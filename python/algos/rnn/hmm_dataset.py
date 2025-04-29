@@ -5,7 +5,7 @@ import torch
 from numba import njit
 from torch.utils.data import Dataset
 
-from algos.rnn.utils import get_device
+from algos.rnn.utils import get_device, set_precision
 
 """
 HMM simultation assuming Gaussian emission.
@@ -13,6 +13,7 @@ HMM simultation assuming Gaussian emission.
 
 logger = logging.getLogger(__name__)
 
+set_precision()
 
 @njit
 def populate_states(states, transfer):
@@ -66,8 +67,11 @@ class HMMDataset(Dataset):
         self.num_states = len(self.means)
 
         self.states = np.zeros(self.sequence_length, dtype=int)
-        self.obvs = np.zeros(self.sequence_length, dtype=float)
+        self.obvs = np.zeros(self.sequence_length, dtype=np.float32)
 
+        self.transform = transform
+        self.target_transform = target_transform
+        
         logger.info(
             f"Generating HMMDataset on {self.device} with true parameters:\nM={self.means}\nT=\n{self.trans}"
         )
@@ -98,8 +102,8 @@ class HMMDataset(Dataset):
         if self.target_transform:
             self.states = self.target_transform(self.states)
         
-        states = torch.tensor(self.states, dtype=torch.long, device=self.device)
-        obvs = torch.tensor(self.obvs, device=self.device).unsqueeze(-1)
+        states = torch.tensor(self.states, dtype=torch.long, device="cpu", pin_memory=False)
+        obvs = torch.tensor(self.obvs, device="cpu", pin_memory=False).unsqueeze(-1)
 
         logger.debug(f"{states}")
         logger.debug(f"Realized HMM simulation:\n{obvs}")
