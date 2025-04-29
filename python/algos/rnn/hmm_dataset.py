@@ -16,16 +16,12 @@ logger = logging.getLogger(__name__)
 
 @njit
 def populate_states(states, transfer):
-    """
-    Populate HMM states according to Categorical
-    transfer.
-    """
     for t in range(1, len(states)):
         ps = transfer[states[t - 1]]
         sum_ps = np.cumsum(ps)
 
         # NB equivalent to Categorical sampling
-        #    by ps, under njit.
+        #    by ps; required by njit.
         sample = np.random.rand()
         states[t] = np.searchsorted(sum_ps, sample)
 
@@ -97,31 +93,3 @@ class HMMDataset(Dataset):
 
         # NB when called as a batch, will have shape [batch_size, seq_length, 1].
         return obvs, states
-
-
-if __name__ == "__main__":
-    num_states = 2
-    num_sequences = 256
-    sequence_length = 4
-    batch_size = 1
-    num_layers = 1
-    learning_rate = 1.0
-
-    # NB defines true parameters.
-    trans = np.array([[1.0, 0.0], [0.0, 1.0]])
-
-    means = np.array([5.0, 10.0])
-    stds = np.array([1.0, 1.0])
-
-    dataset = HMMDataset(
-        num_sequences=num_sequences,
-        sequence_length=sequence_length,
-        trans=trans,
-        means=means,
-        stds=stds,
-    )
-
-    dataset_iter = iter(dataset)
-    data = next(dataset_iter)
-
-    print(data)
