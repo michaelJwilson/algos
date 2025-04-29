@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-run_rnn = "algos.rnn.scripts.run_rnn:main"
+run_model = "algos.rnn.scripts.run_model:main"
 
 [tool.hatch.build.targets.sdist]
 include = ["python/algos"]
