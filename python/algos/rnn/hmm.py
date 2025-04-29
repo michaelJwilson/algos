@@ -70,11 +70,11 @@ class HMM(torch.nn.Module):
             ln_fs.append(
                 interim := ln_emission_probs[:, ii, :] + self.layers[2].forward(interim)
             )
-
+            
         ln_fs = torch.stack(ln_fs, dim=1)
 
         assert ln_fs.shape == ln_emission_probs.shape
-        
+
         # TODO Prince suggested no emission? confirm.
         # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html
         ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, 0, :]))]
@@ -99,3 +99,4 @@ class HMM(torch.nn.Module):
 
         # NB -log marginal MAP on state.
         return -result
+
