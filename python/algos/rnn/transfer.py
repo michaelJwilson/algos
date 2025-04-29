@@ -2,6 +2,32 @@ import torch
 from torch import nn
 from algos.rnn.utils import get_device, logmatexp
 
+# @torch.compile                                                                                                                                                                                                     
+class CategoricalPrior(nn.Module):
+    def __init__(self, num_states, device=None):
+        super(CategoricalPrior, self).__init__()
+
+        if device == None:
+            device = get_device(device)
+
+        # NB torch.randn samples the standard normal (per state).                                                                                                                                                      
+        self.num_states = num_states
+        self.ln_pi = torch.nn.Parameter(
+            torch.log(
+                torch.ones(num_states, device=device) / num_states
+            )
+        )
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"  # states: {self.num_states}\n"
+            f"  # parameters: {sum(p.numel() for p in self.parameters())}\n"
+        )
+
+    def forward(self, x):
+        return x + self.ln_pi
+
 
 # @torch.compile
 class DiagonalTransfer(nn.Module):

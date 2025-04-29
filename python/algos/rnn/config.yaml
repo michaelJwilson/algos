@@ -12,3 +12,4 @@ training:
     num_layers: 1
     learning_rate: 5.0e-2
     num_epochs: 100
+    init_jump_rate : 0.1
