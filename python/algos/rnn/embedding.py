@@ -12,17 +12,15 @@ logger = logging.getLogger(__name__)
 @torch.compile
 class GaussianEmbedding(nn.Module):
     def __init__(self):
-        super(GaussianEmbedding, self).__init__()
+        super().__init__()
 
+        config = Config()
+        
         self.device = get_device()
-        self.num_states = Config().num_states
+        self.num_states = config.num_states
 
-        # NB fixed mean initialization.
-        self.means = torch.tensor([3.0, 8.0], device=self.device)
-
-        # TODO HACK
-        # NB fixed, unit variances.
-        self.log_vars = 1.1 * torch.ones(self.num_states, device=self.device)
+        self.means = torch.tensor(config.init_means, device=self.device)
+        self.log_vars = torch.tensor(config.init_stds, device=self.device)
 
         self.means = nn.Parameter(self.means, requires_grad=True)
         self.log_vars = nn.Parameter(self.log_vars, requires_grad=True)
