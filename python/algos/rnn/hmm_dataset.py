@@ -102,7 +102,7 @@ class HMMDataset(Dataset):
         if self.target_transform:
             self.states = self.target_transform(self.states)
         
-        states = torch.tensor(self.states, dtype=torch.long, device="cpu", pin_memory=False)
+        states = torch.tensor(self.states, dtype=torch.int, device="cpu", pin_memory=False)
         obvs = torch.tensor(self.obvs, device="cpu", pin_memory=False).unsqueeze(-1)
 
         logger.debug(f"{states}")
