@@ -5,7 +5,7 @@ from algos.rnn.config import Config
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.rnn import RNN
 from algos.rnn.hmm import HMM
-from algos.rnn.utils import set_seed
+from algos.rnn.utils import set_seed, set_precision
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 def main():
     set_seed(42)
-
+    set_precision()
+    
     config = Config()
 
     print(config)

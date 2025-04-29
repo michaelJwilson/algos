@@ -61,7 +61,7 @@ class HMM(torch.nn.Module):
 
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
-        ln_emission_probs = self.layers[0].forward(obvs)
+        ln_emission_probs = -self.layers[0].forward(obvs)
         
         ln_fs = [interim := self.layers[1].forward(ln_emission_probs[:, 0, :])]
 
@@ -75,7 +75,6 @@ class HMM(torch.nn.Module):
         assert ln_fs.shape == ln_emission_probs.shape
         
         # TODO Prince suggested no emission? confirm.
-        
         # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html
         ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, 0, :]))]
 
@@ -96,6 +95,6 @@ class HMM(torch.nn.Module):
         ln_gamma = ln_fs + ln_bs
         
         result = ln_gamma - torch.logsumexp(ln_gamma, dim=2, keepdim=True)
-        
-        return result
 
+        # NB -log marginal MAP on state.
+        return -result
