@@ -24,7 +24,7 @@ class GaussianEmbedding(nn.Module):
         self.log_vars = 1.1 * torch.ones(self.num_states, device=self.device)
 
         self.means = nn.Parameter(self.means, requires_grad=True)
-        self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
+        self.log_vars = nn.Parameter(self.log_vars, requires_grad=True)
 
         logger.info(
             f"Initialized Gaussian embedding on device {self.device} with mean={self.means} (grad? {self.means.requires_grad}) and log vars={self.log_vars} (grad? {self.log_vars.requires_grad})"

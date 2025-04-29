@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from torch import nn
 from algos.rnn.utils import get_device, logmatexp
 
@@ -10,7 +11,7 @@ class CategoricalPrior(nn.Module):
         if device == None:
             device = get_device(device)
 
-        # NB torch.randn samples the standard normal (per state).                                                                                                                                                      
+        # NB torch.randn samples the standard normal (per state).                                                                                                                                                     
         self.num_states = num_states
         self.ln_pi = torch.nn.Parameter(
             torch.log(
@@ -26,7 +27,7 @@ class CategoricalPrior(nn.Module):
         )
 
     def forward(self, x):
-        return x + self.ln_pi
+        return x + torch.log(F.softmax(self.ln_pi))
 
 
 # @torch.compile
