@@ -1,30 +1,34 @@
 import torch
+import pytest
+import logging
+
 from algos.rnn.hmm import HMM
-from algos.rnn.utils import get_device
+from algos.rnn.utils import get_device, set_seed
 from algos.rnn.config import Config
+from algos.rnn.hmm_dataset import HMMDataset
+from torch.utils.data import DataLoader
 
 
-def test_hmm_autodiff():
+def test_hmm():
+    set_seed(42)
+
     config = Config()
-    
-    num_states = config.num_states
-    batch_size = config.batch_size
-    sequence_length = config.sequence_length
+    dataset = HMMDataset(
+        num_sequences=config.num_sequences,
+        sequence_length=config.sequence_length,
+        jump_rate=config.jump_rate,
+        means=config.means,
+        stds=config.stds,
+    )
 
-    device = get_device()
-    
-    observations = torch.randint(0, num_states, (batch_size, sequence_length), device=device)
+    dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=False)
+    obvs, states = next(iter(dataloader))
 
-    print(f"\n{observations}")
-    
-    model = HMM(batch_size, sequence_length, num_states)
-    model.zero_grad()
+    model = HMM(config.batch_size, config.sequence_length, config.num_states)
 
-    log_gamma = model(observations)
+    print(f"RNN model summary:\n{model}")
 
-    loss = log_gamma.sum()
+    # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
+    estimate = model.forward(obvs)
 
-    loss.backward()
-    
-    for name, param in model.named_parameters():
-        print(f"{name}:  {param.grad}")    
+    print(estimate)

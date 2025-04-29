@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def main():
     set_seed(42)
 
-    config = Config()    
+    config = Config()
     dataset = HMMDataset(
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
@@ -30,10 +30,12 @@ def main():
         stds=config.stds,
     )
 
-    dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=False)
+    dataloader = DataLoader(
+        dataset, batch_size=config.batch_size, shuffle=False, num_workers=1
+    )
 
     obvs, states = next(iter(dataloader))
-    
+
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size([config.batch_size, config.sequence_length, 1])
 
@@ -48,24 +50,26 @@ def main():
     """
     # model = RNN()
     model = HMM(config.batch_size, config.sequence_length, config.num_states)
-    
+
     logger.info(f"RNN model summary:\n{model}")
     """
     summary(
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
     """
-    
+
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 
     logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
 
     exit(0)
-    
+
     # NB [batch_size, seq_length, -lnP for _ in num_states].
-    assert estimate.shape == torch.Size([config.batch_size, config.sequence_length, config.num_states])
-    
+    assert estimate.shape == torch.Size(
+        [config.batch_size, config.sequence_length, config.num_states]
+    )
+
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
@@ -80,9 +84,7 @@ def main():
         # NB cycles through all sequences.
         for batch_idx, (obvs, states) in enumerate(dataloader):
             ## >>>>
-            outputs = model(
-                obvs
-            )  # Shape: (batch_size, sequence_length, num_states)
+            outputs = model(obvs)  # Shape: (batch_size, sequence_length, num_states)
 
             # NB conserves last dim. axis and collapses remaining dims. to 1D.
             outputs = outputs.view(-1, outputs.size(-1))
