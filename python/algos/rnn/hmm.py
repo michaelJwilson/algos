@@ -12,7 +12,8 @@ from algos.rnn.transfer import DiagonalMatrixModel
 
 logger = logging.getLogger(__name__)
 
-# @torch.compile                                                                                                                                                                           
+
+# @torch.compile
 class MarkovModel(nn.Module):
     def __init__(self, num_states, device=None):
         super(MarkovModel, self).__init__()
@@ -20,13 +21,14 @@ class MarkovModel(nn.Module):
         if device == None:
             device = get_device(device)
 
-        # NB torch.randn samples the standard normal (per state).                                                                                                                          
+        # NB torch.randn samples the standard normal (per state).
         self.ln_pi = torch.nn.Parameter(
             torch.ones(num_states, dtype=torch.float32, device=device) / num_states
         )
 
     def forward(self, x):
         return x + self.ln_pi
+
 
 # @torch.compile
 class HMM(torch.nn.Module):
@@ -50,8 +52,7 @@ class HMM(torch.nn.Module):
 
         for ii in range(1, self.sequence_length):
             ln_fs.append(
-                interim := ln_emission_probs[:, ii, :]
-                + self.transfer.forward(interim)
+                interim := ln_emission_probs[:, ii, :] + self.transfer.forward(interim)
             )
 
         ln_fs = torch.stack(ln_fs, dim=1)
@@ -61,7 +62,9 @@ class HMM(torch.nn.Module):
 
         for ii in range(self.sequence_length - 2, -1, -1):
             ln_bs.append(
-                interim := + self.transfer.forward(interim + ln_emission_probs[:, ii + 1, :])
+                interim := +self.transfer.forward(
+                    interim + ln_emission_probs[:, ii + 1, :]
+                )
             )
 
         ln_bs = torch.stack(ln_bs, dim=1)
