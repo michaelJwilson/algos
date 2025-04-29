@@ -25,15 +25,16 @@ def hmm_dataset():
     
 
 def test_hmm(hmm_dataset):
-    dataloader = DataLoader(hmm_dataset, batch_size=config.batch_size, shuffle=False, num_workers=1)
+    # num_workers=1
+    dataloader = DataLoader(hmm_dataset, batch_size=config.batch_size, shuffle=False)
     obvs, states = next(iter(dataloader))
 
     model = HMM(config.batch_size, config.sequence_length, config.num_states)
-    """
+
     print(f"RNN model summary:\n{model}")
 
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
     estimate = model.forward(obvs)
 
     print(estimate)
-    """
+

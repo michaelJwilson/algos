@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 # @torch.compile
-class MarkovModel(nn.Module):
+class CategoricalPrior(nn.Module):
     def __init__(self, num_states, device=None):
-        super(MarkovModel, self).__init__()
+        super(CategoricalPrior, self).__init__()
 
         if device == None:
             device = get_device(device)
@@ -40,11 +40,13 @@ class HMM(torch.nn.Module):
         self.batch_size = batch_size
         self.sequence_length = sequence_length
 
-        self.embedding = GaussianEmbedding()
-        self.latent_prior = MarkovModel(self.num_states)
-        self.transfer = DiagonalMatrixModel(self.num_states)
-
-        self.layers = nn.ModuleList([self.embedding, self.latent_prior, self.transfer])
+        self.layers = nn.ModuleList(
+            [
+                GaussianEmbedding(),
+                CategoricalPrior(self.num_states),
+                DiagonalMatrixModel(self.num_states),
+            ]
+        )
 
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
