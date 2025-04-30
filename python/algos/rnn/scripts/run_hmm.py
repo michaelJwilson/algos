@@ -3,6 +3,7 @@ import logging
 import torch
 from algos.rnn.config import Config
 from algos.rnn.hmm import HMM
+from algos.rnn.embedding import GaussianEmbedding
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.utils import get_device, set_precision, set_seed
 from torch import nn, optim
@@ -41,15 +42,16 @@ def main():
         num_workers=config.num_workers,
     )
 
-    """
     obvs, states = next(iter(dataloader))
+    obvs = obvs.to(device)
+    states = states.to(device)
     
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size(
         [min(config.batch_size, config.num_sequences), config.sequence_length, 1]
     ), f"obvs.shape={obvs.shape} failed to match expectation={[config.batch_size, config.sequence_length, 1]}"
 
-    logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
+    # logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
 
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding().forward(obvs)
@@ -57,13 +59,16 @@ def main():
     assert embedding.shape == torch.Size(
         [config.batch_size, config.sequence_length, config.num_states]
     )
-    """
+
     # model = RNN()
     model = HMM(
         config.batch_size, config.sequence_length, config.num_states, get_device()
     )
 
     logger.info(f"RNN model summary:\n{model}")
+
+    exit(0)
+    
     """
     summary(
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
