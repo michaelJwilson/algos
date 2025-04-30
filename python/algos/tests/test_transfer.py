@@ -3,7 +3,7 @@ import time
 
 import torch
 import torch.nn as nn
-from algos.rnn.transfer import DiagonalMatrixModel
+from algos.rnn.transfer import DiagonalTransfer
 from algos.rnn.utils import set_seed, get_device
 from torch.optim import Adam
 
@@ -16,7 +16,7 @@ def test_transfer():
     
     size = 4
     device = get_device()
-    model = DiagonalMatrixModel(size)
+    model = DiagonalTransfer(size)
 
     pi = torch.rand(size, device=device)
     pi /= torch.sum(pi)

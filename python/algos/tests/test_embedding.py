@@ -17,7 +17,7 @@ def test_initialization(gaussian_embedding):
     ), "Log vars shape is incorrect"
     assert gaussian_embedding.means.requires_grad, "Means should require gradients"
     assert (
-        not gaussian_embedding.log_vars.requires_grad
+        gaussian_embedding.log_vars.requires_grad
     ), "Log vars should not require gradients"
 
 

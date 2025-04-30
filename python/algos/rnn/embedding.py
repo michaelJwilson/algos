@@ -9,7 +9,7 @@ from algos.rnn.utils import get_device
 logger = logging.getLogger(__name__)
 
 
-@torch.compile
+# @torch.compile
 class GaussianEmbedding(nn.Module):
     def __init__(self):
         super().__init__()
