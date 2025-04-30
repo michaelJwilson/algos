@@ -83,17 +83,16 @@ class NegativeBinomialEmbedding(nn.Module):
             f"  # parameters: {sum(p.numel() for p in self.parameters())}\n"
         )
 
-    def forward(self, x):
-        batch_size, sequence_length, _ = x.shape
-        x = x.expand(-1, -1, self.num_states)
-
+    def forward(self, k):
+        batch_size, sequence_length, _ = k.shape
+        k = k.expand(-1, -1, self.num_states)
 
         log_prob = (
-            torch.lgamma(self.total_count + x)
-            - torch.lgamma(self.total_count)
-            - torch.lgamma(x + 1)
-            + self.total_count * torch.log(1.0 - torch.sigmoid(self.logits))
-            + x * torch.log(torch.sigmoid(self.logits))
+            torch.lgamma(self.coverage + k)
+            - torch.lgamma(self.coverage)
+            - torch.lgamma(k + 1)
+            + self.coverage * torch.log(1.0 - torch.sigmoid(self.logits))
+            + k * torch.log(torch.sigmoid(self.logits))
         )
 
         # NB shape = (batch_size, sequence_length, num_states)
