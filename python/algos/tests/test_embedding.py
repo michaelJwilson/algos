@@ -23,12 +23,12 @@ def normal_embedding():
 def betabinomial_embedding(config, device):
     coverage = torch.ones(config.batch_size, config.sequence_length, 1, device=device)
 
-    return BetaBinomialEmbedding()
+    return BetaBinomialEmbedding(coverage)
 
-@pytest.mark.parametrize("test_embedding", [normal_embedding])
-def test_initialization(test_embedding):
+
+def test_initialization(normal_embedding):
     num_states = normal_embedding.num_states
-
+    
     assert normal_embedding.means.shape == (num_states,), "Means shape is incorrect"
     assert normal_embedding.log_vars.shape == (
         num_states,
@@ -36,7 +36,7 @@ def test_initialization(test_embedding):
     assert normal_embedding.means.requires_grad, "Means should require gradients"
     """
     assert (
-        normal_embedding.log_vars.requires_grad
+    normal_embedding.log_vars.requires_grad
     ), "Log vars should not require gradients"
     """
 
