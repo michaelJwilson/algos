@@ -78,7 +78,7 @@ class BetaBinomialEmbedding(nn.Module):
         ), "Alpha initialization provided inconsistent with number of states defined."
 
         logger.info(
-            f"Initialized Beta Binomial embedding on device {self.device} with alpha={self.alpha} (grad? {self.alpha.requires_grad}), beta={self.beta} (grad? {self.beta.requires_grad}), and total_count={self.total_count} (grad? {self.total_count.requires_grad})"
+            f"Initialized Beta Binomial embedding on device {self.device} with alpha={self.alpha} (grad? {self.alpha.requires_grad}), beta={self.beta} (grad? {self.beta.requires_grad})."
         )
 
     def __repr__(self):
