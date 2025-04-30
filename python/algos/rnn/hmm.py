@@ -1,6 +1,7 @@
 import logging
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 from algos.rnn.embedding import GaussianEmbedding
