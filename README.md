@@ -9,7 +9,6 @@ LeetCode Top 150:
 
 uv usage:
     - source .venv/bin/activate
-    - 
 
 ruff usage:
     - ruff check --select F401 --fix
