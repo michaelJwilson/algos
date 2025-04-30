@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 logger = logging.getLogger(__name__)
 
+
 class Config:
     def __init__(self, config_path=None):
         config = self.load_config(config_path)
@@ -16,7 +17,6 @@ class Config:
         for name in self.blocks:
             setattr(self, name, SimpleNamespace(**config.get(name, {})))
 
-            
     def __repr__(self):
         result = {}
 

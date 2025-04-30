@@ -20,10 +20,11 @@ logger = logging.getLogger(__name__)
 set_seed(42)
 set_precision()
 
+
 def main():
     config = Config()
     device = get_device()
-    
+
     dataset = HMMDataset(
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
@@ -31,7 +32,7 @@ def main():
         means=config.means,
         stds=config.stds,
     )
-    
+
     dataloader = DataLoader(
         dataset,
         batch_size=config.batch_size,
@@ -39,7 +40,7 @@ def main():
         pin_memory=False,
         num_workers=config.num_workers,
     )
-    
+
     """
     obvs, states = next(iter(dataloader))
     
@@ -58,7 +59,9 @@ def main():
     )
     """
     # model = RNN()
-    model = HMM(config.batch_size, config.sequence_length, config.num_states, get_device())
+    model = HMM(
+        config.batch_size, config.sequence_length, config.num_states, get_device()
+    )
 
     logger.info(f"RNN model summary:\n{model}")
     """
@@ -82,11 +85,11 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
-    
+
     # NB reduce learning rate by 10x every 50 epochs.
     # scheduler = ReduceLROnPlateau(optimizer, step_size=50, gamma=0.1)
     # scheduler = StepLR(optimizer, step_size=50, gamma=0.1)
-    
+
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(config.num_epochs):
         model.train()
@@ -96,7 +99,7 @@ def main():
             # NB creates copies
             obvs = obvs.to(device)
             states = states.to(device)
-            
+
             ## >>>>
             """
             outputs = model(obvs)
@@ -109,7 +112,7 @@ def main():
             """
 
             loss = -model(obvs)
-            
+
             optimizer.zero_grad()
 
             # NB compute gradient with backprop.
@@ -117,14 +120,14 @@ def main():
 
             # NB gradient clipping
             # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            
+
             # NB stochastic gradient descent.
             optimizer.step()
 
             total_loss += loss.item()
 
         # scheduler.step()
-            
+
         if epoch % 50 == 0:
             logger.info(
                 f"----  Epoch [{epoch + 1}/{config.num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"

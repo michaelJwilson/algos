@@ -46,7 +46,7 @@ class GaussianEmbedding(nn.Module):
 
         # NB no-copy view; expands singleton last dimension to num_states size.
         x = x.expand(-1, -1, self.num_states)
-        
+
         norm = 0.5 * torch.log(2.0 * torch.pi * variances)
 
         # NB shape = (batch_size, sequence_length, num_states)

@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 def main():
     set_seed(42)
     set_precision()
-    
+
     config = Config()
 
     print(config)
-    
+
     dataset = HMMDataset(
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
@@ -34,7 +34,7 @@ def main():
     )
 
     print(config.sequence_length)
-    
+
     # num_workers=1 implies cpu
     dataloader = DataLoader(
         dataset,
@@ -43,11 +43,11 @@ def main():
     )
 
     print(config.sequence_length)
-    
+
     obvs, states = next(iter(dataloader))
 
     print(config.sequence_length)
-    
+
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size(
         [min(config.batch_size, config.num_sequences), config.sequence_length, 1]
@@ -87,7 +87,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
-    
+
     # NB an epoch is a complete pass through the data (in batches).
     for epoch in range(config.num_epochs):
         model.train()
@@ -98,7 +98,7 @@ def main():
             ## >>>>
             """
             outputs = model(obvs)  # Shape: (batch_size, sequence_length, num_states)
-            
+
             # NB conserves last dim. axis and collapses remaining dims. to 1D.
             outputs = outputs.view(-1, outputs.size(-1))
 
@@ -110,7 +110,7 @@ def main():
             """
 
             loss = -model(obvs)
-            
+
             optimizer.zero_grad()
 
             # NB compute gradient with backprop.

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 set_precision()
 
+
 @njit
 def populate_states(states, transfer):
     for t in range(1, len(states)):
@@ -71,7 +72,7 @@ class HMMDataset(Dataset):
 
         self.transform = transform
         self.target_transform = target_transform
-        
+
         logger.info(
             f"Generating HMMDataset on {self.device} with true parameters:\nM={self.means}\nT=\n{self.trans}"
         )
@@ -98,11 +99,13 @@ class HMMDataset(Dataset):
 
         if self.transform:
             self.obvs = self.transform(self.obvs)
-            
+
         if self.target_transform:
             self.states = self.target_transform(self.states)
-        
-        states = torch.tensor(self.states, dtype=torch.int, device="cpu", pin_memory=False)
+
+        states = torch.tensor(
+            self.states, dtype=torch.int, device="cpu", pin_memory=False
+        )
         obvs = torch.tensor(self.obvs, device="cpu", pin_memory=False).unsqueeze(-1)
 
         logger.debug(f"{states}")

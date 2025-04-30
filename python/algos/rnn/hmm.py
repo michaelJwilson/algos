@@ -29,7 +29,7 @@ class HMM(torch.nn.Module):
         )
 
     def forward_backward(self, obvs):
-        # NB [batch_size, sequence_length, num_states]                                                                                                                                                     
+        # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = -self.layers[0].forward(obvs)
 
         ln_fs = [interim := self.layers[1].forward(ln_emission_probs[:, 0, :])]
@@ -43,9 +43,13 @@ class HMM(torch.nn.Module):
 
         assert ln_fs.shape == ln_emission_probs.shape
 
-        # TODO Prince suggested no emission? confirm.                                                                                                                                                      
-        # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html                                                                                                                               
-        ln_bs = [interim := self.layers[1].forward(torch.zeros_like(ln_emission_probs[:, 0, :]))]
+        # TODO Prince suggested no emission? confirm.
+        # NB https://pytorch.org/docs/stable/generated/torch.zeros_like.html
+        ln_bs = [
+            interim := self.layers[1].forward(
+                torch.zeros_like(ln_emission_probs[:, 0, :])
+            )
+        ]
 
         for ii in range(self.sequence_length - 2, -1, -1):
             ln_bs.append(
@@ -56,7 +60,7 @@ class HMM(torch.nn.Module):
 
         ln_bs.reverse()
 
-        # NB https://pytorch.org/docs/stable/generated/torch.stack.html                                                                                                                                     
+        # NB https://pytorch.org/docs/stable/generated/torch.stack.html
         ln_bs = torch.stack(ln_bs, dim=1)
 
         assert ln_bs.shape == ln_emission_probs.shape
@@ -66,7 +70,7 @@ class HMM(torch.nn.Module):
         result = ln_gamma - torch.logsumexp(ln_gamma, dim=2, keepdim=True)
 
         return result
-        
+
     # TODO return likelihood by forward only.
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
