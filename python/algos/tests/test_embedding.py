@@ -42,11 +42,12 @@ def test_embedding_init(embedding):
         # NB guard clause to e.g. remove embedding.coverage; also drops normal.stds
         if param.requires_grad:
             assert param.shape == torch.Size([embedding.num_states])
-            # assert param.device == embedding.device, f"{embedding}  {name}  {param.device}  {embedding.device}"
+            assert param.device.type == embedding.device.type
 
-            print(f"{embedding}  {name}  {param.device}  {embedding.device}")
 
-@pytest.mark.parametrize("embedding", ["normal", "betabinomial", "nbinomial"], indirect=True)
+@pytest.mark.parametrize(
+    "embedding", ["normal", "betabinomial", "nbinomial"], indirect=True
+)
 def test_embedding_forward(config, device, embedding):
     # NB see https://pytorch.org/docs/stable/generated/torch.randint.html
     data = torch.randint(
