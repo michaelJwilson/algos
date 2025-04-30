@@ -30,13 +30,12 @@ def test_hmm(hmm_dataset):
     dataloader = DataLoader(hmm_dataset, batch_size=config.batch_size, shuffle=False)
     obvs, states = next(iter(dataloader))
 
-    model = HMM(config.batch_size, config.sequence_length, config.num_states)
+    device = get_device()
+    model = HMM(config.batch_size, config.sequence_length, config.num_states, device)
 
     print(f"HMM model summary:\n{model}")
 
     # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
-    estimate = model.forward(obvs)
-
-    print(estimate[0])
+    estimate = model.forward(obvs.to(device))
     
 
