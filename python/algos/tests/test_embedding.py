@@ -42,7 +42,9 @@ def test_embedding_init(embedding):
         # NB guard clause to e.g. remove embedding.coverage; also drops normal.stds
         if param.requires_grad:
             assert param.shape == torch.Size([embedding.num_states])
+            # assert param.device == embedding.device, f"{embedding}  {name}  {param.device}  {embedding.device}"
 
+            print(f"{embedding}  {name}  {param.device}  {embedding.device}")
 
 @pytest.mark.parametrize("embedding", ["normal", "betabinomial", "nbinomial"], indirect=True)
 def test_embedding_forward(config, device, embedding):
@@ -62,11 +64,3 @@ def test_embedding_forward(config, device, embedding):
         config.sequence_length,
         config.num_states,
     )
-
-"""
-# TODO (cpu, index=0) vs cpu.
-@pytest.mark.xfail(raises=AssertionError)
-def test_embedding_device(normal_embedding):
-    assert normal_embedding.means.device == normal_embedding.device
-    assert normal_embedding.log_vars.device == normal_embedding.device
-"""
