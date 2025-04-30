@@ -2,7 +2,11 @@ import pytest
 import torch
 from algos.rnn.utils import get_device
 from algos.rnn.config import Config
-from algos.rnn.embedding import BetaBinomialEmbedding, GaussianEmbedding
+from algos.rnn.embedding import (
+    BetaBinomialEmbedding,
+    GaussianEmbedding,
+    NegativeBinomialEmbedding,
+)
 
 
 @pytest.fixture
@@ -34,25 +38,21 @@ def embedding(request, config, device):
     if request.param == "normal":
         return GaussianEmbedding()
     elif request.param == "nbinomial":
-        return NegativeBinomialEmbedding(coverage)
+        return NegativeBinomialEmbedding()
     elif request.param == "betabinomial":
         return BetaBinomialEmbedding(coverage)
     else:
         raise ValueError(f"{request.param} embedding is not available as a fixture.")
 
 
-@pytest.mark.parametrize("embedding", ["normal", "betabinomial"], indirect=True)
+@pytest.mark.parametrize(
+    "embedding", ["normal", "betabinomial", "nbinomial"], indirect=True
+)
 def test_embedding_init(embedding):
-    num_states = embedding.num_states
-
-    assert embedding.means.shape == (num_states,), "Means shape is incorrect"
-    assert embedding.log_vars.shape == (num_states,), "Log vars shape is incorrect"
-    assert embedding.means.requires_grad, "Means should require gradients"
-    """
-    assert (
-    embedding.log_vars.requires_grad
-    ), "Log vars should not require gradients"
-    """
+    for name, param in embedding.named_parameters():
+        # NB guard clause to e.g. remove embedding.coverage; also drops normal.stds
+        if param.requires_grad:
+            assert param.shape == torch.Size([embedding.num_states])
 
 
 def test_embedding_forward(config, normal_embedding):

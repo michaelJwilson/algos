@@ -86,6 +86,7 @@ class NegativeBinomialEmbedding(nn.Module):
 
     def forward(self, k):
         batch_size, sequence_length, _ = k.shape
+        
         k = k.expand(-1, -1, self.num_states)
         p = torch.sigmoid(self.logits)
 

@@ -20,3 +20,5 @@ training:
     init_stds: [1.1, 1.1]
     init_alphas: [1.0, 1.0]
     init_betas: [1.0, 1.0]
+    init_nb_logits: [1.0, 1.0]
+    init_nb_coverage: [1.0, 1.0]
