@@ -3,16 +3,17 @@ dataset:
     means: [5.0, 10.0]
     stds: [1.0, 1.0]
     num_states: 2
-    num_sequences: 256
+    num_sequences: 4
     sequence_length: 32
 
 training:
-    device: "native"
+    device: "cpu"
     num_workers: 1
     num_layers: 1    
     batch_size: 256
     learning_rate: 5.0e-2
-    num_epochs: 5
+    gradient_threshold: 5.0
+    num_epochs: 30
     init_jump_rate : 0.1
     init_means: [3.0, 8.0]
     init_stds: [1.1, 1.1]

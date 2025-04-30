@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 import torch
 from algos.rnn.config import Config
@@ -121,8 +122,11 @@ def main():
             loss.backward()
 
             # NB gradient clipping
-            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            total_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=float("inf"))
 
+            if total_norm > config.gradient_threshold:
+                warnings.warn(f"Gradient norm {total_norm:.2f} exceeds threshold {config.gradient_threshold:.2f}. Consider clipping.")
+            
             # NB stochastic gradient descent.
             optimizer.step()
 
