@@ -53,6 +53,53 @@ class GaussianEmbedding(nn.Module):
         return norm + ((x - self.means) ** 2) / norm
 
 # @torch.compile
+class NegativeBinomialEmbedding(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        config = Config()
+
+        self.device = get_device()
+        self.num_states = config.num_states
+
+        self.logits = torch.tensor(config.init_logits, device=self.device)
+        self.total_count = torch.tensor(config.init_total_counts, device=self.device)
+
+        self.logits = nn.Parameter(self.logits, requires_grad=True)
+        self.total_count = nn.Parameter(self.total_count, requires_grad=False)
+
+        assert (
+            len(self.logits) == self.num_states
+        ), "Logits initialization provided inconsistent with number of states defined."
+
+        logger.info(
+            f"Initialized Negative Binomial embedding on device {self.device} with logits={self.logits} (grad? {self.logits.requires_grad}) and total_count={self.total_count} (grad? {self.total_count.requires_grad})"
+        )
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"  # states: {self.num_states}\n"
+            f"  # parameters: {sum(p.numel() for p in self.parameters())}\n"
+        )
+
+    def forward(self, x):
+        batch_size, sequence_length, _ = x.shape
+        x = x.expand(-1, -1, self.num_states)
+
+
+        log_prob = (
+            torch.lgamma(self.total_count + x)
+            - torch.lgamma(self.total_count)
+            - torch.lgamma(x + 1)
+            + self.total_count * torch.log(1.0 - torch.sigmoid(self.logits))
+            + x * torch.log(torch.sigmoid(self.logits))
+        )
+
+        # NB shape = (batch_size, sequence_length, num_states)
+        return log_prob
+
+# @torch.compile
 class BetaBinomialEmbedding(nn.Module):
     def __init__(self):
         super().__init__(coverage)
