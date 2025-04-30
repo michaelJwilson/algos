@@ -1,5 +1,6 @@
 import pytest
 import torch
+from algos.rnn.utils import get_device
 from algos.rnn.config import Config
 from algos.rnn.embedding import BetaBinomialEmbedding, GaussianEmbedding
 
@@ -26,17 +27,30 @@ def betabinomial_embedding(config, device):
     return BetaBinomialEmbedding(coverage)
 
 
-def test_embedding_init(normal_embedding):
-    num_states = normal_embedding.num_states
+@pytest.fixture
+def embedding(request, config, device):
+    coverage = torch.ones(config.batch_size, config.sequence_length, 1, device=device)
 
-    assert normal_embedding.means.shape == (num_states,), "Means shape is incorrect"
-    assert normal_embedding.log_vars.shape == (
-        num_states,
-    ), "Log vars shape is incorrect"
-    assert normal_embedding.means.requires_grad, "Means should require gradients"
+    if request.param == "normal":
+        return GaussianEmbedding()
+    elif request.param == "nbinomial":
+        return NegativeBinomialEmbedding(coverage)
+    elif request.param == "betabinomial":
+        return BetaBinomialEmbedding(coverage)
+    else:
+        raise ValueError(f"{request.param} embedding is not available as a fixture.")
+
+
+@pytest.mark.parametrize("embedding", ["normal", "betabinomial"], indirect=True)
+def test_embedding_init(embedding):
+    num_states = embedding.num_states
+
+    assert embedding.means.shape == (num_states,), "Means shape is incorrect"
+    assert embedding.log_vars.shape == (num_states,), "Log vars shape is incorrect"
+    assert embedding.means.requires_grad, "Means should require gradients"
     """
     assert (
-    normal_embedding.log_vars.requires_grad
+    embedding.log_vars.requires_grad
     ), "Log vars should not require gradients"
     """
 

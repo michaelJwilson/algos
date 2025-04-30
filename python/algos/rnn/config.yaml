@@ -18,4 +18,5 @@ training:
     init_jump_rate : 0.1
     init_means: [3.0, 8.0]
     init_stds: [1.1, 1.1]
-    
+    init_alphas: [1.0, 1.0]
+    init_betas: [1.0, 1.0]

@@ -103,16 +103,16 @@ class NegativeBinomialEmbedding(nn.Module):
 
 @torch_compile
 class BetaBinomialEmbedding(nn.Module):
-    def __init__(self):
-        super().__init__(coverage)
+    def __init__(self, coverage):
+        super().__init__()
 
         config = Config()
 
         self.device = get_device()
         self.num_states = config.num_states
 
-        self.alpha = torch.tensor(config.init_alpha, device=self.device)
-        self.beta = torch.tensor(config.init_beta, device=self.device)
+        self.alpha = torch.tensor(config.init_alphas, device=self.device)
+        self.beta = torch.tensor(config.init_betas, device=self.device)
 
         # NB no-op if a tensor and on the correct device.  Otherwise, warn?
         self.coverage = torch.tensor(coverage, device=self.device)
