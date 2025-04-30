@@ -13,7 +13,7 @@ training:
     batch_size: 256
     learning_rate: 5.0e-2
     gradient_threshold: 5.0
-    num_epochs: 30
+    num_epochs: 50
     init_jump_rate : 0.1
     init_means: [3.0, 8.0]
     init_stds: [1.1, 1.1]
