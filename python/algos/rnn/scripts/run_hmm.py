@@ -80,6 +80,8 @@ def main():
 
     logger.info(f"Model estimate:  {estimate}")
 
+    assert torch.isfinite(estimate).all(), "Model prediction contains non-finite values (NaN or Inf)."
+    
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
@@ -128,7 +130,7 @@ def main():
 
         # scheduler.step()
 
-        if epoch % 50 == 0:
+        if epoch % 1 == 0:
             logger.info(
                 f"----  Epoch [{epoch + 1}/{config.num_epochs}], Loss: {total_loss / len(dataloader):.4f}  ----"
             )
