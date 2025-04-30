@@ -10,7 +10,7 @@ from algos.rnn.transfer import CategoricalPrior, LeakyTransfer
 logger = logging.getLogger(__name__)
 
 
-# @torch.compile
+@torch.compile
 class HMM(torch.nn.Module):
     def __init__(self, batch_size, sequence_length, num_states, device):
         super(HMM, self).__init__()
@@ -28,7 +28,7 @@ class HMM(torch.nn.Module):
                 LeakyTransfer(self.num_states, 0.1),
             ]
         )
-
+    """
     def forward_backward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = -self.layers[0].forward(obvs)
@@ -71,8 +71,8 @@ class HMM(torch.nn.Module):
         result = ln_gamma - torch.logsumexp(ln_gamma, dim=2, keepdim=True)
 
         return result
+    """
 
-    # TODO return likelihood by forward only.
     def forward(self, obvs):
         # NB [batch_size, sequence_length, num_states]
         ln_emission_probs = -self.layers[0].forward(obvs)
