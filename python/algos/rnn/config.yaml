@@ -7,7 +7,7 @@ dataset:
     sequence_length: 64
 
 training:
-    device: "cpu"
+    device: "native"
     compile: 0
     num_workers: 1
     num_layers: 1    
