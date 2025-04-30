@@ -1,6 +1,6 @@
 import pytest
 import torch
-from algos.rnn.embedding import GaussianEmbedding
+from algos.rnn.embedding import GaussianEmbedding, BetaBinomialEmbedding
 from algos.rnn.config import Config
 
 
@@ -10,11 +10,23 @@ def config():
 
 
 @pytest.fixture
+def device():
+    return get_device()
+
+
+@pytest.fixture
 def normal_embedding():
     return GaussianEmbedding()
 
 
-def test_initialization(normal_embedding):
+@pytest.fixture
+def betabinomial_embedding(config, device):
+    coverage = torch.ones(config.batch_size, config.sequence_length, 1, device=device)
+
+    return BetaBinomialEmbedding()
+
+@pytest.mark.parametrize("test_embedding", [normal_embedding])
+def test_initialization(test_embedding):
     num_states = normal_embedding.num_states
 
     assert normal_embedding.means.shape == (num_states,), "Means shape is incorrect"
@@ -28,6 +40,7 @@ def test_initialization(normal_embedding):
     ), "Log vars should not require gradients"
     """
 
+
 def test_embedding_forward(config, normal_embedding):
     result = normal_embedding(
         torch.randn(config.batch_size, config.sequence_length, 1).to(
@@ -40,6 +53,7 @@ def test_embedding_forward(config, normal_embedding):
         config.sequence_length,
         config.num_states,
     )
+
 
 # TODO (cpu, index=0) vs cpu.
 @pytest.mark.xfail(raises=AssertionError)
