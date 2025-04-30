@@ -45,7 +45,7 @@ def main():
     obvs, states = next(iter(dataloader))
     obvs = obvs.to(device)
     states = states.to(device)
-    
+
     # NB [batch_size, seq_length, single feature].
     assert obvs.shape == torch.Size(
         [min(config.batch_size, config.num_sequences), config.sequence_length, 1]
@@ -56,8 +56,10 @@ def main():
     # NB embedding is -lnP per-state for Gaussian emission.
     embedding = GaussianEmbedding().forward(obvs)
 
-    assert embedding.shape == torch.Size(
-        [config.batch_size, config.sequence_length, config.num_states]
+    assert embedding.shape == (
+        min(config.batch_size, config.num_sequences),
+        config.sequence_length,
+        config.num_states,
     )
 
     # model = RNN()
@@ -67,24 +69,17 @@ def main():
 
     logger.info(f"RNN model summary:\n{model}")
 
-    exit(0)
-    
     """
     summary(
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
     """
-    """
+
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
-    
-    logger.info(f"\nRNN model estimate:\n{torch.exp(estimate[0, :, :])}")
 
-    # NB [batch_size, seq_length, -lnP for _ in num_states].
-    assert estimate.shape == torch.Size(
-        [min(config.batch_size, config.num_sequences), config.sequence_length, config.num_states]
-    )
-    """
+    logger.info(f"\nRNN model estimate:\n{estimate}")
+
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
