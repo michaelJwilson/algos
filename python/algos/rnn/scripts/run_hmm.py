@@ -78,7 +78,7 @@ def main():
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 
-    logger.info(f"\nRNN model estimate:\n{estimate}")
+    logger.info(f"Model estimate:  {estimate}")
 
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
