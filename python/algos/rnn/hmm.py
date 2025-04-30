@@ -6,11 +6,12 @@ from torch import nn
 
 from algos.rnn.embedding import GaussianEmbedding
 from algos.rnn.transfer import CategoricalPrior, LeakyTransfer
+from algos.rnn.utils import torch_compile
 
 logger = logging.getLogger(__name__)
 
 
-@torch.compile
+@torch_compile
 class HMM(torch.nn.Module):
     def __init__(self, batch_size, sequence_length, num_states, device):
         super(HMM, self).__init__()
@@ -28,6 +29,7 @@ class HMM(torch.nn.Module):
                 LeakyTransfer(self.num_states, 0.1),
             ]
         )
+
     """
     def forward_backward(self, obvs):
         # NB [batch_size, sequence_length, num_states]

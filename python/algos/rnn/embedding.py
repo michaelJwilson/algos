@@ -88,7 +88,7 @@ class NegativeBinomialEmbedding(nn.Module):
         batch_size, sequence_length, _ = k.shape
         k = k.expand(-1, -1, self.num_states)
         p = torch.sigmoid(self.logits)
-        
+
         log_prob = (
             torch.lgamma(self.coverage + k)
             - torch.lgamma(self.coverage)

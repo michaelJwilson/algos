@@ -49,14 +49,15 @@ def get_device(device=None, index=0):
 
     return torch.device(f"{device}:{index}")
 
+
 def torch_compile(model):
     if config.compile:
         return torch.compile(model)
-    
+
     return model
+
 
 def logmatexp(transfer, ln_probs):
     max_ln_probs = torch.max(ln_probs)
 
     return max_ln_probs + torch.log(torch.exp(ln_probs - max_ln_probs) @ transfer)
-

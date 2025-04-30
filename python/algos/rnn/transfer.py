@@ -2,10 +2,10 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from algos.rnn.utils import get_device, logmatexp
+from algos.rnn.utils import get_device, logmatexp, torch_compile
 
 
-@torch.compile
+@torch_compile
 class CategoricalPrior(nn.Module):
     def __init__(self, num_states, device=None):
         super().__init__()
@@ -31,7 +31,7 @@ class CategoricalPrior(nn.Module):
         return x + torch.log(F.softmax(self.ln_pi, dim=0))
 
 
-@torch.compile
+@torch_compile
 class DiagonalTransfer(nn.Module):
     def __init__(self, num_states, device=None):
         super().__init__()
@@ -52,7 +52,7 @@ class DiagonalTransfer(nn.Module):
         return logmatexp(torch.diag(self.diag), xx)
 
 
-@torch.compile
+@torch_compile
 class LeakyTransfer(nn.Module):
     def __init__(self, num_states, jump_rate, device=None):
         super().__init__()

@@ -81,8 +81,10 @@ def main():
 
     logger.info(f"Model estimate:  {estimate}")
 
-    assert torch.isfinite(estimate).all(), "Model prediction contains non-finite values (NaN or Inf)."
-    
+    assert torch.isfinite(
+        estimate
+    ).all(), "Model prediction contains non-finite values (NaN or Inf)."
+
     # NB supervised, i.e. for "known" state sequences; assumes logits as input,
     #    to which softmax is applied.
     criterion = nn.CrossEntropyLoss()
@@ -129,7 +131,7 @@ def main():
                 logger.warn(f"Gradient norm {total_norm:.2f} exceeds threshold {config.gradient_threshold:.2f}. Consider clipping.")
 
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=config.gradient_threshold)
-            """ 
+            """
             # NB stochastic gradient descent.
             optimizer.step()
 
