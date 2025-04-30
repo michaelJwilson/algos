@@ -23,7 +23,7 @@ class GaussianEmbedding(nn.Module):
         self.log_vars = torch.tensor(config.init_stds, device=self.device)
 
         self.means = nn.Parameter(self.means, requires_grad=True)
-        self.log_vars = nn.Parameter(self.log_vars, requires_grad=True)
+        self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
 
         assert (
             len(self.means) == self.num_states

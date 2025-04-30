@@ -121,12 +121,15 @@ def main():
             # NB compute gradient with backprop.
             loss.backward()
 
+            """
             # NB gradient clipping
             total_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=float("inf"))
 
             if total_norm > config.gradient_threshold:
-                warnings.warn(f"Gradient norm {total_norm:.2f} exceeds threshold {config.gradient_threshold:.2f}. Consider clipping.")
-            
+                logger.warn(f"Gradient norm {total_norm:.2f} exceeds threshold {config.gradient_threshold:.2f}. Consider clipping.")
+
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=config.gradient_threshold)
+            """ 
             # NB stochastic gradient descent.
             optimizer.step()
 
