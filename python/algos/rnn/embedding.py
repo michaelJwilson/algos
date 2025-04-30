@@ -4,12 +4,12 @@ import torch
 from torch import nn
 
 from algos.rnn.config import Config
-from algos.rnn.utils import get_device
+from algos.rnn.utils import get_device, torch_compile
 
 logger = logging.getLogger(__name__)
 
 
-@torch.compile
+@torch_compile
 class GaussianEmbedding(nn.Module):
     def __init__(self):
         super().__init__()
@@ -53,7 +53,7 @@ class GaussianEmbedding(nn.Module):
         return norm + ((x - self.means) ** 2) / norm
 
 
-# @torch.compile
+@torch_compile
 class NegativeBinomialEmbedding(nn.Module):
     def __init__(self):
         super().__init__()
@@ -101,7 +101,7 @@ class NegativeBinomialEmbedding(nn.Module):
         return log_prob
 
 
-# @torch.compile
+@torch_compile
 class BetaBinomialEmbedding(nn.Module):
     def __init__(self):
         super().__init__(coverage)
