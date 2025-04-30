@@ -1,7 +1,7 @@
 import pytest
 import torch
-from algos.rnn.embedding import GaussianEmbedding, BetaBinomialEmbedding
 from algos.rnn.config import Config
+from algos.rnn.embedding import BetaBinomialEmbedding, GaussianEmbedding
 
 
 @pytest.fixture

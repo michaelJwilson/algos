@@ -1,9 +1,9 @@
-import yaml
 import logging
-
 from pathlib import Path
 from pprint import pformat
 from types import SimpleNamespace
+
+import yaml
 
 logger = logging.getLogger(__name__)
 

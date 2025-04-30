@@ -4,7 +4,7 @@ import time
 import torch
 import torch.nn as nn
 from algos.rnn.transfer import DiagonalTransfer
-from algos.rnn.utils import set_seed, get_device
+from algos.rnn.utils import get_device, set_seed
 from torch.optim import Adam
 
 logger = logging.getLogger(__name__)

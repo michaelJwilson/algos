@@ -1,15 +1,13 @@
 import logging
-import warnings
 
 import torch
 from algos.rnn.config import Config
-from algos.rnn.hmm import HMM
 from algos.rnn.embedding import GaussianEmbedding
+from algos.rnn.hmm import HMM
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.utils import get_device, set_precision, set_seed
 from torch import nn, optim
 from torch.utils.data import DataLoader
-from torch.profiler import profile, record_function, ProfilerActivity
 
 logging.basicConfig(
     level=logging.INFO,

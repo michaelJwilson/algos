@@ -1,11 +1,9 @@
-import torch
-import pytest
-import logging
 
-from algos.rnn.hmm import HMM
-from algos.rnn.utils import get_device, set_seed, set_precision
+import pytest
 from algos.rnn.config import Config
+from algos.rnn.hmm import HMM
 from algos.rnn.hmm_dataset import HMMDataset
+from algos.rnn.utils import get_device, set_precision, set_seed
 from torch.utils.data import DataLoader
 
 # TODO
