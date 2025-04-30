@@ -142,7 +142,7 @@ class BetaBinomialEmbedding(nn.Module):
         batch_size, sequence_length, _ = x.shape
         x = x.expand(-1, -1, self.num_states)
 
-        assert len(self.coverage) == sequence_length
+        assert self.coverage.shape[:-1] == x.shape[:-1]
 
         # NB mirrors wikipedia ordering, wrt numerator and denominator.
         log_prob = (
