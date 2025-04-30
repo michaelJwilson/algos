@@ -26,9 +26,9 @@ def betabinomial_embedding(config, device):
     return BetaBinomialEmbedding(coverage)
 
 
-def test_initialization(normal_embedding):
+def test_embedding_init(normal_embedding):
     num_states = normal_embedding.num_states
-    
+
     assert normal_embedding.means.shape == (num_states,), "Means shape is incorrect"
     assert normal_embedding.log_vars.shape == (
         num_states,
