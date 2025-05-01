@@ -6,13 +6,12 @@ from algos.rnn.hmm_dataset import HMMDataset
 
 @pytest.fixture
 def hmm_dataset():
+    num_states = 2
     num_sequences = 10
     sequence_length = 5
     jump_rate = 0.5
-    means = [0.0, 1.0]
-    stds = [1.0, 1.0]
 
-    return HMMDataset(num_sequences, sequence_length, jump_rate, means, stds)
+    return HMMDataset(num_states, num_sequences, sequence_length, jump_rate)
 
 
 def test_hmm_dataset_item_shape(hmm_dataset):

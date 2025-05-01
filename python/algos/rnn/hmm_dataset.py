@@ -92,6 +92,7 @@ class BetaBinomEmission(Emission):
 class HMMDataset(Dataset):
     def __init__(
         self,
+        num_states,
         num_sequences,
         sequence_length,
         jump_rate,
@@ -109,18 +110,14 @@ class HMMDataset(Dataset):
             stds (list): List of standard deviations for Gaussian emissions for each state.
         """
         self.device = get_device(device)
+        self.num_states = num_states
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
         self.jump_rate = jump_rate
         self.trans = np.array(
             [[1.0 - jump_rate, jump_rate], [jump_rate, 1.0 - jump_rate]]
         )
-
-        # NB assumes Gaussian.
-        self.means = np.array(means)
-        self.stds = np.array(stds)
-        self.num_states = len(self.means)
-
+        
         self.states = np.zeros(self.sequence_length, dtype=int)
         self.obvs = np.zeros(self.sequence_length, dtype=np.float32)
 
