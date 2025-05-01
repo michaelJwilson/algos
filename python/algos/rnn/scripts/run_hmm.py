@@ -32,7 +32,7 @@ def main():
         jump_rate=config.jump_rate,
         emission_type=config.emission_type,
     )
-    
+
     dataloader = DataLoader(
         dataset,
         batch_size=config.batch_size,
@@ -73,7 +73,7 @@ def main():
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
     """
-    
+
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 

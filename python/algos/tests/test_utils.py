@@ -7,4 +7,3 @@ def test_get_device():
 
     # NB default to config defined "native"
     assert (device := get_device()).type == torch.device("mps:0").type
-

@@ -68,6 +68,7 @@ def test_embedding_forward(config, device, embedding):
         config.num_states,
     )
 
+
 """
 @pytest.mark.parametrize("embedding", ["normal"], indirect=True)
 def test_embedding_sample(config, device, embedding):

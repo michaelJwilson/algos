@@ -1,4 +1,3 @@
-
 import pytest
 from algos.rnn.config import Config
 from algos.rnn.hmm import HMM
@@ -12,6 +11,7 @@ set_precision()
 
 config = Config()
 
+
 @pytest.fixture
 def hmm_dataset():
     return HMMDataset(
@@ -21,7 +21,7 @@ def hmm_dataset():
         means=config.means,
         stds=config.stds,
     )
-    
+
 
 def test_hmm(hmm_dataset):
     # num_workers=1
@@ -33,7 +33,5 @@ def test_hmm(hmm_dataset):
 
     print(f"HMM model summary:\n{model}")
 
-    # NB forward model is lnP to match CrossEntropyLoss()                                                                                                                           
+    # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs.to(device))
-    
-
