@@ -2,7 +2,7 @@ dataset:
     num_states: 2
     jump_rate: 0.1
 
-    emission_type: "betabinom"
+    emission_type: "normal"
     
     gaussian_means: [5.0, 10.0]
     gaussian_stds: [1.0, 1.0]
@@ -18,7 +18,7 @@ dataset:
 
 training:
     device: "native"
-    emission_model: "betabinom"
+    emission_model: "normal"
     compile: 0
     num_workers: 1
     num_layers: 1    
