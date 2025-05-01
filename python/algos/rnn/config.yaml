@@ -2,7 +2,7 @@ dataset:
     num_states: 2
     jump_rate: 0.3
 
-    emission_type: "normal"
+    emission_type: "betabinom"
     
     gaussian_means: [5.0, 10.0]
     gaussian_stds: [1.0, 1.0]
@@ -18,11 +18,11 @@ dataset:
 
 training:
     device: "native"
-    emission_model: "normal"
+    emission_model: "betabinom"
     compile: 0
     num_workers: 1
     num_layers: 1    
-    batch_size: 256
+    batch_size: 2
     learning_rate: 5.0e-2
     gradient_threshold: 5.0
     num_epochs: 50
@@ -31,9 +31,9 @@ training:
 
     init_gaussian_means: [3.0, 8.0]
     init_gaussian_stds: [1.1, 1.1]
-    
-    init_bb_alphas: [1.0, 1.0]
-    init_bb_betas: [1.0, 1.0]
-    
-    init_nb_eff_coverage: [1.0, 1.0]
-    init_nb_logits: [1.0, 1.0]
+
+    init_nb_eff_coverage: [100.0, 200.0]
+    init_nb_logits: [0.5, 0.5]
+
+    init_bb_alphas: [5.0, 8.0]
+    init_bb_betas: [10.0, 15.0]

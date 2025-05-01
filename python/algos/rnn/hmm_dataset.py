@@ -77,12 +77,12 @@ class BetaBinomEmission(Emission):
         self.betas = np.array(config.bb_betas)
 
     @staticmethod
-    def populate_obvs(obvs, states, alphas, betas, sequence_length):
+    def populate_obvs(obvs, states, coverages, alphas, betas, sequence_length):
         for t in range(sequence_length):
             state = states[t]
             pp = beta.rvs(alphas[state], betas[state])
 
-            obvs[t] = np.random.binomial(1, pp)
+            obvs[t] = np.random.binomial(coverages[t], pp)
 
 
 class HMMDataset(Dataset):
@@ -157,9 +157,12 @@ class HMMDataset(Dataset):
                     len(self.states),
                 )
             case "betabinom":
+                # TODO HACK
+                coverages = 100. * np.ones_like(self.obvs)
+                
                 em = BetaBinomEmission()
                 em.populate_obvs(
-                    self.obvs, self.states, em.alphas, em.betas, len(self.states)
+                    self.obvs, self.states, coverages, em.alphas, em.betas, len(self.states)
                 )
         """
         populate_obs_normal(

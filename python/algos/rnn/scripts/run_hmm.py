@@ -25,6 +25,8 @@ def main():
     config = Config()
     device = get_device()
 
+    assert config.batch_size <= config.num_sequences
+    
     dataset = HMMDataset(
         num_states=config.num_states,
         num_sequences=config.num_sequences,
@@ -49,18 +51,22 @@ def main():
     assert obvs.shape == torch.Size(
         [min(config.batch_size, config.num_sequences), config.sequence_length, 1]
     ), f"obvs.shape={obvs.shape} failed to match expectation={[config.batch_size, config.sequence_length, 1]}"
+
+    """
+    # TODO HACK
+    coverage = 100. * torch.ones_like(obvs)
     
     # NB embedding is -lnP per-state.
     # embedding = GaussianEmbedding().forward(obvs)
     # embedding = NegativeBinomialEmbedding().forward(obvs)
-    embedding = BetaBinomialEmbedding(100.  * torch.ones_like(obvs)).forward(obvs)
+    # embedding = BetaBinomialEmbedding(coverage).forward(obvs)
     
     assert embedding.shape == (
         min(config.batch_size, config.num_sequences),
         config.sequence_length,
         config.num_states,
     )
-
+    """
     # model = RNN()
     model = HMM(
         config.batch_size, config.sequence_length, config.num_states, get_device()

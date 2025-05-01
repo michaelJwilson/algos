@@ -29,7 +29,8 @@ class HMM(torch.nn.Module):
             case "nbinom":
                 emission = NegativeBinomialEmbedding()
             case "betabinom":
-                emission = BetaBinomialEmbedding()
+                coverage = 100. * torch.ones(batch_size, sequence_length, 1, device=device)
+                emission = BetaBinomialEmbedding(coverage)
             case _:
                 raise RuntimeError()
         

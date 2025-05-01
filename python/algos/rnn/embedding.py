@@ -126,8 +126,6 @@ class BetaBinomialEmbedding(nn.Module):
         self.alphas = nn.Parameter(self.alphas, requires_grad=True)
         self.betas = nn.Parameter(self.betas, requires_grad=True)
 
-        self.coverage = nn.Parameter(self.coverage, requires_grad=False)
-
         assert (
             len(self.alphas) == self.num_states
         ), "Alpha initialization provided inconsistent with number of states defined."
@@ -147,7 +145,9 @@ class BetaBinomialEmbedding(nn.Module):
         batch_size, sequence_length, _ = x.shape
         x = x.expand(-1, -1, self.num_states)
 
-        assert self.coverage.shape[:-1] == x.shape[:-1]
+        msg = f"Inconsistent coverage {self.coverage.shape} and input {x.shape}"
+        
+        assert self.coverage.shape[:-1] == x.shape[:-1], msg
 
         # NB mirrors wikipedia ordering, wrt numerator and denominator.
         log_prob = (
