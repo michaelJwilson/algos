@@ -26,13 +26,13 @@ def main():
     device = get_device()
 
     dataset = HMMDataset(
+        num_states=config.num_states,
         num_sequences=config.num_sequences,
         sequence_length=config.sequence_length,
         jump_rate=config.jump_rate,
-        means=config.means,
-        stds=config.stds,
+        emission_type=config.emission_type,
     )
-
+    
     dataloader = DataLoader(
         dataset,
         batch_size=config.batch_size,
@@ -73,7 +73,7 @@ def main():
         model, input_size=(config.batch_size, config.sequence_length, config.num_states), device=get_device()
     )
     """
-
+    
     # NB forward model is lnP to match CrossEntropyLoss()
     estimate = model.forward(obvs)
 
