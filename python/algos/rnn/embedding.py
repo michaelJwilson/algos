@@ -1,6 +1,7 @@
 import logging
 
 import torch
+import numpy as np
 from torch import nn
 
 from algos.rnn.config import Config
@@ -19,8 +20,10 @@ class GaussianEmbedding(nn.Module):
         self.device = get_device()
         self.num_states = config.num_states
 
-        self.means = torch.tensor(config.init_means, device=self.device)
-        self.log_vars = torch.tensor(config.init_stds, device=self.device)
+        self.means = torch.tensor(config.init_gaussian_means, device=self.device)
+        self.log_vars = torch.tensor(
+            2.0 * np.log(config.init_gaussian_stds).astype(np.float32), device=self.device
+        )
 
         self.means = nn.Parameter(self.means, requires_grad=True)
         self.log_vars = nn.Parameter(self.log_vars, requires_grad=False)
@@ -63,18 +66,20 @@ class NegativeBinomialEmbedding(nn.Module):
         self.device = get_device()
         self.num_states = config.num_states
 
-        self.eff_coverage = torch.tensor(config.init_nb_coverage, device=self.device)
+        self.eff_coverage = torch.tensor(
+            config.init_nb_eff_coverage, device=self.device
+        )
         self.logits = torch.tensor(config.init_nb_logits, device=self.device)
 
+        self.eff_coverage = nn.Parameter(self.eff_coverage, requires_grad=True)
         self.logits = nn.Parameter(self.logits, requires_grad=True)
-        self.coverage = nn.Parameter(self.coverage, requires_grad=True)
 
         assert (
             len(self.logits) == self.num_states
         ), "Logits initialization provided inconsistent with number of states defined."
 
         logger.info(
-            f"Initialized Negative Binomial embedding on device {self.device} with logits={self.logits} (grad? {self.logits.requires_grad}) and coverage={self.coverage} (grad? {self.coverage.requires_grad})"
+            f"Initialized Negative Binomial embedding on device {self.device} with logits={self.logits} (grad? {self.logits.requires_grad}) and coverage={self.eff_coverage} (grad? {self.eff_coverage.requires_grad})"
         )
 
     def __repr__(self):
@@ -91,10 +96,10 @@ class NegativeBinomialEmbedding(nn.Module):
         p = torch.sigmoid(self.logits)
 
         log_prob = (
-            torch.lgamma(self.coverage + k)
-            - torch.lgamma(self.coverage)
+            torch.lgamma(self.eff_coverage + k)
+            - torch.lgamma(self.eff_coverage)
             - torch.lgamma(k + 1)
-            + self.coverage * torch.log(1.0 - p)
+            + self.eff_coverage * torch.log(1.0 - p)
             + k * torch.log(p)
         )
 

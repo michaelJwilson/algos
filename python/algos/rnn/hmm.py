@@ -3,9 +3,10 @@ import logging
 import torch
 from torch import nn
 
-from algos.rnn.embedding import GaussianEmbedding
+from algos.rnn.embedding import GaussianEmbedding, NegativeBinomialEmbedding, BetaBinomialEmbedding
 from algos.rnn.transfer import CategoricalPrior, LeakyTransfer
 from algos.rnn.utils import torch_compile
+from algos.rnn.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +21,21 @@ class HMM(torch.nn.Module):
         self.batch_size = batch_size
         self.sequence_length = sequence_length
 
-        # TODO HACK HARDCODE jump_rate
+        emission_type = Config().emission_type
+        
+        match emission_type:
+            case "normal":
+                emission = GaussianEmbedding()
+            case "nbinom":
+                emission = NegativeBinomialEmbedding()
+            case "betabinom":
+                emission = BetaBinomialEmbedding()
+            case _:
+                raise RuntimeError()
+        
         self.layers = nn.ModuleList(
             [
-                GaussianEmbedding(),
+                emission,
                 CategoricalPrior(self.num_states),
                 LeakyTransfer(self.num_states, 0.1),
             ]

@@ -2,7 +2,7 @@ import logging
 
 import torch
 from algos.rnn.config import Config
-from algos.rnn.embedding import GaussianEmbedding
+from algos.rnn.embedding import GaussianEmbedding, NegativeBinomialEmbedding
 from algos.rnn.hmm import HMM
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.utils import get_device, set_precision, set_seed
@@ -52,9 +52,11 @@ def main():
 
     # logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
 
+    embedding = NegativeBinomialEmbedding().forward(obvs)
+    
     # NB embedding is -lnP per-state for Gaussian emission.
-    embedding = GaussianEmbedding().forward(obvs)
-
+    # embedding = GaussianEmbedding().forward(obvs)
+    
     assert embedding.shape == (
         min(config.batch_size, config.num_sequences),
         config.sequence_length,
