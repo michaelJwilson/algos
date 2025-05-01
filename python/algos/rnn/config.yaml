@@ -1,6 +1,6 @@
 dataset:
     num_states: 2
-    jump_rate: 0.3
+    jump_rate: 0.1
 
     emission_type: "betabinom"
     
@@ -13,8 +13,8 @@ dataset:
     bb_alphas: [10., 20.]
     bb_betas: [15., 25.]
     
-    num_sequences: 4
-    sequence_length: 64
+    num_sequences: 24
+    sequence_length: 32
 
 training:
     device: "native"
@@ -22,7 +22,7 @@ training:
     compile: 0
     num_workers: 1
     num_layers: 1    
-    batch_size: 2
+    batch_size: 8
     learning_rate: 5.0e-2
     gradient_threshold: 5.0
     num_epochs: 50
@@ -35,5 +35,5 @@ training:
     init_nb_eff_coverage: [100.0, 200.0]
     init_nb_logits: [0.5, 0.5]
 
-    init_bb_alphas: [5.0, 8.0]
-    init_bb_betas: [10.0, 15.0]
+    init_bb_alphas: [8.0, 18.0]
+    init_bb_betas: [13.0, 22.0]
