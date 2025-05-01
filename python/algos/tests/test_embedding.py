@@ -1,5 +1,7 @@
 import pytest
 import torch
+import numpy as np
+
 from algos.rnn.utils import get_device
 from algos.rnn.config import Config
 from algos.rnn.embedding import (
@@ -65,3 +67,17 @@ def test_embedding_forward(config, device, embedding):
         config.sequence_length,
         config.num_states,
     )
+
+"""
+@pytest.mark.parametrize("embedding", ["normal"], indirect=True)
+def test_embedding_sample(config, device, embedding):
+    states = torch.randint(
+        0,
+        config.num_states,
+        size=(config.sequence_length, 1),
+        dtype=int,
+        device=device,
+    )
+    
+    embedding.sample(states)
+"""
