@@ -1,6 +1,8 @@
 dataset:
     num_states: 2
     jump_rate: 0.3
+
+    emission_type: "normal"
     
     gaussian_means: [5.0, 10.0]
     gaussian_stds: [1.0, 1.0]

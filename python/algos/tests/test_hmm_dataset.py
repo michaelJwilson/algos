@@ -3,9 +3,11 @@ import pytest
 import torch
 from algos.rnn.hmm_dataset import HMMDataset
 
+
 @pytest.fixture(params=["normal", "nbinom", "betabinom"])
 def emission_type(request):
     return request.param
+
 
 @pytest.fixture
 def hmm_dataset(emission_type):
@@ -14,7 +16,13 @@ def hmm_dataset(emission_type):
     sequence_length = 5
     jump_rate = 0.5
 
-    return HMMDataset(num_states, num_sequences, sequence_length, jump_rate)
+    return HMMDataset(
+        num_states,
+        num_sequences,
+        sequence_length,
+        jump_rate,
+        emission_type=emission_type,
+    )
 
 
 def test_hmm_dataset_item_shape(hmm_dataset):
@@ -41,3 +49,5 @@ def test_hmm_hmm_dataset_transition_matrix(hmm_dataset):
 
     assert len(obvs) == hmm_dataset.sequence_length
     assert obvs.ndim == 2
+
+    # print(hmm_dataset.emission_type)

@@ -19,15 +19,6 @@ logger = logging.getLogger(__name__)
 set_precision()
 
 
-class Emission(ABC):
-    """
-    Abstract base class for HMM emission models.
-    """
-    @abstractmethod
-    def populate_obvs(*args):
-        pass
-
-
 @njit
 def populate_states(states, transfer):
     for t in range(1, len(states)):
@@ -38,6 +29,16 @@ def populate_states(states, transfer):
         #    by ps; required by njit.
         sample = np.random.rand()
         states[t] = np.searchsorted(sum_ps, sample)
+
+
+class Emission(ABC):
+    """
+    Abstract base class for HMM emission models.
+    """
+
+    @abstractmethod
+    def populate_obvs(*args):
+        pass
 
 
 class NormalEmission(Emission):
@@ -59,7 +60,7 @@ class NBinomialEmission(Emission):
         config = Config()
 
         self.eff_coverages = np.array(config.nb_eff_coverages)
-        self.sampling = np.array(config.nb_sampling)
+        self.samplings = np.array(config.nb_sampling)
 
     @staticmethod
     def populate_obvs(obvs, states, eff_coverages, samplings, sequence_length):
@@ -113,7 +114,7 @@ class HMMDataset(Dataset):
         self.trans = np.array(
             [[1.0 - jump_rate, jump_rate], [jump_rate, 1.0 - jump_rate]]
         )
-        
+
         self.states = np.zeros(self.sequence_length, dtype=int)
         self.obvs = np.zeros(self.sequence_length, dtype=np.float32)
 
@@ -143,13 +144,23 @@ class HMMDataset(Dataset):
         match self.emission_type:
             case "normal":
                 em = NormalEmission()
-                em.populate_obvs(self.obvs, self.states, em.means, em.stds, len(self.states))
+                em.populate_obvs(
+                    self.obvs, self.states, em.means, em.stds, len(self.states)
+                )
             case "nbinom":
                 em = NBinomialEmission()
-                em.populate_obvs(self.obvs, self.states, em.eff_coverages, em.samplings, len(self.states))
+                em.populate_obvs(
+                    self.obvs,
+                    self.states,
+                    em.eff_coverages,
+                    em.samplings,
+                    len(self.states),
+                )
             case "betabinom":
                 em = BetaBinomEmission()
-                em.populate_obvs(self.obvs, self.states, em.alphas, em.betas, len(self.states))
+                em.populate_obvs(
+                    self.obvs, self.states, em.alphas, em.betas, len(self.states)
+                )
         """
         populate_obs_normal(
             self.obvs, self.states, self.means, self.stds, self.sequence_length
