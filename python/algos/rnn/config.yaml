@@ -1,8 +1,16 @@
 dataset:
-    jump_rate: 0.3    
-    means: [5.0, 10.0]
-    stds: [1.0, 1.0]
     num_states: 2
+    jump_rate: 0.3
+    
+    gaussian_means: [5.0, 10.0]
+    gaussian_stds: [1.0, 1.0]
+
+    nb_eff_coverages: [10.0, 20.0]
+    nb_sampling: [0.1, 0.25]
+
+    bb_alphas: [10., 20.]
+    bb_betas: [15., 25.]
+    
     num_sequences: 4
     sequence_length: 64
 
