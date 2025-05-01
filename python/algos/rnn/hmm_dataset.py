@@ -1,3 +1,4 @@
+import math
 import logging
 
 import numpy as np
@@ -29,7 +30,7 @@ def populate_states(states, transfer):
 
 
 @njit
-def populate_obs(obs, states, means, stds, sequence_length):
+def populate_obs_normal(obs, states, means, stds, sequence_length):
     for t in range(sequence_length):
         obs[t] = means[states[t]] + stds[states[t]] * np.random.randn()
 
@@ -93,7 +94,7 @@ class HMMDataset(Dataset):
 
         populate_states(self.states, self.trans)
 
-        populate_obs(
+        populate_obs_normal(
             self.obvs, self.states, self.means, self.stds, self.sequence_length
         )
 
