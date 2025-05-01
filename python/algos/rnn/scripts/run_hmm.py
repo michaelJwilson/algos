@@ -53,7 +53,7 @@ def main():
     # NB embedding is -lnP per-state.
     # embedding = GaussianEmbedding().forward(obvs)
     # embedding = NegativeBinomialEmbedding().forward(obvs)
-    embedding = BetaBinomialEmbedding().forward(obvs)
+    embedding = BetaBinomialEmbedding(100.  * torch.ones_like(obvs)).forward(obvs)
     
     assert embedding.shape == (
         min(config.batch_size, config.num_sequences),

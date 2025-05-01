@@ -117,23 +117,23 @@ class BetaBinomialEmbedding(nn.Module):
         self.device = get_device()
         self.num_states = config.num_states
 
-        self.alpha = torch.tensor(config.init_alphas, device=self.device)
-        self.beta = torch.tensor(config.init_betas, device=self.device)
+        self.alphas = torch.tensor(config.init_bb_alphas, device=self.device)
+        self.betas = torch.tensor(config.init_bb_betas, device=self.device)
 
         # NB no-op if a tensor and on the correct device.  Otherwise, warn?
         self.coverage = torch.tensor(coverage, device=self.device)
 
-        self.alpha = nn.Parameter(self.alpha, requires_grad=True)
-        self.beta = nn.Parameter(self.beta, requires_grad=True)
+        self.alphas = nn.Parameter(self.alphas, requires_grad=True)
+        self.betas = nn.Parameter(self.betas, requires_grad=True)
 
         self.coverage = nn.Parameter(self.coverage, requires_grad=False)
 
         assert (
-            len(self.alpha) == self.num_states
+            len(self.alphas) == self.num_states
         ), "Alpha initialization provided inconsistent with number of states defined."
 
         logger.info(
-            f"Initialized Beta Binomial embedding on device {self.device} with alpha={self.alpha} (grad? {self.alpha.requires_grad}), beta={self.beta} (grad? {self.beta.requires_grad})."
+            f"Initialized Beta Binomial embedding on device {self.device} with alpha={self.alphas} (grad? {self.alphas.requires_grad}), beta={self.betas} (grad? {self.betas.requires_grad})."
         )
 
     def __repr__(self):
@@ -152,14 +152,14 @@ class BetaBinomialEmbedding(nn.Module):
         # NB mirrors wikipedia ordering, wrt numerator and denominator.
         log_prob = (
             torch.lgamma(self.coverage + 1)
-            + torch.lgamma(x + self.alpha)
-            + torch.lgamma(self.coverage - x + self.beta)
-            + torch.lgamma(self.alpha + self.beta)
-            - torch.lgamma(self.coverage + self.alpha + self.beta)
+            + torch.lgamma(x + self.alphas)
+            + torch.lgamma(self.coverage - x + self.betas)
+            + torch.lgamma(self.alphas + self.betas)
+            - torch.lgamma(self.coverage + self.alphas + self.betas)
             - torch.lgamma(x + 1)
             - torch.lgamma(self.coverage - x + 1)
-            - torch.lgamma(self.alpha)
-            - torch.lgamma(self.beta)
+            - torch.lgamma(self.alphas)
+            - torch.lgamma(self.betas)
         )
 
         # NB shape = (batch_size, sequence_length, num_states)
