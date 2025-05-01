@@ -96,7 +96,7 @@ class NegativeBinomialEmbedding(nn.Module):
         p = torch.sigmoid(self.logits)
 
         log_prob = (
-            torch.lgamma(self.eff_coverage + k)
+            torch.lgamma(k + self.eff_coverage)
             - torch.lgamma(self.eff_coverage)
             - torch.lgamma(k + 1)
             + self.eff_coverage * torch.log(1.0 - p)

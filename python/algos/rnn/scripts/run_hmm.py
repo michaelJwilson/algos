@@ -2,7 +2,7 @@ import logging
 
 import torch
 from algos.rnn.config import Config
-from algos.rnn.embedding import GaussianEmbedding, NegativeBinomialEmbedding
+from algos.rnn.embedding import GaussianEmbedding, NegativeBinomialEmbedding, BetaBinomialEmbedding
 from algos.rnn.hmm import HMM
 from algos.rnn.hmm_dataset import HMMDataset
 from algos.rnn.utils import get_device, set_precision, set_seed
@@ -49,13 +49,11 @@ def main():
     assert obvs.shape == torch.Size(
         [min(config.batch_size, config.num_sequences), config.sequence_length, 1]
     ), f"obvs.shape={obvs.shape} failed to match expectation={[config.batch_size, config.sequence_length, 1]}"
-
-    # logger.info(f"Realized HMM simulation:\n{states}\n{obvs}")
-
-    embedding = NegativeBinomialEmbedding().forward(obvs)
     
-    # NB embedding is -lnP per-state for Gaussian emission.
+    # NB embedding is -lnP per-state.
     # embedding = GaussianEmbedding().forward(obvs)
+    # embedding = NegativeBinomialEmbedding().forward(obvs)
+    embedding = BetaBinomialEmbedding().forward(obvs)
     
     assert embedding.shape == (
         min(config.batch_size, config.num_sequences),
