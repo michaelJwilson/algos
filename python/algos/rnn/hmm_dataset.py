@@ -91,7 +91,7 @@ class HMMDataset(Dataset):
         num_sequences,
         sequence_length,
         jump_rate,
-        emission="normal",
+        emission_type="normal",
         device=None,
         transform=None,
         target_transform=None,
@@ -108,7 +108,7 @@ class HMMDataset(Dataset):
         self.num_states = num_states
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
-        self.emission = emission
+        self.emission_type = emission_type
         self.jump_rate = jump_rate
         self.trans = np.array(
             [[1.0 - jump_rate, jump_rate], [jump_rate, 1.0 - jump_rate]]
@@ -121,7 +121,7 @@ class HMMDataset(Dataset):
         self.target_transform = target_transform
 
         logger.info(
-            f"Generating HMMDataset on {self.device} with {emission} emission."
+            f"Generating HMMDataset on {self.device} with {emission_type} emission."
         )
 
     def __len__(self):
@@ -140,7 +140,7 @@ class HMMDataset(Dataset):
 
         populate_states(self.states, self.trans)
 
-        match self.emission:
+        match self.emission_type:
             case "normal":
                 em = NormalEmission()
                 em.populate_obvs(self.obvs, self.states, em.means, em.stds, len(self.states))

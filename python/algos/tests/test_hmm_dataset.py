@@ -3,9 +3,12 @@ import pytest
 import torch
 from algos.rnn.hmm_dataset import HMMDataset
 
+@pytest.fixture(params=["normal", "nbinom", "betabinom"])
+def emission_type(request):
+    return request.param
 
 @pytest.fixture
-def hmm_dataset():
+def hmm_dataset(emission_type):
     num_states = 2
     num_sequences = 10
     sequence_length = 5
