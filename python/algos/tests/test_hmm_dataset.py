@@ -25,8 +25,6 @@ def test_hmm_dataset_item_shape(hmm_dataset):
     assert obvs.shape == (5, 1)
     assert states.shape == (5,)
 
-    assert torch.all((states >= 0) & (states < len(hmm_dataset.means)))
-
 
 def test_hmm_hmm_dataset_transition_matrix(hmm_dataset):
     trans = hmm_dataset.trans

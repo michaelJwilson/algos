@@ -23,13 +23,8 @@ class Emission(ABC):
     """
     Abstract base class for HMM emission models.
     """
-
     @abstractmethod
-    def load_parameters(self, config):
-        pass
-
-    @abstractmethod
-    def sample(self, states, sequence_length):
+    def populate_obvs(*args):
         pass
 
 
@@ -52,9 +47,7 @@ class NormalEmission(Emission):
         self.means = np.array(config.gaussian_means)
         self.stds = np.array(config.gaussian_stds)
 
-    def sample(self, state, sequence_length):
-        return self.means[state] + self.stds[state] * np.random.randn(sequence_length)
-
+    @staticmethod
     @njit
     def populate_obvs(obvs, states, means, stds, sequence_length):
         for t in range(sequence_length):
@@ -68,6 +61,7 @@ class NBinomialEmission(Emission):
         self.eff_coverages = np.array(config.nb_eff_coverages)
         self.sampling = np.array(config.nb_sampling)
 
+    @staticmethod
     def populate_obvs(obvs, states, eff_coverages, samplings, sequence_length):
         for t in range(sequence_length):
             state = states[t]
@@ -81,6 +75,7 @@ class BetaBinomEmission(Emission):
         self.alphas = np.array(config.bb_alphas)
         self.betas = np.array(config.bb_betas)
 
+    @staticmethod
     def populate_obvs(obvs, states, alphas, betas, sequence_length):
         for t in range(sequence_length):
             state = states[t]
@@ -113,6 +108,7 @@ class HMMDataset(Dataset):
         self.num_states = num_states
         self.num_sequences = num_sequences
         self.sequence_length = sequence_length
+        self.emission = emission
         self.jump_rate = jump_rate
         self.trans = np.array(
             [[1.0 - jump_rate, jump_rate], [jump_rate, 1.0 - jump_rate]]
@@ -125,7 +121,7 @@ class HMMDataset(Dataset):
         self.target_transform = target_transform
 
         logger.info(
-            f"Generating HMMDataset on {self.device} with true parameters:\nM={self.means}\nT=\n{self.trans}"
+            f"Generating HMMDataset on {self.device} with {emission} emission."
         )
 
     def __len__(self):
@@ -144,16 +140,16 @@ class HMMDataset(Dataset):
 
         populate_states(self.states, self.trans)
 
-        match emission:
+        match self.emission:
             case "normal":
                 em = NormalEmission()
-                em.populate_obvs(self.obvs, self.states, self.means, self.stds, len(self.states))
+                em.populate_obvs(self.obvs, self.states, em.means, em.stds, len(self.states))
             case "nbinom":
                 em = NBinomialEmission()
-                em.populate_obvs(self.obvs, self.states, self.eff_coverages, self.sampling, len(self.states))
+                em.populate_obvs(self.obvs, self.states, em.eff_coverages, em.samplings, len(self.states))
             case "betabinom":
                 em = BetaBinomEmission()
-                em.populate_obvs(self.obvs, self.states, self.alphas, self.betas, len(self.states))
+                em.populate_obvs(self.obvs, self.states, em.alphas, em.betas, len(self.states))
         """
         populate_obs_normal(
             self.obvs, self.states, self.means, self.stds, self.sequence_length
