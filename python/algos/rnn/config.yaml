@@ -18,6 +18,7 @@ dataset:
 
 training:
     device: "native"
+    emission_model: "normal"
     compile: 0
     num_workers: 1
     num_layers: 1    
@@ -25,10 +26,14 @@ training:
     learning_rate: 5.0e-2
     gradient_threshold: 5.0
     num_epochs: 50
+
     init_jump_rate : 0.1
-    init_means: [3.0, 8.0]
-    init_stds: [1.1, 1.1]
-    init_alphas: [1.0, 1.0]
-    init_betas: [1.0, 1.0]
+
+    init_gaussian_means: [3.0, 8.0]
+    init_gaussian_stds: [1.1, 1.1]
+    
+    init_bb_alphas: [1.0, 1.0]
+    init_bb_betas: [1.0, 1.0]
+    
+    init_nb_eff_coverage: [1.0, 1.0]
     init_nb_logits: [1.0, 1.0]
-    init_nb_coverage: [1.0, 1.0]

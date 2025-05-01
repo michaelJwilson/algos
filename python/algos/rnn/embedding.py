@@ -63,9 +63,9 @@ class NegativeBinomialEmbedding(nn.Module):
         self.device = get_device()
         self.num_states = config.num_states
 
+        self.eff_coverage = torch.tensor(config.init_nb_coverage, device=self.device)
         self.logits = torch.tensor(config.init_nb_logits, device=self.device)
-        self.coverage = torch.tensor(config.init_nb_coverage, device=self.device)
-
+        
         self.logits = nn.Parameter(self.logits, requires_grad=True)
         self.coverage = nn.Parameter(self.coverage, requires_grad=True)
 
