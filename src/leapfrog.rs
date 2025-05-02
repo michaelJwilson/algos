@@ -29,6 +29,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    // cargo test leapfrog -- test_leapfrog_harmonic_oscillator --nocapture
     use super::*;
 
     #[test]
@@ -54,14 +55,16 @@ mod tests {
         
         for (i, &pos) in positions.iter().enumerate() {
             let time = i as f64 * time_step;
-            let expected_position = (time).cos();
-            
+            let exp = (time).cos();
+
+            println!("{:.3}\t{:+.3}\t{:+.3}", time, exp, pos);
+
             assert!(
-                (pos - expected_position).abs() < tolerance,
+                (pos - exp).abs() < tolerance,
                 "Position at step {} is incorrect: got {}, expected {}",
                 i,
                 pos,
-                expected_position
+                exp
             );
         }
     }
