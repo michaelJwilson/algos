@@ -8,16 +8,20 @@ pub fn leapfrog<F>(
 where
     F: Fn(f64) -> f64,   // Acceleration function: a = f(position)
 {
-    let mut positions = vec![position];
-    let mut velocities = vec![velocity];
+    let mut positions = Vec::with_capacity(num_steps + 1);
+    let mut velocities = Vec::with_capacity(num_steps + 1);
 
     let mut current_position = position;
     let mut current_velocity = velocity;
+
+    positions.push(current_position);
+    velocities.push(current_velocity);
 
     for _ in 0..num_steps {
         let half_velocity = current_velocity + 0.5 * time_step * f(current_position);
 
         current_position += time_step * half_velocity;
+        
         current_velocity = half_velocity + 0.5 * time_step * f(current_position);
 
         positions.push(current_position);
@@ -27,6 +31,19 @@ where
     (positions, velocities)
 }
 
+pub fn get_leapfrog_fixture() -> (impl Fn(f64) -> f64, f64, f64, f64, usize){
+    // NB define the acceleration for a harmonic oscillator (with unit mass/spring constant): a = -x
+    let acceleration = |x: f64| -x;
+
+    let initial_position = 1.0; // x(0) = 1
+    let initial_velocity = 0.0; // v(0) = 0
+
+    let time_step = 0.1;        // Δt
+    let num_steps = 1_00;       // Number of steps
+
+    (acceleration, initial_position, initial_velocity, time_step, num_steps)
+}
+
 #[cfg(test)]
 mod tests {
     // cargo test leapfrog -- test_leapfrog_harmonic_oscillator --nocapture
@@ -34,13 +51,7 @@ mod tests {
 
     #[test]
     fn test_leapfrog_harmonic_oscillator() {
-        // NB define the acceleration for a harmonic oscillator (with unit mass/spring constant): a = -x
-        let acceleration = |x: f64| -x;
-
-        let initial_position = 1.0; // x(0) = 1
-        let initial_velocity = 0.0; // v(0) = 0
-        let time_step = 0.1;        // Δt
-        let num_steps = 100;        // Number of steps
+        let (acceleration, initial_position, initial_velocity, time_step, num_steps) = get_leapfrog_fixture();
 
         let (positions, velocities) = leapfrog(
             acceleration,
@@ -57,7 +68,7 @@ mod tests {
             let time = i as f64 * time_step;
             let exp = (time).cos();
 
-            println!("{:.3}\t{:+.3}\t{:+.3}", time, exp, pos);
+            //  println!("{:.3}\t{:+.3}\t{:+.3}", time, exp, pos);
 
             assert!(
                 (pos - exp).abs() < tolerance,
