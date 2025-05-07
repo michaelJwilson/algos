@@ -36,6 +36,7 @@ pub mod minka;
 pub mod needle_haystack;
 // pub mod nelder_mead;
 pub mod felsenstein;
+pub mod leapfrog;
 pub mod plus_one;
 pub mod potts;
 pub mod remove_element;
@@ -43,11 +44,10 @@ pub mod remove_sorted_duplicates;
 pub mod roman_to_integer;
 pub mod sorted_array_to_bst;
 pub mod sqrt;
+pub mod streaming;
 pub mod tests;
 pub mod transpose;
 pub mod valid_palindrome;
-pub mod leapfrog;
-pub mod streaming;
 
 // NB list of deprecated modules.
 // pub mod matrix;

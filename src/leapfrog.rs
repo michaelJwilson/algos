@@ -9,14 +9,15 @@ pub struct State {
 }
 
 pub fn leapfrog<F>(
-    f: F,                // Function to compute acceleration (force/mass)
-    position: f64,       // Initial position
-    velocity: f64,       // Initial velocity
-    time_step: f64,      // Time step (Δt)
-    num_steps: usize,    // Number of steps to integrate
-) -> (Vec<f64>, Vec<f64>) // Returns positions and velocities
+    f: F,             // Function to compute acceleration (force/mass)
+    position: f64,    // Initial position
+    velocity: f64,    // Initial velocity
+    time_step: f64,   // Time step (Δt)
+    num_steps: usize, // Number of steps to integrate
+) -> (Vec<f64>, Vec<f64>)
+// Returns positions and velocities
 where
-    F: Fn(f64) -> f64,   // Acceleration function: a = f(position)
+    F: Fn(f64) -> f64, // Acceleration function: a = f(position)
 {
     let mut positions = vec![0.0; 1 + num_steps];
     let mut velocities = vec![0.0; 1 + num_steps];
@@ -26,7 +27,7 @@ where
 
     for i in 0..num_steps {
         let half_velocity = velocities[i] + 0.5 * time_step * f(positions[i]);
-        
+
         positions[i + 1] = positions[i] + time_step * half_velocity;
         velocities[i + 1] = half_velocity + 0.5 * time_step * f(positions[i + 1]);
     }
@@ -34,13 +35,13 @@ where
     (positions, velocities)
 }
 
-pub fn get_leapfrog_fixture() -> (f64, f64, f64, usize){
+pub fn get_leapfrog_fixture() -> (f64, f64, f64, usize) {
     // NB define the acceleration for a harmonic oscillator (with unit mass/spring constant): a = -x
     let initial_position = 1.0; // x(0) = 1
     let initial_velocity = 0.0; // v(0) = 0
 
-    let time_step = 0.1;        // Δt
-    let num_steps = 1_00;      // Number of steps
+    let time_step = 0.1; // Δt
+    let num_steps = 1_00; // Number of steps
 
     (initial_position, initial_velocity, time_step, num_steps)
 }
@@ -76,7 +77,6 @@ where
     states
 }
 
-
 #[cfg(test)]
 mod tests {
     // cargo test leapfrog -- test_leapfrog_harmonic_oscillator --nocapture
@@ -96,7 +96,7 @@ mod tests {
 
         // Verify the results (simple harmonic motion: x(t) ≈ cos(t), v(t) ≈ -sin(t))
         let tolerance = 0.1; // Allowable error due to numerical approximation
-        
+
         for (i, &pos) in positions.iter().enumerate() {
             let time = i as f64 * time_step;
             let exp = (time).cos();

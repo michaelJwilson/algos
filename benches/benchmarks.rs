@@ -2,13 +2,17 @@ use algos::collatz::collatz;
 use algos::counter::get_counter_fixture;
 use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::felsenstein::{compute_likelihood, get_felsenstein_fixture};
+use algos::leapfrog::{acceleration, get_leapfrog_fixture, leapfrog};
 use algos::max_flow::{edmonds_karp, get_adj_matrix_fixture, get_large_graph_fixture};
-use algos::leapfrog::{leapfrog, acceleration, get_leapfrog_fixture};
-use algos::streaming::{get_nbinom_fixture, get_betabinom_fixture, basic_nbinom_logpmf, stream_nbinom_logpmf, basic_betabinom_logpmf, stream_betabinom_logpmf};
+use algos::streaming::{
+    basic_betabinom_logpmf, basic_nbinom_logpmf, get_betabinom_fixture, get_nbinom_fixture,
+    stream_betabinom_logpmf, stream_nbinom_logpmf, cached_gamma
+};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
 use petgraph::algo::ford_fulkerson as petgraph_ford_fulkerson;
+use statrs::function::gamma::ln_gamma;
 
 fn fibonacci_slow(n: u64) -> u64 {
     match n {
@@ -47,7 +51,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let _ = stream_nbinom_logpmf(&k, &r, &p, &q);
         });
     });
-    
+
     c.bench_function("stream_bb", |b| {
         let (num_trials, num_states) = (1_000, 5);
         let (k, n, alpha, beta, q) = get_betabinom_fixture(num_trials, num_states);
@@ -58,17 +62,19 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         });
     });
 
-    c.bench_function("leapfrog", |b| b.iter(|| {
-        let (initial_position, initial_velocity, time_step, num_steps) = get_leapfrog_fixture();
+    c.bench_function("leapfrog", |b| {
+        b.iter(|| {
+            let (initial_position, initial_velocity, time_step, num_steps) = get_leapfrog_fixture();
 
-        let _ = leapfrog(
-            acceleration,
-            initial_position,
-            initial_velocity,
-            time_step,
-            num_steps,
-        );                                 
-    }));
+            let _ = leapfrog(
+                acceleration,
+                initial_position,
+                initial_velocity,
+                time_step,
+                num_steps,
+            );
+        })
+    });
 
     c.bench_function("dijkstra", |b| {
         let adjs = get_adjacencies_fixture_large(100);

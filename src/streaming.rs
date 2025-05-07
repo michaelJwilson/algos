@@ -1,7 +1,10 @@
-use statrs::function::gamma::{ln_gamma, digamma};
-use statrs::function::factorial::ln_factorial;
-use smallvec::SmallVec;
 use itertools::izip;
+use lru::LruCache;
+use smallvec::SmallVec;
+use statrs::function::factorial::ln_factorial;
+use statrs::function::gamma::{digamma, ln_gamma};
+use std::collections::HashMap;
+use std::time::Instant;
 
 // NB basic runtime: 9.0589 ms
 pub fn basic_nbinom_logpmf(
@@ -20,33 +23,35 @@ pub fn basic_nbinom_logpmf(
     let lnp: Vec<f64> = p.iter().map(|&x| x.ln()).collect();
     let lnq: Vec<f64> = p.iter().map(|&x| (1. - x).ln()).collect();
 
-    let result: Vec<Vec<f64>> = k.iter().map(|&k_val| {
-        // NB data-dependent only
-        let zero_point = -ln_factorial(k_val as u64);
+    let result: Vec<Vec<f64>> = k
+        .iter()
+        .map(|&k_val| {
+            // NB data-dependent only
+            let zero_point = -ln_factorial(k_val as u64);
 
-        let row: Vec<f64> = r.iter().enumerate().map(|(ss, &r_val)| {
-            let mut interim = zero_point;
+            let row: Vec<f64> = r
+                .iter()
+                .enumerate()
+                .map(|(ss, &r_val)| {
+                    let mut interim = zero_point;
 
-            interim += k_val * lnq[ss] + r_val * lnp[ss] - gr[ss];
-            interim += ln_gamma(k_val + r_val);
-            interim *= responsibility[ss];
+                    interim += k_val * lnq[ss] + r_val * lnp[ss] - gr[ss];
+                    interim += ln_gamma(k_val + r_val);
+                    interim *= responsibility[ss];
 
-            interim
-        }).collect();
+                    interim
+                })
+                .collect();
 
-        row
-    }).collect();
+            row
+        })
+        .collect();
 
     result
 }
 
 // NB stream runtime: 393.88 µs (22x)
-pub fn stream_nbinom_logpmf(
-    k: &[f64],
-    r: &[f64],
-    p: &[f64],
-    responsibility: &[f64],
-) -> f64 {
+pub fn stream_nbinom_logpmf(k: &[f64], r: &[f64], p: &[f64], responsibility: &[f64]) -> f64 {
     //
     //  Compute the total log-likelihood for the negative binomial distribution.
     //
@@ -79,7 +84,7 @@ pub fn stream_nbinom_logpmf(
 
 // NB runtime:  167.73 µs
 pub fn basic_betabinom_logpmf(
-    k: &[f64], 
+    k: &[f64],
     n: &[f64],
     alpha: &[f64],
     beta: &[f64],
@@ -97,21 +102,30 @@ pub fn basic_betabinom_logpmf(
         .collect();
 
     // NB there is no capacity so repeated allocation of vectors.
-    let result: Vec<Vec<f64>> = k.iter().zip(n.iter()).map(|(&k_val, &n_val)| {
-        let zero_point = ln_gamma(n_val + 1.0) - ln_gamma(k_val + 1.0) - ln_gamma(n_val - k_val + 1.0);
+    let result: Vec<Vec<f64>> = k
+        .iter()
+        .zip(n.iter())
+        .map(|(&k_val, &n_val)| {
+            let zero_point =
+                ln_gamma(n_val + 1.0) - ln_gamma(k_val + 1.0) - ln_gamma(n_val - k_val + 1.0);
 
-        // NB index ss access to ln_beta_ab -> bounds checking, etc.
-        let row: Vec<f64> = alpha.iter().zip(beta.iter())
-            .enumerate()
-            .map(|(ss, (&a, &b))| {
-                let interim = zero_point + ln_gamma(k_val + a) + ln_gamma(n_val - k_val + b) - ln_gamma(n_val + a + b) - ln_beta_ab[ss];
+            // NB index ss access to ln_beta_ab -> bounds checking, etc.
+            let row: Vec<f64> = alpha
+                .iter()
+                .zip(beta.iter())
+                .enumerate()
+                .map(|(ss, (&a, &b))| {
+                    let interim = zero_point + ln_gamma(k_val + a) + ln_gamma(n_val - k_val + b)
+                        - ln_gamma(n_val + a + b)
+                        - ln_beta_ab[ss];
 
-                responsibility[ss] * interim
-            })
-            .collect();
+                    responsibility[ss] * interim
+                })
+                .collect();
 
-        row
-    }).collect();
+            row
+        })
+        .collect();
 
     result
 }
@@ -128,23 +142,46 @@ pub fn stream_betabinom_logpmf(
     //  Compute the total log-likelihood for the Beta-Binomial distribution.
     //
     //  see: https://en.wikipedia.org/wiki/Beta-binomial_distribution
-    
+
     let mut total_log_likelihood = 0.0;
 
-    //  NB responsibility should be N X M for M states. 
+    //  NB responsibility should be N X M for M states.
     for (&k_val, &n_val, &responsibility_val) in izip!(k, n, responsibility) {
-        let zero_point = ln_gamma(n_val + 1.0) - ln_gamma(k_val + 1.0) - ln_gamma(n_val - k_val + 1.0);
+        let zero_point =
+            ln_gamma(n_val + 1.0) - ln_gamma(k_val + 1.0) - ln_gamma(n_val - k_val + 1.0);
 
         //  NB index ss access to ln_beta_ab -> bounds checking, etc.
         for (&a, &b) in izip!(alpha, beta) {
             let bab = ln_gamma(a) + ln_gamma(b) - ln_gamma(a + b);
-            let interim = zero_point + ln_gamma(k_val + a) + ln_gamma(n_val - k_val + b) - ln_gamma(n_val + a + b) - bab;
+            let interim = zero_point + ln_gamma(k_val + a) + ln_gamma(n_val - k_val + b)
+                - ln_gamma(n_val + a + b)
+                - bab;
 
             total_log_likelihood += responsibility_val * interim;
         }
     }
 
     total_log_likelihood
+}
+
+// NB ludicrously slow.
+pub fn cached_gamma(values: &[usize], cache_size: usize) -> f64 {
+    let mut cache = LruCache::new(cache_size);
+    let mut total_sum = 0.0;
+
+    for &value in values {
+        if let Some(&cached_result) = cache.get(&value) {
+            total_sum += cached_result;
+        } else {
+            let result = ln_gamma(value as f64);
+
+            cache.put(value, result);
+
+            total_sum += result;
+        }
+    }
+
+    total_sum
 }
 
 pub fn get_nbinom_fixture(n: usize) -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) {
@@ -165,11 +202,14 @@ pub fn get_nbinom_fixture(n: usize) -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) 
     (k, r, p, q)
 }
 
-pub fn get_betabinom_fixture(num_trials: usize, num_states: usize) -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) {
+pub fn get_betabinom_fixture(
+    num_trials: usize,
+    num_states: usize,
+) -> (Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>) {
     let mut k = Vec::with_capacity(num_trials);
     let mut trials = Vec::with_capacity(num_trials);
     let mut responsibility: Vec<f64> = Vec::with_capacity(num_trials);
-        
+
     let mut alpha = Vec::with_capacity(num_states);
     let mut beta = Vec::with_capacity(num_states);
 
@@ -188,7 +228,7 @@ pub fn get_betabinom_fixture(num_trials: usize, num_states: usize) -> (Vec<f64>,
 
         alpha.push(a);
         beta.push(b);
-    }   
+    }
 
     (k, trials, alpha, beta, responsibility)
 }
@@ -200,14 +240,18 @@ mod tests {
     #[test]
     fn test_streaming_betabinom_fixture() {
         let (num_trials, num_states) = (1_000, 5);
-        let (k, trials, alpha, beta, responsibility) = get_betabinom_fixture(num_trials, num_states);
+        let (k, trials, alpha, beta, responsibility) =
+            get_betabinom_fixture(num_trials, num_states);
     }
 
     #[test]
     fn test_streaming_nbinom() {
         let (k, r, p, q) = get_nbinom_fixture(1_000);
 
-        let exp: f64 = basic_nbinom_logpmf(&k, &r, &p, &q).iter().flat_map(|row| row.iter()).sum();
+        let exp: f64 = basic_nbinom_logpmf(&k, &r, &p, &q)
+            .iter()
+            .flat_map(|row| row.iter())
+            .sum();
         let result = stream_nbinom_logpmf(&k, &r, &p, &q);
 
         assert_eq!(result, exp);
@@ -217,8 +261,14 @@ mod tests {
     fn test_streaming_betabinom() {
         let (k, n, alpha, beta, q) = get_betabinom_fixture(1_000, 5);
 
-        let exp: f64 = basic_betabinom_logpmf(&k, &n, &alpha, &beta, &q).iter().flat_map(|row| row.iter()).sum();
-        let result: f64 = basic_betabinom_logpmf(&k, &n, &alpha, &beta, &q).iter().flat_map(|row| row.iter()).sum();
+        let exp: f64 = basic_betabinom_logpmf(&k, &n, &alpha, &beta, &q)
+            .iter()
+            .flat_map(|row| row.iter())
+            .sum();
+        let result: f64 = basic_betabinom_logpmf(&k, &n, &alpha, &beta, &q)
+            .iter()
+            .flat_map(|row| row.iter())
+            .sum();
 
         assert_eq!(result, exp);
     }

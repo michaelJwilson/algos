@@ -20,7 +20,7 @@ pub fn longest_common_prefix(strs: Vec<String>) -> String {
     // NB iterate over first_string, stopping at shortest_length if necessary.
     for (ii, current_letter) in first_string.iter().take(shortest_length).enumerate() {
         // NB check whether all other strings support this character
-        //    and edit accordingly. 
+        //    and edit accordingly.
         for ss in &strs[1..] {
             if ss.chars().nth(ii) != Some(*current_letter) {
                 return prefix;
