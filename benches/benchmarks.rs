@@ -53,6 +53,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         let (k, n, alpha, beta, q) = get_betabinom_fixture(num_trials, num_states);
 
         b.iter(|| {
+            //  let _ = basic_betabinom_logpmf(&k, &n, &alpha, &beta, &q);
             let _ = stream_betabinom_logpmf(&k, &n, &alpha, &beta, &q);
         });
     });

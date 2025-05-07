@@ -116,7 +116,7 @@ pub fn basic_betabinom_logpmf(
     result
 }
 
-// NB runtime:  1.7572 ns ()
+// NB runtime:  1.75 ns;  248.52 ps
 pub fn stream_betabinom_logpmf(
     k: &[f64],
     n: &[f64],
@@ -128,30 +128,7 @@ pub fn stream_betabinom_logpmf(
     //  Compute the total log-likelihood for the Beta-Binomial distribution.
     //
     //  see: https://en.wikipedia.org/wiki/Beta-binomial_distribution
-
-    let ln_beta_ab: Vec<f64> = alpha
-        .iter()
-        .zip(beta.iter())
-        .map(|(&a, &b)| ln_gamma(a) + ln_gamma(b) - ln_gamma(a + b))
-        .collect();
-
-    /*
-    let zero_points: Vec<f64> = k.iter()
-        .zip(n.iter())
-        .map(|(&k_val, &n_val)| {
-            ln_gamma(n_val + 1.0) - ln_gamma(k_val + 1.0) - ln_gamma(n_val - k_val + 1.0)
-        })
-        .collect();
-    */
-    /*
-    //  TODO
-    let ln_beta_ab: SmallVec<[f64; 8]> = alpha
-        .iter()
-        .zip(beta.iter())
-        .map(|(&a, &b)| ln_gamma(a) + ln_gamma(b) - ln_gamma(a + b))
-        .collect();
-    */
-
+    
     let mut total_log_likelihood = 0.0;
 
     //  NB responsibility should be N X M for M states. 
@@ -159,8 +136,9 @@ pub fn stream_betabinom_logpmf(
         let zero_point = ln_gamma(n_val + 1.0) - ln_gamma(k_val + 1.0) - ln_gamma(n_val - k_val + 1.0);
 
         //  NB index ss access to ln_beta_ab -> bounds checking, etc.
-        for (ss, (&a, &b)) in alpha.iter().zip(beta.iter()).enumerate() {
-            let interim = zero_point + ln_gamma(k_val + a) + ln_gamma(n_val - k_val + b) - ln_gamma(n_val + a + b) - ln_beta_ab[ss];
+        for (&a, &b) in izip!(alpha, beta) {
+            let bab = ln_gamma(a) + ln_gamma(b) - ln_gamma(a + b);
+            let interim = zero_point + ln_gamma(k_val + a) + ln_gamma(n_val - k_val + b) - ln_gamma(n_val + a + b) - bab;
 
             total_log_likelihood += responsibility_val * interim;
         }
@@ -228,9 +206,11 @@ mod tests {
     #[test]
     fn test_streaming_nbinom() {
         let (k, r, p, q) = get_nbinom_fixture(1_000);
-        let result = basic_nbinom_logpmf(&k, &r, &p, &q);
 
-        println!("Result: {:?}", result);
+        let exp: f64 = basic_nbinom_logpmf(&k, &r, &p, &q).iter().flat_map(|row| row.iter()).sum();
+        let result = stream_nbinom_logpmf(&k, &r, &p, &q);
+
+        assert_eq!(result, exp);
     }
 
     #[test]
