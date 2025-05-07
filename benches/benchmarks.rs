@@ -4,6 +4,7 @@ use algos::dijkstra::{dijkstra, get_adjacencies_fixture_large};
 use algos::felsenstein::{compute_likelihood, get_felsenstein_fixture};
 use algos::max_flow::{edmonds_karp, get_adj_matrix_fixture, get_large_graph_fixture};
 use algos::leapfrog::{leapfrog, acceleration, get_leapfrog_fixture};
+use algos::streaming::{get_streaming_fixture, basic_nbinom_logpmf};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
 use ndarray::Array2;
@@ -38,7 +39,12 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("fib(20)", |b| b.iter(|| fibonacci_fast(black_box(20))));
 
     c.bench_function("collatz(100)", |b| b.iter(|| collatz(black_box(100))));
-    
+
+    c.bench_function("streaming", |b| b.iter(|| {
+        let (k, r, p, q) = get_streaming_fixture(1_000);
+        let _ = basic_nbinom_logpmf(k, r, p, q);
+    }));
+
     c.bench_function("leapfrog", |b| b.iter(|| {
         let (initial_position, initial_velocity, time_step, num_steps) = get_leapfrog_fixture();
 

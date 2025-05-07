@@ -47,6 +47,7 @@ pub mod tests;
 pub mod transpose;
 pub mod valid_palindrome;
 pub mod leapfrog;
+pub mod streaming;
 
 // NB list of deprecated modules.
 // pub mod matrix;
