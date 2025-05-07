@@ -25,7 +25,8 @@ pub fn basic_nbinom_logpmf(
 
     let result: Vec<Vec<f64>> = k
         .iter()
-        .map(|&k_val| {
+        .enumerate()
+        .map(|(ii, &k_val)| {
             // NB data-dependent only
             let zero_point = -ln_factorial(k_val as u64);
 
@@ -33,11 +34,12 @@ pub fn basic_nbinom_logpmf(
                 .iter()
                 .enumerate()
                 .map(|(ss, &r_val)| {
-                    let mut interim = zero_point;
-
+                    let mut interim = 0.0;
+                    
+                    interim += zero_point;
                     interim += k_val * lnq[ss] + r_val * lnp[ss] - gr[ss];
                     interim += ln_gamma(k_val + r_val);
-                    interim *= responsibility[ss];
+                    interim *= responsibility[ii];
 
                     interim
                 })
@@ -69,8 +71,9 @@ pub fn stream_nbinom_logpmf(k: &[f64], r: &[f64], p: &[f64], responsibility: &[f
         let zero_point = -ln_factorial(*k_val as u64);
 
         for (ss, &r_val) in r.iter().enumerate() {
-            let mut interim = zero_point;
+            let mut interim = 0.0;
 
+            interim += zero_point;
             interim += k_val * lnq[ss] + r_val * lnp[ss] - gr[ss];
             interim += ln_gamma(k_val + r_val);
             interim *= responsibility_val;
