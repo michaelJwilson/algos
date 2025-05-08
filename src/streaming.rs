@@ -52,7 +52,7 @@ pub fn basic_nbinom_logpmf(
     result
 }
 
-// NB stream runtime: 393.88 µs (22x)
+// NB stream runtime: 393.88 µs (22x); 11.979 µs for iterations with no checking;
 pub fn stream_nbinom_logpmf(k: &[f64], r: &[f64], p: &[f64], responsibility: &[f64]) -> f64 {
     //
     //  Compute the total log-likelihood for the negative binomial distribution.
@@ -67,15 +67,15 @@ pub fn stream_nbinom_logpmf(k: &[f64], r: &[f64], p: &[f64], responsibility: &[f
     let mut total_log_likelihood = 0.0;
 
     // NB array iterations allow for no per-iteration bounds checking.
-    for (k_val, &responsibility_val) in k.iter().zip(responsibility.iter()) {
-        let zero_point = -ln_factorial(*k_val as u64);
+    for (kk, &responsibility_val) in k.iter().zip(responsibility.iter()) {
+        let zero_point = -ln_gamma(kk + 1.0);
 
-        for (ss, &r_val) in r.iter().enumerate() {
+        for (&rr, &pp, &qq, &gg) in izip!(r, &lnp, &lnq, &gr) {
             let mut interim = 0.0;
 
             interim += zero_point;
-            interim += k_val * lnq[ss] + r_val * lnp[ss] - gr[ss];
-            interim += ln_gamma(k_val + r_val);
+            interim += kk * qq + rr * pp - gg;
+            interim += ln_gamma(kk + rr);
             interim *= responsibility_val;
 
             total_log_likelihood += interim;
