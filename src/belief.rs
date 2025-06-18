@@ -1,6 +1,6 @@
-use rustc_hash::FxHashMap as HashMap;
 use rand::thread_rng;
 use rand::Rng;
+use rustc_hash::FxHashMap as HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VariableType {
@@ -24,12 +24,12 @@ pub enum FactorType {
 
 pub struct Factor {
     pub id: usize,
-    pub variables: Vec<usize>, // variable ids
-    pub table: Vec<f64>,       // flattened table, row-major, probabilities for all clique assignments.
+    pub variables: Vec<usize>,   // variable ids
+    pub table: Vec<f64>, // flattened table, row-major, probabilities for all clique assignments.
     pub factor_type: FactorType, // label for the type of factor
 }
 
-/// NB represents a bipartite graph of variables < -- > factors. 
+/// NB represents a bipartite graph of variables < -- > factors.
 pub struct FactorGraph {
     pub variables: Vec<Variable>,
     pub factors: Vec<Factor>,
@@ -39,15 +39,17 @@ pub struct FactorGraph {
 
 fn next_assignment(assignment: &mut [usize], domains: &[usize], skip: usize) -> bool {
     for (j, dom) in domains.iter().enumerate() {
-        if j == skip { continue; }
-           assignment[j] += 1;
-
-           if assignment[j] < *dom {
-              return true;
-           } else {
-              assignment[j] = 0;
-           }
+        if j == skip {
+            continue;
         }
+        assignment[j] += 1;
+
+        if assignment[j] < *dom {
+            return true;
+        } else {
+            assignment[j] = 0;
+        }
+    }
 
     false
 }
@@ -77,11 +79,11 @@ pub fn ls_belief_propagation(
             }
         }
     }
-    
+
     for factor in &fg.factors {
         for &vid in &factor.variables {
             let vdom = fg.variables.iter().find(|v| v.id == vid).unwrap().domain;
-            
+
             for s in 0..vdom {
                 messages.insert((factor.id, vid, s), 1.0 / vdom as f64);
             }
@@ -98,7 +100,7 @@ pub fn ls_belief_propagation(
         for var in &fg.variables {
             for &fid in fg.var_to_factors.get(&var.id).unwrap() {
                 let vdom = var.domain;
-                
+
                 for s in 0..vdom {
                     let mut prod = 1.0;
 
@@ -107,7 +109,7 @@ pub fn ls_belief_propagation(
                             prod *= messages[&(other_fid, var.id, s)];
                         }
                     }
-                    
+
                     new_messages.insert((var.id, fid, s), prod);
                 }
             }
@@ -119,23 +121,24 @@ pub fn ls_belief_propagation(
         for factor in &fg.factors {
             let fvars = &factor.variables;
             let ftable = &factor.table;
-            
+
             for (i, &vid) in fvars.iter().enumerate() {
                 let vdom = fg.variables.iter().find(|v| v.id == vid).unwrap().domain;
-                
+
                 for s in 0..vdom {
                     // NB sum over all assignments to other variables in the factor
                     let mut sum = 0.0;
                     let num_vars = fvars.len();
-                    
+
                     let mut assignment = vec![0; num_vars];
-                                        
-                    let domains: Vec<usize> = fvars.iter()
+
+                    let domains: Vec<usize> = fvars
+                        .iter()
                         .map(|vid| fg.variables.iter().find(|v| v.id == *vid).unwrap().domain)
                         .collect();
-                        
+
                     assignment[i] = s;
-                    
+
                     loop {
                         // Compute index into factor table
                         let mut idx = 0;
@@ -146,22 +149,22 @@ pub fn ls_belief_propagation(
                             idx += a * stride;
                             stride *= domains[domains.len() - 1 - j];
                         }
-                        
+
                         let mut prod = 1.0;
-                        
+
                         for (j, &other_vid) in fvars.iter().enumerate() {
                             if j != i {
                                 prod *= messages[&(other_vid, factor.id, assignment[j])];
                             }
                         }
-                        
+
                         sum += ftable[idx].powf(beta) * prod;
 
                         if !next_assignment(&mut assignment, &domains, i) {
                             break;
                         }
                     }
-                    
+
                     new_messages.insert((factor.id, vid, s), sum);
                 }
             }
@@ -174,48 +177,49 @@ pub fn ls_belief_propagation(
             } else {
                 fg.variables.iter().find(|v| v.id == *to).unwrap().domain
             };
-            
+
             let norm: f64 = (0..vdom).map(|s| new_messages[&(*from, *to, s)]).sum();
-            
+
             for s in 0..vdom {
                 let val = new_messages[&(*from, *to, s)] / norm;
                 new_messages.insert((*from, *to, s), val);
             }
         }
 
-        let max_diff = new_messages.iter()
+        let max_diff = new_messages
+            .iter()
             .map(|(k, &v)| (v - messages.get(k).copied().unwrap_or(0.0)).abs())
             .fold(0.0, f64::max);
 
         if max_diff < tol {
             break;
         }
-       
+
         messages = new_messages;
     }
 
     // NB compute marginals for each variable: product of incoming messages.
     let mut marginals = Vec::new();
-    
+
     for var in &fg.variables {
         let vdom = var.domain;
         let mut marginal = vec![1.0; vdom];
-        
+
         for &fid in fg.var_to_factors.get(&var.id).unwrap() {
             for s in 0..vdom {
                 marginal[s] *= messages[&(fid, var.id, s)];
             }
         }
-        
+
         let norm: f64 = marginal.iter().sum();
-        
+
         for s in 0..vdom {
             marginal[s] /= norm;
         }
-        
+
         marginals.push(marginal);
     }
-    
+
     marginals
 }
 
@@ -242,10 +246,57 @@ pub fn random_normalized_H(nleaves: usize, ncolor: usize) -> Vec<Vec<f64>> {
                 for v in &mut row {
                     *v /= norm;
                 }
-           }
+            }
             row
         })
         .collect()
+}
+
+fn felsenstein_root_marginal(
+    nleaves: usize,
+    nancestors: usize,
+    ncolor: usize,
+    emission_factors: &[Vec<f64>],
+    pairwise_table: &[f64],
+) -> Vec<f64> {
+    // Each node will have a likelihood vector of size ncolor
+    let nnodes = nleaves + nancestors;
+    let mut likelihoods = vec![vec![1.0; ncolor]; nnodes];
+
+    // Set leaf likelihoods to emission factors
+    for leaf in 0..nleaves {
+        likelihoods[leaf] = emission_factors[leaf].clone();
+    }
+
+    // Post-order traversal: process internal nodes from leaves up
+    // For a full binary tree, parents are nleaves..nnodes
+    for p in (nleaves..nnodes).rev() {
+        let left = 2 * (p - nleaves);
+        let right = 2 * (p - nleaves) + 1;
+
+        let mut lk = vec![0.0; ncolor];
+        for parent_state in 0..ncolor {
+            let mut left_sum = 0.0;
+            let mut right_sum = 0.0;
+            for child_state in 0..ncolor {
+                // Transition: parent_state -> child_state
+                let trans = pairwise_table[parent_state * ncolor + child_state];
+                left_sum += trans * likelihoods[left][child_state];
+                right_sum += trans * likelihoods[right][child_state];
+            }
+            lk[parent_state] = left_sum * right_sum;
+        }
+        likelihoods[p] = lk;
+    }
+
+    // The root is the last node (nnodes-1)
+    let mut root_marginal = likelihoods[nnodes - 1].clone();
+    // Normalize
+    let norm: f64 = root_marginal.iter().sum();
+    for v in &mut root_marginal {
+        *v /= norm;
+    }
+    root_marginal
 }
 
 #[cfg(test)]
@@ -261,11 +312,19 @@ mod tests {
         let nancestors = nleaves - 1;
 
         let leaves: Vec<Variable> = (0..nleaves)
-            .map(|id| Variable { id, domain: ncolor, var_type: VariableType::Observed })
+            .map(|id| Variable {
+                id,
+                domain: ncolor,
+                var_type: VariableType::Observed,
+            })
             .collect();
 
         let ancestors: Vec<Variable> = (0..nancestors)
-            .map(|id| Variable { id: id + nleaves, domain: ncolor, var_type: VariableType::Latent })
+            .map(|id| Variable {
+                id: id + nleaves,
+                domain: ncolor,
+                var_type: VariableType::Latent,
+            })
             .collect();
 
         let variables: Vec<Variable> = leaves.into_iter().chain(ancestors).collect();
@@ -335,8 +394,14 @@ mod tests {
                 factor_type: FactorType::Transition,
             });
 
-            var_to_factors.entry(parent_id).or_default().push(next_factor_id);
-            var_to_factors.entry(left_child).or_default().push(next_factor_id);
+            var_to_factors
+                .entry(parent_id)
+                .or_default()
+                .push(next_factor_id);
+            var_to_factors
+                .entry(left_child)
+                .or_default()
+                .push(next_factor_id);
 
             factor_to_vars.insert(next_factor_id, vec![parent_id, left_child]);
 
@@ -349,8 +414,14 @@ mod tests {
                 factor_type: FactorType::Transition,
             });
 
-            var_to_factors.entry(parent_id).or_default().push(next_factor_id);
-            var_to_factors.entry(right_child).or_default().push(next_factor_id);
+            var_to_factors
+                .entry(parent_id)
+                .or_default()
+                .push(next_factor_id);
+            var_to_factors
+                .entry(right_child)
+                .or_default()
+                .push(next_factor_id);
 
             factor_to_vars.insert(next_factor_id, vec![parent_id, right_child]);
 
@@ -372,11 +443,5 @@ mod tests {
         let marginals = ls_belief_propagation(&fg, max_iters, tol, beta);
 
         println!("Marginals: {:?}", marginals);
-        /*
-        for marginal in marginals {
-            let sum: f64 = marginal.iter().sum();
-            assert!((sum - 1.0).abs() < 1e-8, "Marginal not normalized: {:?}", marginal);
-        }
-        */
     }
 }

@@ -35,6 +35,7 @@ pub mod min_mutations;
 pub mod minka;
 pub mod needle_haystack;
 // pub mod nelder_mead;
+pub mod belief;
 pub mod felsenstein;
 pub mod leapfrog;
 pub mod plus_one;
@@ -48,7 +49,6 @@ pub mod streaming;
 pub mod tests;
 pub mod transpose;
 pub mod valid_palindrome;
-pub mod belief;
 
 // NB list of deprecated modules.
 // pub mod matrix;
