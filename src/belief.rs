@@ -45,7 +45,10 @@ pub fn ls_belief_propagation(
     fg: &FactorGraph,
     max_iters: usize,
     tol: f64,
+    beta: Option<f64>,
 ) -> Vec<Vec<f64>> {
+    let beta = beta.unwrap_or(1.0);
+
     let mut messages: Message = HashMap::new();
 
     // NB initialize var -> factor as 1/domain size.
@@ -134,7 +137,7 @@ pub fn ls_belief_propagation(
                             }
                         }
                         
-                        sum += ftable[idx] * prod;
+                        sum += ftable[idx].powf(beta) * prod;
 
                         if !next_assignment(&mut assignment, &domains, i) {
                             break;
@@ -196,4 +199,115 @@ pub fn ls_belief_propagation(
     }
     
     marginals
+}
+
+pub fn random_one_hot_H(nleaves: usize, nspin: usize) -> Vec<Vec<f64>> {
+    let mut rng = thread_rng();
+    (0..nleaves)
+        .map(|_| {
+            let mut row = vec![0.0; nspin];
+            let idx = rng.gen_range(0..nspin);
+            row[idx] = 1.0;
+            row
+        })
+        .collect()
+}
+
+pub fn random_normalized_H(nleaves: usize, nspin: usize) -> Vec<Vec<f64>> {
+    let mut rng = thread_rng();
+    (0..nleaves)
+        .map(|_| {
+            let mut row: Vec<f64> = (0..nspin).map(|_| rng.gen::<f64>()).collect();
+            let norm: f64 = row.iter().sum();
+            if norm > 0.0 {
+                for v in &mut row {
+                    *v /= norm;
+                }
+            }
+            row
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ultrametric_binary_tree_belief_propagation() {
+        // Example: 3-leaf ultrametric binary tree (root=0, internal=1, leaves=2,3,4)
+        // Variables: root (0), internal (1), leaf1 (2), leaf2 (3), leaf3 (4)
+        // Domain size for all variables
+        let ncolor = 5;
+        let nleaf = 50;
+
+        let variables: Vec<Variable> = (0..nleaf)
+            .map(|id| Variable { id, ncolor })
+            .collect();
+
+        // H: emission weights for each leaf
+        let H = vec![
+            vec![1.0, 0.0, -1.0], // for leaf 2
+            vec![0.5, 0.0, -0.5], // for leaf 3
+            vec![0.2, 0.0, -0.2], // for leaf 4
+        ];
+
+        // s: state vector (0, 1, 2)
+        let s: Vec<usize> = (0..domain).collect();
+
+        // Emission factors for each leaf: exp(H.s)
+        let mut emission_factors = Vec::new();
+        for h in &H {
+            let table: Vec<f64> = s.iter().map(|&si| (h[si]).exp()).collect();
+            emission_factors.push(table);
+        }
+
+        // Factors: one for each leaf emission, and internal structure
+        let mut factors = Vec::new();
+        // Emission factors for leaves 2, 3, 4
+        for (leaf_idx, table) in (2..=4).zip(emission_factors.iter()) {
+            factors.push(Factor {
+                id: leaf_idx + 10, // unique id for emission factor
+                variables: vec![leaf_idx],
+                table: table.clone(),
+            });
+        }
+        // Example: add a dummy factor for the root (could be uniform)
+        factors.push(Factor {
+            id: 0,
+            variables: vec![0],
+            table: vec![1.0; domain],
+        });
+
+        // var_to_factors: map each variable to its emission factor(s)
+        let mut var_to_factors: HashMap<usize, Vec<usize>> = HashMap::default();
+        for leaf_idx in 2..=4 {
+            var_to_factors.insert(leaf_idx, vec![leaf_idx + 10]);
+        }
+        var_to_factors.insert(0, vec![0]); // root
+
+        // factor_to_vars: reverse mapping
+        let mut factor_to_vars: HashMap<usize, Vec<usize>> = HashMap::default();
+        for leaf_idx in 2..=4 {
+            factor_to_vars.insert(leaf_idx + 10, vec![leaf_idx]);
+        }
+        factor_to_vars.insert(0, vec![0]);
+
+        // Build the factor graph
+        let fg = FactorGraph {
+            variables,
+            factors,
+            var_to_factors,
+            factor_to_vars,
+        };
+
+        // Run loopy sum-product belief propagation
+        let marginals = ls_belief_propagation(&fg, 10, 1e-6, None);
+
+        // Check that marginals are normalized
+        for marginal in marginals {
+            let sum: f64 = marginal.iter().sum();
+            assert!((sum - 1.0).abs() < 1e-8, "Marginal not normalized: {:?}", marginal);
+        }
+    }
 }
