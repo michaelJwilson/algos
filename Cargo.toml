@@ -37,6 +37,7 @@ itertools = "0.11"
 smallvec = "1.10"
 lru = "0.7"
 dfdx = "0.11.0"
+burn = "0.17.1"
 
 # argmin = "0.10.0"
 # argmin-math = { version = "0.4", features = ["ndarray_latest", "nalgebra_latest"] }
