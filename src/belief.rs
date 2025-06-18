@@ -423,6 +423,7 @@ mod tests {
             let row_start = i * ncolor;
             let row_end = row_start + ncolor;
             let row_sum: f64 = pairwise_table[row_start..row_end].iter().sum();
+
             if row_sum > 0.0 {
                 for j in row_start..row_end {
                     pairwise_table[j] /= row_sum;
@@ -553,6 +554,7 @@ mod tests {
             "Latent Index", "BP Marginal", "Felsenstein"
         );
 
+        // TODO why is the root uniform?
         let start = marginals.len().saturating_sub(10);
         for i in start..marginals.len() {
             print!("{:>10} ", i);
