@@ -35,7 +35,7 @@ pub fn basic_nbinom_logpmf(
                 .enumerate()
                 .map(|(ss, &r_val)| {
                     let mut interim = 0.0;
-                    
+
                     interim += zero_point;
                     interim += k_val * lnq[ss] + r_val * lnp[ss] - gr[ss];
                     interim += ln_gamma(k_val + r_val);

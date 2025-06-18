@@ -5,8 +5,8 @@ use algos::felsenstein::{compute_likelihood, get_felsenstein_fixture};
 use algos::leapfrog::{acceleration, get_leapfrog_fixture, leapfrog};
 use algos::max_flow::{edmonds_karp, get_adj_matrix_fixture, get_large_graph_fixture};
 use algos::streaming::{
-    basic_betabinom_logpmf, basic_nbinom_logpmf, get_betabinom_fixture, get_nbinom_fixture,
-    stream_betabinom_logpmf, stream_nbinom_logpmf, cached_gamma
+    basic_betabinom_logpmf, basic_nbinom_logpmf, cached_gamma, get_betabinom_fixture,
+    get_nbinom_fixture, stream_betabinom_logpmf, stream_nbinom_logpmf,
 };
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use nalgebra::DMatrix;
