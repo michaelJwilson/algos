@@ -292,7 +292,7 @@ fn felsensteins(
 
     for lk in &mut likelihoods {
         let norm: f64 = lk.iter().sum();
-        
+
         for v in lk.iter_mut() {
             *v /= norm;
         }
