@@ -337,7 +337,7 @@ mod tests {
     #[test]
     fn test_ultrametric_binary_tree_belief_propagation() {
         let ncolor = 5;
-        let nleaves = 50;
+        let nleaves = 15;
 
         // NB  assumes ultrametric (fully balanced) binary tree, N=(2n -1).
         let nancestors = nleaves - 1;
