@@ -235,6 +235,35 @@ pub fn random_one_hot_H(nleaves: usize, ncolor: usize) -> Vec<Vec<f64>> {
         .collect()
 }
 
+pub fn linear_one_hot_H(nleaves: usize, ncolor: usize) -> Vec<Vec<f64>> {
+    let mut rng = thread_rng();
+    
+    let weights: Vec<f64> = (1..=ncolor).map(|i| i as f64).collect();
+    let total: f64 = weights.iter().sum();
+    let probs: Vec<f64> = weights.iter().map(|w| w / total).collect();
+
+    (0..nleaves)
+        .map(|_| {
+            let mut r = rng.gen::<f64>();
+            let mut idx = 0;
+
+            for (i, &p) in probs.iter().enumerate() {
+                if r < p {
+                    idx = i;
+                    break;
+                }
+
+                r -= p;
+            }
+
+            let mut row = vec![0.0; ncolor];
+
+            row[idx] = 1.0;
+            row
+        })
+        .collect()
+}
+
 pub fn random_normalized_H(nleaves: usize, ncolor: usize) -> Vec<Vec<f64>> {
     let mut rng = thread_rng();
 
@@ -332,7 +361,7 @@ mod tests {
         let variables: Vec<Variable> = leaves.into_iter().chain(ancestors).collect();
 
         // H: emission weights for each leaf
-        let H = random_one_hot_H(nleaves, ncolor);
+        let H = linear_one_hot_H(nleaves, ncolor);
 
         // Emission factors for each leaf: exp(H.s)
         let mut emission_factors = Vec::new();
@@ -346,8 +375,12 @@ mod tests {
                 *v /= norm;
             }
 
+            // println!("{:?}", table);
+
             emission_factors.push(table);
         }
+
+        // std::process::exit(0);
 
         // Factors: one for each leaf emission, and internal soft constraints.
         let mut factors = Vec::new();
