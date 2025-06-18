@@ -503,5 +503,27 @@ mod tests {
 
             println!("\n");
         }
+
+        println!(
+            "{:>10} {:>30} {:>30}",
+            "Latent Index", "BP Marginal", "Felsenstein"
+        );
+
+        let start = marginals.len().saturating_sub(10);
+        for i in start..marginals.len() {
+            print!("{:>10} ", i);
+
+            for j in 0..ncolor {
+                print!("{:>10.6} ", marginals[i][j]);
+            }
+            println!();
+            print!("{:>10} ", "");
+
+            for j in 0..ncolor {
+                print!("{:>10.6} ", exp[i][j]);
+            }
+
+            println!("\n");
+        }
     }
 }
