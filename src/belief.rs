@@ -237,7 +237,7 @@ pub fn random_one_hot_H(nleaves: usize, ncolor: usize) -> Vec<Vec<f64>> {
 
 pub fn linear_one_hot_H(nleaves: usize, ncolor: usize) -> Vec<Vec<f64>> {
     let mut rng = thread_rng();
-    
+
     let weights: Vec<f64> = (1..=ncolor).map(|i| i as f64).collect();
     let total: f64 = weights.iter().sum();
     let probs: Vec<f64> = weights.iter().map(|w| w / total).collect();
@@ -408,14 +408,25 @@ mod tests {
             factor_to_vars.insert(leaf_idx, factor.variables.clone());
         }
 
-        //  Example: Potts model (same color favored)
-        let pairwise_strength = 2.0;
+        let pairwise_strength = 3.0;
         let mut pairwise_table = vec![0.0; ncolor * ncolor];
 
         //  TODO normalized?
         for i in 0..ncolor {
             for j in 0..ncolor {
                 pairwise_table[i * ncolor + j] = if i == j { pairwise_strength } else { 1.0 };
+            }
+        }
+
+        // Normalize each row of the pairwise_table to sum to 1
+        for i in 0..ncolor {
+            let row_start = i * ncolor;
+            let row_end = row_start + ncolor;
+            let row_sum: f64 = pairwise_table[row_start..row_end].iter().sum();
+            if row_sum > 0.0 {
+                for j in row_start..row_end {
+                    pairwise_table[j] /= row_sum;
+                }
             }
         }
 
