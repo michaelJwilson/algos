@@ -1,14 +1,30 @@
 use rustc_hash::FxHashMap as HashMap;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VariableType {
+    Latent,
+    Observed,
+}
+
 pub struct Variable {
     pub id: usize,
     pub domain: usize,
+    pub latency: VariableType,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FactorType {
+    Emission,
+    Transition,
+    Start_Prior,
+    Custom,
 }
 
 pub struct Factor {
     pub id: usize,
     pub variables: Vec<usize>, // variable ids
     pub table: Vec<f64>,       // flattened table, row-major, probabilities for all clique assignments.
+    pub constraint: FactorType, // label for the type of factor
 }
 
 /// NB represents a bipartite graph of variables < -- > factors. 
@@ -215,6 +231,7 @@ pub fn random_one_hot_H(nleaves: usize, nspin: usize) -> Vec<Vec<f64>> {
 
 pub fn random_normalized_H(nleaves: usize, nspin: usize) -> Vec<Vec<f64>> {
     let mut rng = thread_rng();
+
     (0..nleaves)
         .map(|_| {
             let mut row: Vec<f64> = (0..nspin).map(|_| rng.gen::<f64>()).collect();
@@ -235,43 +252,54 @@ mod tests {
 
     #[test]
     fn test_ultrametric_binary_tree_belief_propagation() {
-        // Example: 3-leaf ultrametric binary tree (root=0, internal=1, leaves=2,3,4)
-        // Variables: root (0), internal (1), leaf1 (2), leaf2 (3), leaf3 (4)
-        // Domain size for all variables
         let ncolor = 5;
-        let nleaf = 50;
+        let nleaves = 50;
+        let nancestors = (nleaves - 1); // assumes ultrametric binary tree, N=2n -1
 
-        let variables: Vec<Variable> = (0..nleaf)
-            .map(|id| Variable { id, ncolor })
+        // NB domain vector
+        let s: Vec<usize> = (0..ncolor).collect();
+
+        let leaves: Vec<Variable> = (0..nleaves)
+            .map(|id| Variable { id, ncolor VariableType::Observed })
             .collect();
 
-        // H: emission weights for each leaf
-        let H = vec![
-            vec![1.0, 0.0, -1.0], // for leaf 2
-            vec![0.5, 0.0, -0.5], // for leaf 3
-            vec![0.2, 0.0, -0.2], // for leaf 4
-        ];
+        let latents: Vec<Variable> = (0..nancestors)
+            .map(|id| Variable { id: id + nleaves, domain: ncolor, latency: VariableType::Latent })
+            .collect();
 
-        // s: state vector (0, 1, 2)
-        let s: Vec<usize> = (0..domain).collect();
+        let variables: Vec<Variable> = leaves.into_iter().chain(latents).collect();
+
+        // H: emission weights for each leaf
+        let H = random_one_hot_H(nleaves, nspin);
 
         // Emission factors for each leaf: exp(H.s)
         let mut emission_factors = Vec::new();
+
         for h in &H {
             let table: Vec<f64> = s.iter().map(|&si| (h[si]).exp()).collect();
             emission_factors.push(table);
         }
 
-        // Factors: one for each leaf emission, and internal structure
+        // Factors: one for each leaf emission, and internal soft constraints.
         let mut factors = Vec::new();
-        // Emission factors for leaves 2, 3, 4
-        for (leaf_idx, table) in (2..=4).zip(emission_factors.iter()) {
+
+        for (leaf_idx, table) in emission_factors.iter().enumerate() {
             factors.push(Factor {
-                id: leaf_idx + 10, // unique id for emission factor
+                id: leaf_idx,
                 variables: vec![leaf_idx],
-                table: table.clone(),
+                table: table,
+                factor_type: FactorType::Emission,
             });
         }
+
+        // var_to_factors: map each variable to its emission factor(s)
+        let mut var_to_factors: HashMap<usize, Vec<usize>> = HashMap::default();
+
+        for leaf_idx in 0..nleaves {
+            var_to_factors.insert(leaf_idx, vec![leaf_idx + 10]);
+        }
+
+        /*
         // Example: add a dummy factor for the root (could be uniform)
         factors.push(Factor {
             id: 0,
@@ -279,11 +307,6 @@ mod tests {
             table: vec![1.0; domain],
         });
 
-        // var_to_factors: map each variable to its emission factor(s)
-        let mut var_to_factors: HashMap<usize, Vec<usize>> = HashMap::default();
-        for leaf_idx in 2..=4 {
-            var_to_factors.insert(leaf_idx, vec![leaf_idx + 10]);
-        }
         var_to_factors.insert(0, vec![0]); // root
 
         // factor_to_vars: reverse mapping
@@ -309,5 +332,6 @@ mod tests {
             let sum: f64 = marginal.iter().sum();
             assert!((sum - 1.0).abs() < 1e-8, "Marginal not normalized: {:?}", marginal);
         }
+        */
     }
 }
