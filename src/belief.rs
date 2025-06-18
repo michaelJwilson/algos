@@ -252,51 +252,53 @@ pub fn random_normalized_H(nleaves: usize, ncolor: usize) -> Vec<Vec<f64>> {
         .collect()
 }
 
-fn felsenstein_root_marginal(
+fn felsensteins(
     nleaves: usize,
     nancestors: usize,
     ncolor: usize,
     emission_factors: &[Vec<f64>],
     pairwise_table: &[f64],
-) -> Vec<f64> {
-    // Each node will have a likelihood vector of size ncolor
+) -> Vec<Vec<f64>> {
     let nnodes = nleaves + nancestors;
+
     let mut likelihoods = vec![vec![1.0; ncolor]; nnodes];
 
-    // Set leaf likelihoods to emission factors
     for leaf in 0..nleaves {
         likelihoods[leaf] = emission_factors[leaf].clone();
     }
 
-    // Post-order traversal: process internal nodes from leaves up
-    // For a full binary tree, parents are nleaves..nnodes
     for p in (nleaves..nnodes).rev() {
         let left = 2 * (p - nleaves);
         let right = 2 * (p - nleaves) + 1;
 
         let mut lk = vec![0.0; ncolor];
+
         for parent_state in 0..ncolor {
             let mut left_sum = 0.0;
             let mut right_sum = 0.0;
+
             for child_state in 0..ncolor {
-                // Transition: parent_state -> child_state
                 let trans = pairwise_table[parent_state * ncolor + child_state];
+
                 left_sum += trans * likelihoods[left][child_state];
                 right_sum += trans * likelihoods[right][child_state];
             }
+
             lk[parent_state] = left_sum * right_sum;
         }
+
         likelihoods[p] = lk;
     }
 
-    // The root is the last node (nnodes-1)
-    let mut root_marginal = likelihoods[nnodes - 1].clone();
-    // Normalize
-    let norm: f64 = root_marginal.iter().sum();
-    for v in &mut root_marginal {
-        *v /= norm;
+    for lk in &mut likelihoods {
+        let norm: f64 = lk.iter().sum();
+        
+        for v in lk.iter_mut() {
+            *v /= norm;
+        }
     }
-    root_marginal
+
+    likelihoods
 }
 
 #[cfg(test)]
@@ -336,7 +338,14 @@ mod tests {
         let mut emission_factors = Vec::new();
 
         for h in &H {
-            let table: Vec<f64> = (0..ncolor).map(|si| h[si].exp()).collect();
+            let mut table: Vec<f64> = (0..ncolor).map(|si| h[si].exp()).collect();
+
+            let norm: f64 = table.iter().sum();
+
+            for v in &mut table {
+                *v /= norm;
+            }
+
             emission_factors.push(table);
         }
 
@@ -398,6 +407,7 @@ mod tests {
                 .entry(parent_id)
                 .or_default()
                 .push(next_factor_id);
+
             var_to_factors
                 .entry(left_child)
                 .or_default()
@@ -442,6 +452,56 @@ mod tests {
 
         let marginals = ls_belief_propagation(&fg, max_iters, tol, beta);
 
-        println!("Marginals: {:?}", marginals);
+        let exp = felsensteins(
+            nleaves,
+            nancestors,
+            ncolor,
+            &emission_factors,
+            &pairwise_table,
+        );
+
+        println!(
+            "{:>10} {:>30} {:>30}",
+            "Leaf Index", "BP Marginal", "Felsenstein"
+        );
+
+        for i in 0..10 {
+            print!("{:>10} ", i);
+
+            for j in 0..ncolor {
+                print!("{:>10.6} ", marginals[i][j]);
+            }
+            println!();
+            print!("{:>10} ", "");
+
+            for j in 0..ncolor {
+                print!("{:>10.6} ", exp[i][j]);
+            }
+
+            println!("\n");
+        }
+
+        println!(
+            "{:>10} {:>30} {:>30}",
+            "Latent Index", "BP Marginal", "Felsenstein"
+        );
+
+        for i in (nleaves..nleaves + 10) {
+            print!("{:>10} ", i);
+
+            for j in 0..ncolor {
+                print!("{:>10.6} ", marginals[i][j]);
+            }
+
+            println!();
+
+            print!("{:>10} ", "");
+
+            for j in 0..ncolor {
+                print!("{:>10.6} ", exp[i][j]);
+            }
+
+            println!("\n");
+        }
     }
 }
