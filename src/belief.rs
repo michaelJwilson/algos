@@ -531,7 +531,7 @@ mod tests {
             "Latent Index", "BP Marginal", "Felsenstein"
         );
 
-        for i in (nleaves..nleaves + 10) {
+        for i in nleaves..nleaves + 10 {
             print!("{:>10} ", i);
 
             for j in 0..ncolor {

@@ -77,6 +77,7 @@ dependencies = [
  "GSL",
  "approx",
  "criterion",
+ "dfdx",
  "env_logger",
  "image",
  "itertools 0.11.0",
@@ -430,12 +431,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43da5946c66ffcc7745f48db692ffbb10a83bfe0afd96235c5c2a4fb23994929"
 
 [[package]]
+name = "cudarc"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1871a911a2b9a3f66a285896a719159985683bf9903aa2cf89e0c9f53e14552"
+
+[[package]]
 name = "debugid"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef552e6f588e446098f6ba40d89ac146c8c7b64aade83c051ee00bb5d2bc18d"
 dependencies = [
  "uuid",
+]
+
+[[package]]
+name = "dfdx"
+version = "0.11.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17330e12d809761fd04c750db4fd0783b0d3d25064ac3d83e818a93d0c2ef395"
+dependencies = [
+ "cudarc",
+ "matrixmultiply",
+ "num-traits",
+ "rand 0.8.5",
+ "rand_distr 0.4.3",
 ]
 
 [[package]]
