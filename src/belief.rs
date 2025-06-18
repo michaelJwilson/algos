@@ -307,6 +307,56 @@ mod tests {
             factor_to_vars.insert(leaf_idx, factor.variables.clone());
         }
 
+        //  Example: Potts model (same color favored)
+        let pairwise_strength = 2.0;
+        let mut pairwise_table = vec![0.0; ncolor * ncolor];
+
+        //  TODO normalized?
+        for i in 0..ncolor {
+            for j in 0..ncolor {
+                pairwise_table[i * ncolor + j] = if i == j { pairwise_strength } else { 1.0 };
+            }
+        }
+
+        let mut next_factor_id = nleaves;
+
+        // For a full binary tree, parent indices: nleaves..(nleaves + nancestors)
+        // Children of parent p: left = 2*(p-nleaves)+0, right = 2*(p-nleaves)+1
+        for p in 0..nancestors {
+            let parent_id = nleaves + p;
+
+            let left_child = 2 * p;
+            let right_child = 2 * p + 1;
+
+            factors.push(Factor {
+                id: next_factor_id,
+                variables: vec![parent_id, left_child],
+                table: pairwise_table.clone(),
+                factor_type: FactorType::Transition,
+            });
+
+            var_to_factors.entry(parent_id).or_default().push(next_factor_id);
+            var_to_factors.entry(left_child).or_default().push(next_factor_id);
+
+            factor_to_vars.insert(next_factor_id, vec![parent_id, left_child]);
+
+            next_factor_id += 1;
+
+            factors.push(Factor {
+                id: next_factor_id,
+                variables: vec![parent_id, right_child],
+                table: pairwise_table.clone(),
+                factor_type: FactorType::Transition,
+            });
+
+            var_to_factors.entry(parent_id).or_default().push(next_factor_id);
+            var_to_factors.entry(right_child).or_default().push(next_factor_id);
+
+            factor_to_vars.insert(next_factor_id, vec![parent_id, right_child]);
+
+            next_factor_id += 1;
+        }
+
         let fg = FactorGraph {
             variables,
             factors,
@@ -317,11 +367,12 @@ mod tests {
         // NB converges in at most the diameter == 2 log2 n iterations for a balanced BT.
         let max_iters = (2.0 * (nleaves as f64).log2()).ceil() as usize;
         let tol = 1e-6;
-        let beta = None;
+        let beta: Option<f64> = None;
 
-        /*
         let marginals = ls_belief_propagation(&fg, max_iters, tol, beta);
 
+        println!("Marginals: {:?}", marginals);
+        /*
         for marginal in marginals {
             let sum: f64 = marginal.iter().sum();
             assert!((sum - 1.0).abs() < 1e-8, "Marginal not normalized: {:?}", marginal);
