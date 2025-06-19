@@ -78,4 +78,4 @@ for ax in axes:
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
-plt.savefig("tree_marginals.pdf", bbox_inches="tight")
+plt.savefig("plots/tree_marginals.pdf", bbox_inches="tight")

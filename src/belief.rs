@@ -98,7 +98,7 @@ pub fn ls_belief_propagation(
 
     // NB converges in t*, diameter of the tree (max. node to node distance),
     //    i.e. 2log_2 num. leaves for a fully balanced (ultrametric) binary tree.
-    for iter in 0..max_iters {
+    for iter in 0..=max_iters {
         let mut new_messages = messages.clone();
 
         // NB  passes on incoming messages to var (except output factor),
@@ -577,9 +577,6 @@ mod tests {
 
         // NB converges in at most the diameter == 2 log2 n iterations for a balanced BT.
         let mut max_iters = (2.0 * (nleaves as f64).log2()).ceil() as usize;
-
-        // TODO HACK
-        // max_iters *= 2;
 
         let tol = 1e-6;
         let beta: Option<f64> = None;
