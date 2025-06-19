@@ -98,7 +98,7 @@ pub fn ls_belief_propagation(
 
     // NB converges in t*, diameter of the tree (max. node to node distance),
     //    i.e. 2log_2 num. leaves for a fully balanced (ultrametric) binary tree.
-    for iter in 0..=max_iters {
+    for iter in 0..max_iters {
         let mut new_messages = messages.clone();
 
         // NB  passes on incoming messages to var (except output factor),
@@ -329,15 +329,55 @@ fn felsensteins(
         likelihoods[p] = lk;
     }
 
-    for lk in &mut likelihoods {
-        let norm: f64 = lk.iter().sum();
+    // Downward pass: outs[node][state]
+    let mut outs = vec![vec![1.0; ncolor]; nnodes];
 
-        for v in lk.iter_mut() {
-            *v /= norm;
+    let root = nnodes - 1;
+    // outs[root] is all 1.0 (no parent)
+    // Traverse from root downward
+    for p in nleaves..nnodes {
+        let left = 2 * (p - nleaves);
+        let right = 2 * (p - nleaves) + 1;
+
+        if left >= nnodes {
+            continue;
+        }
+        // For each child, compute outs[child][child_state]
+        for &child in &[left, right] {
+            for child_state in 0..ncolor {
+                let mut sum = 0.0;
+
+                for parent_state in 0..ncolor {
+                    let trans = pairwise_table[parent_state * ncolor + child_state];
+
+                    // For the sibling, use the upward message
+                    let sibling = if child == left { right } else { left };
+
+                    sum += outs[p][parent_state] * trans * likelihoods[sibling][parent_state];
+                }
+
+                outs[child][child_state] = sum;
+            }
         }
     }
 
-    likelihoods
+    let mut marginals = vec![vec![0.0; ncolor]; nnodes];
+
+    for node in 0..nnodes {
+        for state in 0..ncolor {
+            marginals[node][state] = likelihoods[node][state] * outs[node][state];
+        }
+
+        let norm: f64 = marginals[node].iter().sum();
+
+        if norm > 0.0 {
+            for v in &mut marginals[node] {
+                *v /= norm;
+            }
+        }
+    }
+
+    marginals
 }
 
 pub fn compute_tree_positions(nleaves: usize, nancestors: usize) -> Vec<(f64, f64)> {
@@ -355,29 +395,29 @@ pub fn compute_tree_positions(nleaves: usize, nancestors: usize) -> Vec<(f64, f6
 
     // NB first parent
     let mut start_idx = nleaves;
-    
+
     while start_idx < nnodes {
         let parents_in_level = nodes_in_level / 2;
-        
+
         for i in 0..parents_in_level {
             let left = 2 * (start_idx + i - nleaves);
             let right = left + 1;
-            
+
             let parent = start_idx + i;
-            
+
             let x = (pos[left].0 + pos[right].0) / 2.0;
             let y = depth as f64;
-            
+
             pos[parent] = (x, y);
         }
-        
+
         nodes_in_level /= 2;
-        
+
         start_idx += parents_in_level;
-        
+
         depth += 1;
     }
-    
+
     pos
 }
 
@@ -392,14 +432,13 @@ pub fn save_node_marginals(
 
     writeln!(writer, "# id,x,y,bp_marginal,felsenstein_marginal")?;
 
-    for (var, (bp, fel)) in variables.iter().zip(marginals.iter().zip(felsenstein.iter())) {
+    for (var, (bp, fel)) in variables
+        .iter()
+        .zip(marginals.iter().zip(felsenstein.iter()))
+    {
         let (x, y) = var.pos.unwrap_or((f64::NAN, f64::NAN));
-        
-        writeln!(
-            writer,
-            "{}\t{}\t{}\t{:?}\t{:?}",
-            var.id, x, y, bp, fel
-        )?;
+
+        writeln!(writer, "{}\t{}\t{}\t{:?}\t{:?}", var.id, x, y, bp, fel)?;
     }
     Ok(())
 }
@@ -426,7 +465,7 @@ mod tests {
                 pos: None,
             })
             .collect();
-        
+
         let ancestors: Vec<Variable> = (0..nancestors)
             .map(|id| Variable {
                 id: id + nleaves,
