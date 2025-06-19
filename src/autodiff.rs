@@ -1,13 +1,29 @@
+use burn::tensor::{backend::NdArray, Tensor};
+/*
 use dfdx::{
     shapes::{Rank0, Rank2},
     tensor::{AsArray, AutoDevice, Gradients, NoneTape, OwnedTape, SampleTensor, Tensor, Trace},
     tensor_ops::{Backward, MeanTo, TryMatMul},
 };
+*/
 
 #[cfg(test)]
 mod autodiff_tests {
-    use dfdx::prelude::*;
+    // use dfdx::prelude::*;
+    use burn::tensor::{backend::NdArray, Tensor};
 
+    #[test]
+    fn test_burn() {
+        type B = NdArray<f32>;
+
+        let x = Tensor::<B, 1>::from_floats([2.0]).require_grad();
+        let y = x.clone() * x.clone() + x.clone() * 3.0;
+
+        let grads = y.backward();
+
+        println!("Gradient: {:?}", x.grad(&grads).to_data());
+    }
+    /*
     #[test]
     fn test_dfdx_grads() {
         println!("Testing dfdx package!");
@@ -51,4 +67,5 @@ mod autodiff_tests {
             }
         }
     }
+    */
 }

@@ -35,7 +35,6 @@ pub mod min_mutations;
 pub mod minka;
 pub mod needle_haystack;
 // pub mod nelder_mead;
-pub mod autodiff;
 pub mod belief;
 pub mod felsenstein;
 pub mod leapfrog;

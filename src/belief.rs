@@ -1,6 +1,8 @@
 use rand::thread_rng;
 use rand::Rng;
 use rustc_hash::FxHashMap as HashMap;
+use std::fs::File;
+use std::io::{BufWriter, Write};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VariableType {
@@ -8,10 +10,12 @@ pub enum VariableType {
     Observed,
 }
 
+#[derive(Clone)]
 pub struct Variable {
     pub id: usize,
     pub domain: usize,
     pub var_type: VariableType,
+    pub pos: Option<(f64, f64)>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -69,6 +73,8 @@ pub fn ls_belief_propagation(
 ) -> Vec<Vec<f64>> {
     let beta = beta.unwrap_or(1.0);
 
+    println!("Solving belief propagation");
+
     let mut messages: Message = HashMap::default();
 
     // NB initialize var -> factor as 1/domain size.
@@ -92,7 +98,7 @@ pub fn ls_belief_propagation(
 
     // NB converges in t*, diameter of the tree (max. node to node distance),
     //    i.e. 2log_2 num. leaves for a fully balanced (ultrametric) binary tree.
-    for _ in 0..max_iters {
+    for iter in 0..max_iters {
         let mut new_messages = messages.clone();
 
         // NB  passes on incoming messages to var (except output factor),
@@ -191,7 +197,11 @@ pub fn ls_belief_propagation(
             .map(|(k, &v)| (v - messages.get(k).copied().unwrap_or(0.0)).abs())
             .fold(0.0, f64::max);
 
+        println!("Belief propagation iteration {iter}: max_diff={max_diff:.3e}");
+
         if max_diff < tol {
+            println!("Converged at iteration {iter} with tolerance {max_diff:.3e}");
+
             break;
         }
 
@@ -330,14 +340,79 @@ fn felsensteins(
     likelihoods
 }
 
+pub fn compute_tree_positions(nleaves: usize, nancestors: usize) -> Vec<(f64, f64)> {
+    let nnodes = nleaves + nancestors;
+    let mut pos = vec![(0.0, 0.0); nnodes];
+
+    // Leaves: evenly spaced along x at y=0
+    for i in 0..nleaves {
+        pos[i] = (i as f64, 0.0);
+    }
+
+    // Ancestors: recursively place at the midpoint of their children, y increases with depth
+    let mut depth = 1;
+    let mut nodes_in_level = nleaves;
+
+    // NB first parent
+    let mut start_idx = nleaves;
+    
+    while start_idx < nnodes {
+        let parents_in_level = nodes_in_level / 2;
+        
+        for i in 0..parents_in_level {
+            let left = 2 * (start_idx + i - nleaves);
+            let right = left + 1;
+            
+            let parent = start_idx;
+            
+            let x = (pos[left].0 + pos[right].0) / 2.0;
+            let y = depth as f64;
+            
+            pos[parent] = (x, y);
+        }
+        
+        nodes_in_level /= 2;
+        
+        start_idx += parents_in_level;
+        
+        depth += 1;
+    }
+    
+    pos
+}
+
+pub fn save_node_marginals(
+    filename: &str,
+    variables: &[Variable],
+    marginals: &[Vec<f64>],
+    felsenstein: &[Vec<f64>],
+) -> std::io::Result<()> {
+    let file = File::create(filename)?;
+    let mut writer = BufWriter::new(file);
+
+    writeln!(writer, "id,x,y,bp_marginal,felsenstein_marginal")?;
+
+    for (var, (bp, fel)) in variables.iter().zip(marginals.iter().zip(felsenstein.iter())) {
+        let (x, y) = var.pos.unwrap_or((f64::NAN, f64::NAN));
+        writeln!(
+            writer,
+            "{},{},{},{:?},{:?}",
+            var.id, x, y, bp, fel
+        )?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_ultrametric_binary_tree_belief_propagation() {
-        let ncolor = 5;
-        let nleaves = 15;
+        let ncolor = 3;
+        let nleaves = 16;
+
+        env_logger::init();
 
         // NB  assumes ultrametric (fully balanced) binary tree, N=(2n -1).
         let nancestors = nleaves - 1;
@@ -347,18 +422,28 @@ mod tests {
                 id,
                 domain: ncolor,
                 var_type: VariableType::Observed,
+                pos: None,
             })
             .collect();
-
+        
         let ancestors: Vec<Variable> = (0..nancestors)
             .map(|id| Variable {
                 id: id + nleaves,
                 domain: ncolor,
                 var_type: VariableType::Latent,
+                pos: None,
             })
             .collect();
 
-        let variables: Vec<Variable> = leaves.into_iter().chain(ancestors).collect();
+        let mut variables: Vec<Variable> = leaves.into_iter().chain(ancestors).collect();
+
+        println!("Solving for node positions.");
+
+        let pos = compute_tree_positions(nleaves, nancestors);
+
+        for (i, v) in variables.iter_mut().enumerate() {
+            v.pos = Some(pos[i]);
+        }
 
         // H: emission weights for each leaf
         let H = linear_one_hot_H(nleaves, ncolor);
@@ -379,8 +464,6 @@ mod tests {
 
             emission_factors.push(table);
         }
-
-        // std::process::exit(0);
 
         // Factors: one for each leaf emission, and internal soft constraints.
         let mut factors = Vec::new();
@@ -408,7 +491,7 @@ mod tests {
             factor_to_vars.insert(leaf_idx, factor.variables.clone());
         }
 
-        let pairwise_strength = 3.0;
+        let pairwise_strength = 5.0;
         let mut pairwise_table = vec![0.0; ncolor * ncolor];
 
         //  TODO normalized?
@@ -473,6 +556,7 @@ mod tests {
                 .entry(parent_id)
                 .or_default()
                 .push(next_factor_id);
+
             var_to_factors
                 .entry(right_child)
                 .or_default()
@@ -484,7 +568,7 @@ mod tests {
         }
 
         let fg = FactorGraph {
-            variables,
+            variables: variables.clone(),
             factors,
             var_to_factors,
             factor_to_vars,
@@ -571,5 +655,7 @@ mod tests {
 
             println!("\n");
         }
+
+        save_node_marginals("data/node_marginals.csv", &variables, &marginals, &exp).unwrap();
     }
 }
