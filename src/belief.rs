@@ -363,7 +363,7 @@ pub fn compute_tree_positions(nleaves: usize, nancestors: usize) -> Vec<(f64, f6
             let left = 2 * (start_idx + i - nleaves);
             let right = left + 1;
             
-            let parent = start_idx;
+            let parent = start_idx + i;
             
             let x = (pos[left].0 + pos[right].0) / 2.0;
             let y = depth as f64;
@@ -390,13 +390,14 @@ pub fn save_node_marginals(
     let file = File::create(filename)?;
     let mut writer = BufWriter::new(file);
 
-    writeln!(writer, "id,x,y,bp_marginal,felsenstein_marginal")?;
+    writeln!(writer, "# id,x,y,bp_marginal,felsenstein_marginal")?;
 
     for (var, (bp, fel)) in variables.iter().zip(marginals.iter().zip(felsenstein.iter())) {
         let (x, y) = var.pos.unwrap_or((f64::NAN, f64::NAN));
+        
         writeln!(
             writer,
-            "{},{},{},{:?},{:?}",
+            "{}\t{}\t{}\t{:?}\t{:?}",
             var.id, x, y, bp, fel
         )?;
     }
