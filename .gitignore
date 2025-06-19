@@ -5,3 +5,4 @@ dist/
 checkerboard.png
 checkerboard_inferred.png
 data/
+plots/
