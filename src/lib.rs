@@ -46,10 +46,10 @@ pub mod roman_to_integer;
 pub mod sorted_array_to_bst;
 pub mod sqrt;
 pub mod streaming;
+pub mod swendsen_wang;
 pub mod tests;
 pub mod transpose;
 pub mod valid_palindrome;
-pub mod swendsen_wang;
 
 // NB list of deprecated modules.
 // pub mod matrix;
