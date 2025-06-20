@@ -8,7 +8,7 @@ pub struct Edge {
 }
 
 #[derive(Debug, Clone)]
-pub struct SquareLatticePotts {
+pub struct PottsLattice {
     pub width: usize,
     pub height: usize,
     pub ncolor: usize,
@@ -17,7 +17,7 @@ pub struct SquareLatticePotts {
     pub edges: Vec<Edge>,        // List of edges
 }
 
-impl SquareLatticePotts {
+impl PottsLattice {
     pub fn new(
         width: usize,
         height: usize,
@@ -32,7 +32,6 @@ impl SquareLatticePotts {
             for x in 0..width {
                 let site = idx(x, y);
 
-                // Right neighbor
                 if x + 1 < width {
                     edges.push(Edge {
                         from: site,
@@ -41,7 +40,6 @@ impl SquareLatticePotts {
                     });
                 }
 
-                // Down neighbor
                 if y + 1 < height {
                     edges.push(Edge {
                         from: site,
@@ -51,6 +49,7 @@ impl SquareLatticePotts {
                 }
             }
         }
+        
         Self {
             width,
             height,
@@ -105,14 +104,14 @@ mod tests {
         let beta = 2.0;
 
         // h: nnode x ncolor
-        let h = random_field(width * height, ncolor, 5.)
+        let h = random_field(width * height, ncolor, 5.);
 
-        let lattice = SquareLatticePotts::new(width, height, ncolor, h.clone(), J);
+        let lattice = PottsLattice::new(width, height, ncolor, h.clone(), J);
 
         // Total cost for a configuration
         let assignment = vec![0; width * height]; // All nodes assigned to color 0
         let total = lattice.potts_cost(&assignment, beta);
 
-        prinln!("Total cost for all nodes assigned to color 0: {}", total);
+        println!("Total cost for all nodes assigned to color 0: {}", total);
     }
 }

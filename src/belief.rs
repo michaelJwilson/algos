@@ -306,7 +306,7 @@ fn felsensteins(
         likelihoods[leaf] = emission_factors[leaf].clone();
     }
 
-    for p in (nleaves..nnodes) {
+    for p in nleaves..nnodes {
         let left = 2 * (p - nleaves);
         let right = 2 * (p - nleaves) + 1;
 
